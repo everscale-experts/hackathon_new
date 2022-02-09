@@ -1,15 +1,7 @@
 use std::collections::HashMap;
 use reqwest::Error;
 
-async fn run() -> Result<(), reqwest::Error> {
-    println!("3542452354");
-    let body = reqwest::get("https://www.rust-lang.org")
-        .await?
-        .text()
-        .await?;
-    println!("body = {:?}", body);
-    Ok(())
-}
+// Trying to use async library: reqwest
 
 #[cfg(feature="json")]
 async fn get()  -> Result<(), Error> {
@@ -37,9 +29,20 @@ async fn get()  -> Result<(), Error> {
     // let res = request::post(uri, body, &mut writer).unwrap();
     // println!("{} {}", res.status_code(), res.reason());
 }
+
+// async fn main2() {
+//     println!("Main started...");
+//     let body = reqwest::get("https://doc.rust-lang.org").await?.text().await?;
+//     println!("body = {:#?}", body);
+// }
+
 #[tokio::main]
-async fn main() {
-    println!("3542452354");
-    let body = reqwest::get("https://www.rust-lang.org").await;
-    println!("body = {:?}", body);
+async fn main() -> Result<(), reqwest::Error> {
+    println!("Main function started.");
+    let body = reqwest::get("https://doc.rust-lang.org")
+        .await?
+        .text()
+        .await?;
+    println!("{body}");
+    Ok(())
 }
