@@ -1,0 +1,19 @@
+{
+  "name": "tezos_bridge",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@taquito/signer": "^11.2.0",
+    "@taquito/taquito": "^11.2.0",
+    "@tonclient/appkit": "^0.3.0",
+    "@tonclient/core": "^1.30.0",
+    "@tonclient/lib-node": "^1.30.0"
+  }
+}
