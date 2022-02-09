@@ -2,8 +2,9 @@ use crate::api::{TransportError, GetVersionInfo, GetVersionInfoResult, GetVersio
 use crate::http_api::HttpApi;
 
 fn get_version_info_url(base_url: &str) -> String {
-    // println!("debug: get_version_info_url");
-    format!("{}/version", base_url)
+    let res: String = format!("{}/version", base_url);
+    println!("[... > transfer > execute > build_operation_group > get_version_info > get_version_info_url]");
+    res
 }
 
 impl From<ureq::Error> for GetVersionInfoError {
@@ -36,6 +37,7 @@ impl From<std::io::Error> for GetVersionInfoError {
 
 impl GetVersionInfo for HttpApi {
     fn get_version_info(&self) -> GetVersionInfoResult {
+        println!("[... > execute > transfer > execute > build_operation_group > get_version_info]");
         Ok(self.client.get(&get_version_info_url(&self.base_url))
             .call()?
             .into_json()?)
