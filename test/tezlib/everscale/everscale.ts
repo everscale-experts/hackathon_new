@@ -75,9 +75,9 @@ class HelloEvents extends Account {
 }
 
 async function main() {
-    const client = new TonClient({ 
-        network: { 
-            endpoints: ['net.ton.dev'] 
+    const client = new TonClient({
+        network: {
+            endpoints: ['net.ton.dev']
         }
     });
 

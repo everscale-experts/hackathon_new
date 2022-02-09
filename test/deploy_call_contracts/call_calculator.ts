@@ -6,8 +6,8 @@ interface ICopyFilesArguments{
 }
 
 const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz'
-const CONTRACT = 'KT1B81hEJckCtpzBspduvDSSFdK2QbQYVwmp' //published contract address
+const CONTRACT = 'KT1UW5jNtDJ1m8EQVXGUBDBnNQxeXM8t6sf2' //published contract address
 const ADD = parse<ICopyFilesArguments>({
     first_var: String,
 }); //number to be received by the main function. You can change it
-new Call(RPC_URL).add(Number(ADD.first_var), CONTRACT)
+new Call(RPC_URL).add(Number(ADD.first_var,ADD.first_var)), CONTRACT)

@@ -24,8 +24,23 @@ https://teztnets.xyz/hangzhounet-faucet
 | **Command line** |  |
 | Tezos CLI | https://tezos.gitlab.io/shell/cli-commands.html |
 
+# Everscale_Wallets
+
+| EverSurf | https://ever.surf/ |
+|---|---|
+| EVER Wallet | https://l1.broxus.com/everscale/wallet |
+| Everspace | https://oberton.io/ |
+| extraTON | https://extraton.io/ |
+| Crypterium |  |
+| FreeWallet |  |
+| TONWallet |  |
+| LumiWallet |  |
+
 # Other Docs
 RPC тестнета: https://rpc.hangzhounet.teztnets.xyz
 Explorer тестнета: https://hangzhou.tzstats.com
 Кран тестнета: https://teztnets.xyz/hangzhounet-faucet
 https://forklog.com/sp/dev-on-tezos/en/testnet-deploy/
+
+#Useful Links
+https://ide.ligolang.org/
