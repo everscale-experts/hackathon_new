@@ -145,6 +145,7 @@ impl Agent {
 
     /// Make a GET request from this agent.
     pub fn get(&self, path: &str) -> Request {
+        println!("[... > transfer > execute > build_operation_group > get_version_info > get]");
         self.request("GET", path)
     }
 

@@ -115,6 +115,7 @@ impl TransferLocal {
     }
 
     pub fn execute(self) -> Result<(), CommandError> {
+        println!("[rust/test/srs/bin/tezedge.rs > execute]");
         // let public_key = self.public_key;
         let public_key = self.public_key().unwrap();
         let private_key: PrivateKey = self.private_key().unwrap();
@@ -124,7 +125,6 @@ impl TransferLocal {
             error: err,
             address: self.to.clone(),
         })?;
-        
         Ok(OperationCommand {
             options: OperationOptions {
                 no_prompt: self.no_prompt,
@@ -161,8 +161,7 @@ fn main() {
     let result = transfer_obj.execute();
 
     match result {
-        Ok(_) => {}
-        Err(err) => exit_with_error(err),
+        Ok(_) => println!("Ok"),
+        Err(err) => exit_with_error(err)
     }
-
 }

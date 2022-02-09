@@ -106,12 +106,13 @@ pub struct OperationCommand {
 
 impl OperationCommand {
     fn get_version(&mut self) -> GetVersionInfoResult {
+        println!("[rust/test/srs/bin/tezedge.rs > execute > transfer > execute > build_operation_group > get_version]");
         let version = self.state.version.as_ref()
             .map(|version| Ok(version.clone()))
             .unwrap_or_else(|| {
                 self.api.get_version_info()
             })?;
-
+        
         self.state.version.replace(version.clone());
         Ok(version)
     }
@@ -217,7 +218,8 @@ impl OperationCommand {
         }.build())
     }
 
-    fn build_operation_group(&mut self, op_type: OperationType,) -> Result<NewOperationGroup, Error> {
+    fn build_operation_group(&mut self, op_type: OperationType) -> Result<NewOperationGroup, Error> {
+        println!("[rust/test/srs/bin/tezedge.rs > execute > transfer > execute > build_operation_group]");
         let source = match self.from.clone() {
             Address::Implicit(source) => source.into(),
             Address::Originated(addr) => {
@@ -492,6 +494,7 @@ impl OperationCommand {
     }
 
     fn execute(&mut self, op_type: OperationType) -> Result<(), Error> {
+        println!("[rust/test/srs/bin/tezedge.rs > execute > transfer > execute]");
         let mut operation_group = self.build_operation_group(op_type)?;
         self.estimate_and_set_fees(&mut operation_group)?;
         let OperationSignatureInfo {
@@ -543,6 +546,7 @@ impl OperationCommand {
     }
 
     pub fn transfer(&mut self, to: Address, amount: u64) -> Result<(), Error> {
+        println!("[rust/test/srs/bin/tezedge.rs > execute > transfer]");
         let op_type = OperationType::Transaction { to, amount };
         self.execute(op_type)
     }
