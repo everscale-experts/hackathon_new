@@ -1,7 +1,7 @@
 ﻿# Run  
 ```bash  
-cd ./tests/test4  
-cargo run  
+cd ./tests 
+cargo run --bin tezedge 
 ```
   
 # Helpful (or not) links  
