@@ -1,0 +1,10 @@
+[package]
+name = "cli_spinner"
+version = "0.1.0"
+authors = ["Zura Benashvili <zura.benashvili@gmail.com>"]
+edition = "2018"
+
+
+[dependencies]
+emojies = { package = "cli_emojies", path = "../cli_emojies" }
+console = "0.14.0"

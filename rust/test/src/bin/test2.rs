@@ -4,7 +4,7 @@ mod common;
 mod commands;
 use std::error::Error;
 use std::str::FromStr;
-// use structopt::StructOpt;
+use structopt::StructOpt;
 use std::io::Result as IoResult;
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::fmt;
