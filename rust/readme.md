@@ -27,6 +27,7 @@ https://docs.dipdup.net/
 ##### StructOpt docs  
 https://docs.rs/structopt/latest/structopt/  
   
+  
 # Problems  
 ## build command for ring v0.16.20  
 ##### Not working:  
@@ -66,17 +67,23 @@ changing IDE
 changing ureq version  
 ***fixed (added ureq (2.0.1) to /rust)***  
   
+
+## [ERROR] getting version information failed! Reason: Unknown! Http status: (405, Method Not Allowed), message: Unsupported HTTP method  
+### error: process didn't exit successfully: 'target\debug\tezedge.exe' (exit code: 1)  
+##### ***Working on solution***  
+  
   
 ## From Slack  
 Michael Zaikin - Baking Bad:  
 Есть раст клиент https://github.com/tezedge/tezedge-client там есть базовые вещи типа работы с нодой, локальный форджинг и подпись, но правда без доки  
 Самый простой вариант для раста будет наверное взять статический бинарник родного клиента для ноды https://github.com/serokell/tezos-packaging и написать легкую обвязку только для тех команд которые нужны.
 По тезос-клиенту туториалов много, и доки достаточно подробные  
-
-# Links for readme
-RPC тестнета: https://rpc.hangzhounet.teztnets.xyz
-Explorer тестнета: https://hangzhou.tzstats.com
-Кран тестнета: https://teztnets.xyz/hangzhounet-faucet
-@tezos_faucet_bot - бот для получения тестовых монет, вдруг кому пригодится
+  
+  
+# Links for readme  
+RPC тестнета: https://rpc.hangzhounet.teztnets.xyz  
+Explorer тестнета: https://hangzhou.tzstats.com  
+Кран тестнета: https://teztnets.xyz/hangzhounet-faucet  
+@tezos_faucet_bot - бот для получения тестовых монет, вдруг кому пригодится  
 
 
