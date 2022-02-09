@@ -27,7 +27,8 @@ https://docs.dipdup.net/
 ##### StructOpt docs  
 https://docs.rs/structopt/latest/structopt/  
   
-# <span style="color:#f33">Problems</span>  
+  
+# Problems  
 ## build command for ring v0.16.20  
 ##### Not working:  
 https://github.com/shadowsocks/shadowsocks-android/discussions/2819  
@@ -72,16 +73,17 @@ changing ureq version
 ##### ***Working on solution***  
   
   
-## <span style=color:#0f9>From Slack</span>  
+## From Slack  
 Michael Zaikin - Baking Bad:  
 Есть раст клиент https://github.com/tezedge/tezedge-client там есть базовые вещи типа работы с нодой, локальный форджинг и подпись, но правда без доки  
 Самый простой вариант для раста будет наверное взять статический бинарник родного клиента для ноды https://github.com/serokell/tezos-packaging и написать легкую обвязку только для тех команд которые нужны.
 По тезос-клиенту туториалов много, и доки достаточно подробные  
-
-# Links for readme
-RPC тестнета: https://rpc.hangzhounet.teztnets.xyz
-Explorer тестнета: https://hangzhou.tzstats.com
-Кран тестнета: https://teztnets.xyz/hangzhounet-faucet
-@tezos_faucet_bot - бот для получения тестовых монет, вдруг кому пригодится
+  
+  
+# Links for readme  
+RPC тестнета: https://rpc.hangzhounet.teztnets.xyz  
+Explorer тестнета: https://hangzhou.tzstats.com  
+Кран тестнета: https://teztnets.xyz/hangzhounet-faucet  
+@tezos_faucet_bot - бот для получения тестовых монет, вдруг кому пригодится  
 
 
