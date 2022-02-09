@@ -66,6 +66,11 @@ changing IDE
 changing ureq version  
 ***fixed (added ureq (2.0.1) to /rust)***  
   
+
+## [ERROR] getting version information failed! Reason: Unknown! Http status: (405, Method Not Allowed), message: Unsupported HTTP method  
+### error: process didn't exit successfully: 'target\debug\tezedge.exe' (exit code: 1)  
+##### ***Working on solution***  
+  
   
 ## From Slack  
 Michael Zaikin - Baking Bad:  
