@@ -145,7 +145,7 @@ fn main() {
     let transfer_obj = TransferLocal {
         verbose: 3,
         no_prompt: false,
-        endpoint: "https://rpctest.tzbeta.net/".to_string(),
+        endpoint: "https://rpctest.tzbeta.net".to_string(),
         public_key: "edpkvLzwxgqDf9qp5vGq5UvTHLRvz54PXae1U4UhWSTdjzAiKJbbJB".to_string(),     // from tezedge-client/readme
         private_key: "edsk3p1JnT4LFXuxmcddNoJ7J5u12T7423mshwEikWmcLJnf2XvH7t".to_string(),    // from tezedge-client/readme
         from: "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX".to_string(),                             // from tezedge-client/readme

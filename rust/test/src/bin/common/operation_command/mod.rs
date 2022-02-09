@@ -232,10 +232,10 @@ impl OperationCommand {
             }
         };
         
-        let spinner = SpinnerBuilder::new()
-            .with_prefix(style("[1/4]").bold().dim())
-            .with_text("fetching necessary data from the node")
-            .start();
+        // let spinner = SpinnerBuilder::new()
+        //     .with_prefix(style("[1/4]").bold().dim())
+        //     .with_text("fetching necessary data from the node")
+        //     .start();
 
         self.get_version()?;
         let protocol_info = self.api.get_protocol_info()?;
@@ -246,7 +246,7 @@ impl OperationCommand {
             protocol_info.next_protocol_hash,
         );
 
-        spinner.finish_succeed("fetched necessary data from the node");
+        // spinner.finish_succeed("fetched necessary data from the node");
 
         if let Some(reveal_op) = self.build_reveal()? {
             operation_group = operation_group.with_reveal(reveal_op);
