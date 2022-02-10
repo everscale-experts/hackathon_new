@@ -38,6 +38,7 @@ const transferCommentAbi = {
 
 export class Wallet extends Account {
     private keys: KeyPair;
+    public balance: number
 
     constructor(client: TonClient, keys: KeyPair){
         super(getContract("Wallet"), {
@@ -51,6 +52,7 @@ export class Wallet extends Account {
     static async init (client, keys) {
         const wallet = new Wallet(client, keys);
         const walletBalance = parseInt(await wallet.getBalance(), 16);
+        wallet.balance = walletBalance;
 
         if (Number.isNaN(walletBalance)) {
             await wallet.deploy({
@@ -60,6 +62,7 @@ export class Wallet extends Account {
                 },
                 useGiver: true
             })
+            wallet.balance = parseInt(await wallet.getBalance(), 16);
         }
 
         return wallet;
@@ -77,6 +80,14 @@ export class Wallet extends Account {
             is_internal: true,
             signer: signerNone(),
         })).body;
+    }
+
+    public balanceChange(onRecieved: (acc) => void, onSpent: (acc) => void = () => {}){
+        this.subscribeAccount("balance", (acc) => {
+            const newBalance = parseInt(acc.balance);
+            newBalance > this.balance ? onRecieved(acc) : onSpent(acc);
+            this.balance = newBalance;
+        })
     }
 
     public async transfer(to: string, amount: number, comment: string){

@@ -1,4 +1,4 @@
-import {Tezos} from "./tezos"
+import {Tezos} from "./tezos/tezos"
 
 const account1 = require("./account1.json")
 const account2 = require("./account2.json")
