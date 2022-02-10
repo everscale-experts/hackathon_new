@@ -69,7 +69,7 @@ fn build_error<E>(address: &ImplicitAddress, kind: E) -> GetContractCounterError
 
 impl GetContractCounter for HttpApi {
     fn get_contract_counter(&self, addr: &ImplicitAddress) -> GetContractCounterResult {
-        Ok(self.client.get(&get_contract_counter_url(&self.base_url, addr))
+        Ok(self.client.get(&get_contract_counter_url(&self.base_url, addr), &"HttpApi > get_contract_counter")
            .call()
            .map_err(|err| build_error(addr, err))?
            .into_json::<ContractCounter>()

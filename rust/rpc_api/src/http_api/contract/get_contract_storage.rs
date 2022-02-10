@@ -59,7 +59,7 @@ impl GetContractStorage for HttpApi {
         addr: &OriginatedAddress,
     ) -> GetContractStorageResult
     {
-        Ok(self.client.get(&get_contract_storage_url(&self.base_url, addr))
+        Ok(self.client.get(&get_contract_storage_url(&self.base_url, addr), &"HttpApi > get_contract_storage")
            .call()
            .map_err(|err| build_error(addr, err))?
            .into_json()

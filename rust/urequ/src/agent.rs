@@ -152,14 +152,14 @@ impl Agent {
     ///     headers: Vec<Header>,
     ///     query_params: Vec<(String, String)>,
     /// }
-    // pub fn get(&self, path: &str, from: &str) -> Request {
-    //     println!("[... > get_version_info > get] path {} from {}", path.to_string(), from.to_string());
-    //     self.request("GET", path)
-    // }
-    pub fn get(&self, path: &str) -> Request {
-        println!("[... > get_version_info > get] path: {}", path.to_string());
+    pub fn get(&self, path: &str, from: &str) -> Request {
+        println!("[... > get_version_info > get] path {} from {}", path.to_string(), from.to_string());
         self.request("GET", path)
     }
+    // pub fn get(&self, path: &str) -> Request {
+    //     println!("[... > get_version_info > get] path: {}", path.to_string());
+    //     self.request("GET", path)
+    // }
 
     /// Make a HEAD request from this agent.
     pub fn head(&self, path: &str) -> Request {
