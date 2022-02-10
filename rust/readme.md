@@ -9,6 +9,10 @@ Also you can change `amount` and `fee` on lines 157 and 158
 cd ./tests  
 cargo run --bin tezedge  
 ```  
+If not working, try  
+```bash  
+rustup toolchain install 1.52.1  
+```
 ---  
   
 # Helpful (or not) links  
