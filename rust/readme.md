@@ -1,8 +1,15 @@
 ﻿# Run  
+Go to `rust/tests/src/bin/tezedge`  
+change variable `public_key` to the correct one on line 150  
+change variable `private_key` to the correct one on line 152  
+change variable `from` to the correct one on line 154  
+change variable `to` to the correct one on line 156  
+Also you can change `amount` and `fee` on lines 157 and 158  
 ```bash  
-cd ./tests 
-cargo run --bin tezedge 
-```
+cd ./tests  
+cargo run --bin tezedge  
+```  
+---  
   
 # Helpful (or not) links  
 ##### Tezos API (b-b)  
@@ -76,7 +83,7 @@ changing ureq version
 ## From Slack  
 Michael Zaikin - Baking Bad:  
 Есть раст клиент https://github.com/tezedge/tezedge-client там есть базовые вещи типа работы с нодой, локальный форджинг и подпись, но правда без доки  
-Самый простой вариант для раста будет наверное взять статический бинарник родного клиента для ноды https://github.com/serokell/tezos-packaging и написать легкую обвязку только для тех команд которые нужны.
+Самый простой вариант для раста будет наверное взять статический бинарник родного клиента для ноды https://github.com/serokell/tezos-packaging и написать легкую обвязку только для тех команд, которые нужны.
 По тезос-клиенту туториалов много, и доки достаточно подробные  
   
   
