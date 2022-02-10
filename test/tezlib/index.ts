@@ -58,15 +58,21 @@ async function main() {
     const senderEverscale = await wallet1.getAddress();
     const recieverEverscale = await wallet2.getAddress();
 
-    console.log("[everscale] Sending money from wallet1 to wallet2...")
-    const info = await wallet1.transfer(recieverEverscale, 10, "test 123");
-    console.log(`[everscale] Transfer from ${senderEverscale} to ${recieverEverscale} succeeded! TXID: ${info.transaction.id}`);
+    async function runEverscaleTransfer(){
+        console.log("[everscale] Sending money from wallet1 to wallet2...")
+        const info = await wallet1.transfer(recieverEverscale, 10, "test 123");
+        console.log(`[everscale] Transfer from ${senderEverscale} to ${recieverEverscale} succeeded! TXID: ${info.transaction.id}`);
+    }
 
+    async function runTezosTransfer(){
+        console.log("[tezos] Sending money from wallet5 to wallet6...")
+        const hash = await wallet5.transfer(accountCredentials6.pkh, 10);
+        console.log(`[tezos] Transfer from ${accountCredentials5.pkh} to ${accountCredentials6.pkh} succeeded! Hash: ${hash}`);
+    }
+
+    await runEverscaleTransfer();
     await delay(15000);
-
-    console.log("[tezos] Sending money from wallet5 to wallet6...")
-    const hash = await wallet5.transfer(accountCredentials6.pkh, 10);
-    console.log(`[tezos] Transfer from ${accountCredentials5.pkh} to ${accountCredentials6.pkh} succeeded! Hash: ${hash}`);
+    await runTezosTransfer();
 
 }
 

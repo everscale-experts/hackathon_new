@@ -104,7 +104,7 @@ export class Tezos {
    */
   public async transfer(address: string, amount: number){
     const op = await this.tezos.contract.transfer({to: address, amount});
-    await op.confirmation(3);
+    await op.confirmation(1);
     return op.hash;
   }
 
