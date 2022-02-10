@@ -12,8 +12,8 @@ import { libNode } from "@tonclient/lib-node";
 TonClient.useBinaryLibrary(libNode);
 
 const HelloEventsContract = {
-    abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "HelloEvents.abi.json")).toString()),
-    tvc: fs.readFileSync(path.resolve(__dirname, "HelloEvents.tvc")).toString("base64")
+    abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "contracts/HelloEvents.abi.json")).toString()),
+    tvc: fs.readFileSync(path.resolve(__dirname, "contracts/HelloEvents.tvc")).toString("base64")
 }
 
 function decodeText(hex) {
@@ -75,9 +75,9 @@ class HelloEvents extends Account {
 }
 
 async function main() {
-    const client = new TonClient({
-        network: {
-            endpoints: ['net.ton.dev']
+    const client = new TonClient({ 
+        network: { 
+            endpoints: ['net.ton.dev'] 
         }
     });
 

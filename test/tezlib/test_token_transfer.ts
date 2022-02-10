@@ -9,7 +9,6 @@ const tezos = new Tezos(RPC, account1);
 
 const CONTRACT = "KT1U5poZbk19ym28pK2tarU2Lohb8kpgvLME";
 
-// Transferring tokens
 async function main() {
     const hash = await tezos.transferToken(CONTRACT, account1.pkh, account2.pkh, 10);
     console.log("Токен отправлен. Хэш:", hash)
