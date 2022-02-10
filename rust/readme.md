@@ -1,6 +1,8 @@
-# Run  
-cd ./tests/test4  
-cargo run  
+﻿# Run    
+```bash  
+cd ./tests  
+cargo run --bin listener  
+```  
   
 # Helpful (or not) links  
 ##### Tezos API (b-b)  
