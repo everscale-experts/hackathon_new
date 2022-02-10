@@ -16,8 +16,19 @@ sudo npm install --global yarn
 ## Install core package
 
 ```shell script
+cd test/wallet_integration/everwallet
 yarn
 #npm i --save @tonclient/core
+git submodule update --init
+```
+  
+## TODO  
+- submodules;  
+  
+## Run
+
+```bash
+npx ts-node transfertip.ts
 ```
 
 ## Install bridge package (depends on target JS platform)
