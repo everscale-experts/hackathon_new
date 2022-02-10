@@ -41,7 +41,7 @@ impl GetVersionInfo for HttpApi {
         let value: String = get_version_info_url(&self.base_url);
         println!("{}", value);
         // let value: String = "https://rpctest.tzbeta.net/version".to_string();
-        Ok(self.client.get(&value)
+        Ok(self.client.get(&value, &"HttpApi > get_version_info")
             .call()?
             .into_json()?)
     }

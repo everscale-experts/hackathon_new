@@ -35,7 +35,8 @@ impl From<std::io::Error> for GetChainIDError {
 
 impl GetChainID for HttpApi {
     fn get_chain_id(&self) -> GetChainIDResult {
-        Ok(self.client.get(&get_chain_id_url(&self.base_url))
+        // Ok("NetXZSsxBpMQeAT".to_string())
+        Ok(self.client.get(&get_chain_id_url(&self.base_url), &"HttpApi > get_chain_id")
             .call()?
             .into_json()?)
     }

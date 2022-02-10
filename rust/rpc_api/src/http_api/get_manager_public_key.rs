@@ -55,7 +55,7 @@ fn build_error<E>(address: &Address, kind: E) -> GetManagerPublicKeyError
 
 impl GetManagerPublicKey for HttpApi {
     fn get_manager_public_key(&self, addr: &Address) -> GetManagerPublicKeyResult {
-        Ok(self.client.get(&get_manager_key_url(&self.base_url, addr))
+        Ok(self.client.get(&get_manager_key_url(&self.base_url, addr), &"HttpApi > get_manager_public_key")
            .call()
            .map_err(|err| build_error(addr, err))?
            .into_json::<Option<String>>()
