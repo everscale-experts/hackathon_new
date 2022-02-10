@@ -69,7 +69,7 @@ async function main() {
 
     console.log("Name:");
 
-    const name = await acc.run('name',{answerId:0}).catch(e => console.log("ERROR:", e));
+    const name = await acc.runLocal('name',{answerId:0}).catch(e => console.log("ERROR:", e));
     console.log("Name of token", name)
     //const balance = await acc.getBalance().catch(e => console.log("ERROR:", e));
     //console.log("Account balance now is", parseInt(balance || "undefined"));
