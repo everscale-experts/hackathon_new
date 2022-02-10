@@ -2,7 +2,8 @@ import { TonClient } from "@tonclient/core"
 import { libNode } from "@tonclient/lib-node";
 import { Wallet } from "./everlib";
 
-import accountCredentials from "./accounts/account1.json"
+import accountCredentials1 from "./accounts/account1.json"
+import accountCredentials2 from "./accounts/account2.json"
 
 TonClient.useBinaryLibrary(libNode);
 
@@ -14,10 +15,15 @@ const client = new TonClient({
 });
 
 async function main() {
-    const wallet = await Wallet.init(client, accountCredentials);
+    const wallet1 = await Wallet.init(client, accountCredentials1);
+    const wallet2 = await Wallet.init(client, accountCredentials2);
 
-    const info = await wallet.transfer("0:3c6f04bf89d7f57c0b5ed014af9fe324ac782f77ffd2543afd1f06dc17dfd925", 10, "test 123");
-    console.log(await wallet.get(info.transaction.id))
+    const sender = await wallet1.getAddress();
+    const reciever = await wallet2.getAddress();
+
+    const info = await wallet1.transfer(reciever, 10, "test 123");
+
+    console.log(`Transfer from ${sender} to ${reciever} suceeded! TXID: ${info.transaction.id}`)
 }
 
 main();

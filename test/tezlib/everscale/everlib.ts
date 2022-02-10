@@ -65,11 +65,6 @@ export class Wallet extends Account {
         return wallet;
     }
 
-    public async get(transactionId: string){
-        const a = await this.run("getTransactions", {})
-        console.log("DKKD", a);
-    }
-
     private async getCommentPayload(text: string){
         return (await this.client.abi.encode_message_body({
             abi: abiContract(transferCommentAbi),
