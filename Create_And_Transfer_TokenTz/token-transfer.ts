@@ -3,6 +3,7 @@
 import { TezosToolkit } from '@taquito/taquito'
 import { InMemorySigner } from '@taquito/signer'
 const acc = require('./account1.json')
+
 export class token_transfer {
   // настраиваем ссылку на публичный узел тестовой сети
   private tezos: TezosToolkit
