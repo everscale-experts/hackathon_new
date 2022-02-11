@@ -1,5 +1,5 @@
 import { TonClient } from "@tonclient/core"
-import { libNode, } from "@tonclient/lib-node";
+import { libNode } from "@tonclient/lib-node";
 import { Wallet } from "./everscale//everlib";
 import { Tezos } from "./tezos/tezos"
 
@@ -42,16 +42,16 @@ async function main() {
     const wallet7 = new Tezos(TezosRPC, accountCredentials7);
     const wallet8 = new Tezos(TezosRPC, accountCredentials8);
 
-    wallet2.balanceChange(async () => {
-        console.log("[everscale] wallet2 recieved money, initializing transfer from wallet7 to wallet8...");
-        const hash = await wallet7.transfer(accountCredentials8.pkh, 10);
+    wallet2.balanceChange(async (amount) => {
+        console.log(`[everscale] wallet2 recieved ${amount} coins, initializing transfer from wallet7 to wallet8...`);
+        const hash = await wallet7.transfer(accountCredentials8.pkh, Math.ceil(amount));
         console.log(`[tezos] Transfer from ${accountCredentials7.pkh} to ${accountCredentials8.pkh} succeeded! Hash: ${hash}`);
-
     })
 
-    wallet6.subscribe(async () => {
-        console.log("[tezos] wallet6 recieved money, initializing transfer from wallet3 to wallet4...");
-        const info = await wallet3.transfer(await wallet4.getAddress(), 10, "test 123");
+    wallet6.subscribe(async (data) => {
+        const recieved = Number(data.amount) / 1000000;
+        console.log(`[tezos] wallet6 recieved ${recieved} coins, initializing transfer from wallet3 to wallet4...`);
+        const info = await wallet3.transfer(await wallet4.getAddress(), recieved, "test 123");
         console.log(`[everscale] Transfer from ${await wallet3.getAddress()} to ${await wallet4.getAddress()} succeeded! TXID: ${info.transaction.id}`);
     })
 
@@ -60,13 +60,13 @@ async function main() {
 
     async function runEverscaleTransfer(){
         console.log("[everscale] Sending money from wallet1 to wallet2...")
-        const info = await wallet1.transfer(recieverEverscale, 10, "test 123");
+        const info = await wallet1.transfer(recieverEverscale, 1, "test 123");
         console.log(`[everscale] Transfer from ${senderEverscale} to ${recieverEverscale} succeeded! TXID: ${info.transaction.id}`);
     }
 
     async function runTezosTransfer(){
         console.log("[tezos] Sending money from wallet5 to wallet6...")
-        const hash = await wallet5.transfer(accountCredentials6.pkh, 10);
+        const hash = await wallet5.transfer(accountCredentials6.pkh, 1);
         console.log(`[tezos] Transfer from ${accountCredentials5.pkh} to ${accountCredentials6.pkh} succeeded! Hash: ${hash}`);
     }
 

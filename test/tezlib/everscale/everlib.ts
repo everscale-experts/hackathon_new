@@ -82,10 +82,11 @@ export class Wallet extends Account {
         })).body;
     }
 
-    public balanceChange(onRecieved: (acc) => void, onSpent: (acc) => void = () => {}){
+    public balanceChange(onRecieved: (delta: number) => void, onSpent: (delta: number) => void = () => {}){
         this.subscribeAccount("balance", (acc) => {
-            const newBalance = parseInt(acc.balance);
-            newBalance > this.balance ? onRecieved(acc) : onSpent(acc);
+            const newBalance = parseInt(acc.balance, 16);
+            const delta = (newBalance - this.balance) / 1_000_000_000;
+            delta > 0 ? onRecieved(delta) : onSpent(-delta);
             this.balance = newBalance;
         })
     }
@@ -93,7 +94,7 @@ export class Wallet extends Account {
     public async transfer(to: string, amount: number, comment: string){
         return this.run("submitTransaction", {
             dest: to,
-            value: amount * 100_000_000,
+            value: amount * 1_000_000_000,
             bounce: false,
             allBalance: false,
             payload: await this.getCommentPayload(comment)
