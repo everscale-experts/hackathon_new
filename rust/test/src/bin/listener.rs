@@ -2,11 +2,11 @@ use ureq::Agent;
 use json::parse;
 use std::thread;
 use std::time::Duration;
+const ADDR: &str = "tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R";
 
 fn get() -> json::JsonValue {
     let agent = Agent::new();
-    let address = "tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R";
-    let path = format!("https://api.hangzhounet.tzkt.io/v1/accounts/{}/operations", address);
+    let path = format!("https://api.hangzhounet.tzkt.io/v1/accounts/{}/operations", ADDR);
     let res = agent.get(&path)
         .call()
         .unwrap()
