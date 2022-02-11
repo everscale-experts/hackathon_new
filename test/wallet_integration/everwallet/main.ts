@@ -17,6 +17,7 @@ const keyPairFile = path.join(__dirname, "keys.json");
 const keyPair = JSON.parse(fs.readFileSync(keyPairFile, "utf8"));
 const addressFile = path.join(__dirname, "address.txt");
 //const address = fs.readFileSync(addressFile, "utf8")
+const transferAbi = JSON.parse(fs.readFileSync(path.resolve(__dirname, "transfer.abi.json")).toString());
 
 
 TonClient.useBinaryLibrary(libNode);
@@ -28,7 +29,7 @@ const TokenFactory = {
 
 const TokenWallet = {
   abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "ton-eth-bridge-token-contracts/build/TokenWallet.abi.json")).toString()),
-  tvc: fs.readFileSync(path.resolve(__dirname, "ton-eth-bridge-token-contracts/build/TokenTokenWallet.tvc")).toString("base64")
+  tvc: fs.readFileSync(path.resolve(__dirname, "ton-eth-bridge-token-contracts/build/TokenWallet.tvc")).toString("base64")
 }
 
 
@@ -88,6 +89,12 @@ async function main() {
          client}
        );
 
+       const deploytrans = await(acctrasnf.deploy({
+         initInput: {
+
+           },useGiver:true,}).catch(e => console.log("ERROR:", e)));
+    console.log(deploytrans)
+
 
     const body = (await client.abi.encode_message_body({
                  abi: abiContract(transferAbi),
@@ -102,16 +109,16 @@ async function main() {
              })).body;
 
 
-      const transfer = await(acctrasnf.run("transfer"),{
+      const transfer = await(acctrasnf.run("transfer",{
         amont:1000000,
         recipient:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
         remainingGasTo:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
         notify:true,
         payload:body,
-      })
+      }).catch(e => console.log("ERROR:", e)))
 
 
-
+      console.log(transfer)
 
     /*  const symbol = await(acc.run("symbol",{answerId:0}));
       const walletcode = await(acc.run("walletCode",{answerId:0}));
