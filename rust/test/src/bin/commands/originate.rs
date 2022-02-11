@@ -1,7 +1,7 @@
 use std::thread;
 use std::fmt::{self, Display};
 use std::time::Duration;
-use cli_spinner::SpinnerBuilder;
+// use cli_spinner::SpinnerBuilder;
 use structopt::StructOpt;
 use console::style;
 
@@ -182,9 +182,9 @@ impl Originate {
     }
 
     fn confirm_operation(&mut self, operation_hash: &str) -> Result<(), CommandError> {
-        let spinner = SpinnerBuilder::new()
-            .with_text("waiting for confirmation")
-            .start();
+        // let spinner = SpinnerBuilder::new()
+        //     .with_text("waiting for confirmation")
+        //     .start();
 
         let api = self.rpc();
         for _ in 0..10 {
@@ -193,7 +193,7 @@ impl Originate {
             let status = api.get_pending_operation_status(&operation_hash)?;
             match status {
                 PendingOperationStatus::Refused => {
-                    spinner.finish_fail("operation_refused");
+                    // spinner.finish_fail("operation_refused");
                     return Ok(());
                 }
                 PendingOperationStatus::Applied => {
@@ -204,7 +204,7 @@ impl Originate {
             }
         }
 
-        spinner.finish_succeed("operation confirmed");
+        // spinner.finish_succeed("operation confirmed");
 
         Ok(())
     }

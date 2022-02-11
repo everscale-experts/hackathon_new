@@ -1,7 +1,7 @@
 use console::style;
 
 use lib::ledger_api::LedgerResponse;
-use cli_spinner::{wait_for_action_spinner, SpinnerBuilder};
+// use cli_spinner::{wait_for_action_spinner, SpinnerBuilder};
 use crate::common::exit_with_error;
 
 /// Execute Ledger command and drive it to completion.
@@ -13,7 +13,7 @@ use crate::common::exit_with_error;
 pub fn ledger_execute<'a, T>(mut response: LedgerResponse<'a, T>) -> T
     where T: 'static,
 {
-    let spinner = wait_for_action_spinner();
+    // let spinner = wait_for_action_spinner();
 
     loop {
         match response {
@@ -22,36 +22,36 @@ pub fn ledger_execute<'a, T>(mut response: LedgerResponse<'a, T>) -> T
                 exit_with_error(err);
             }
             LedgerResponse::RunAppRequest(req) => {
-                let _spinner = spinner.clone()
-                    .with_text(format!(
-                        "please open {} on your Ledger device to proceed.",
-                        style(req.app_name()).green(),
-                    ))
-                    .start();
+                // let _spinner = spinner.clone()
+                //     .with_text(format!(
+                //         "please open {} on your Ledger device to proceed.",
+                //         style(req.app_name()).green(),
+                //     ))
+                //     .start();
                 response = req.ack();
             }
             LedgerResponse::RetryRequest(req) => {
-                let _spinner = SpinnerBuilder::new()
-                    .with_text("retrying request.")
-                    .start();
+                // let _spinner = SpinnerBuilder::new()
+                //     .with_text("retrying request.")
+                //     .start();
                 response = req.ack();
             }
             LedgerResponse::UnlockRequest(req) => {
-                let _spinner = spinner.clone()
-                    .with_text(format!(
-                        "please {} your Ledger device.",
-                        style("unlock").bold(),
-                    ))
-                    .start();
+                // let _spinner = spinner.clone()
+                //     .with_text(format!(
+                //         "please {} your Ledger device.",
+                //         style("unlock").bold(),
+                //     ))
+                //     .start();
                 response = req.ack();
             }
             LedgerResponse::ReconnectRequest(req) => {
-                let _spinner = SpinnerBuilder::new()
-                    .with_text(format!(
-                        "{} Trying to reconnect.",
-                        style("Ledger disconnected!").red(),
-                    ))
-                    .start();
+                // let _spinner = SpinnerBuilder::new()
+                //     .with_text(format!(
+                //         "{} Trying to reconnect.",
+                //         style("Ledger disconnected!").red(),
+                //     ))
+                //     .start();
                 response = req.ack();
             }
         }

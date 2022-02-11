@@ -15,7 +15,7 @@ use lib::trezor_api::{Trezor, TezosSignTx};
 use lib::ledger_api::Ledger;
 use lib::api::*;
 
-use cli_spinner::SpinnerBuilder;
+// use cli_spinner::SpinnerBuilder;
 use crate::trezor::trezor_execute;
 use crate::ledger::ledger_execute;
 use crate::common::{
@@ -448,17 +448,17 @@ impl OperationCommand {
 
             Ok(sig_info)
         } else if let Some(state) = self.local_state.as_ref() {
-            let spinner = SpinnerBuilder::new()
-                .with_prefix(style("[2/4]").bold().dim())
-                .with_text("forging the operation and signing")
-                .start();
+            // let spinner = SpinnerBuilder::new()
+            //     .with_prefix(style("[2/4]").bold().dim())
+            //     .with_text("forging the operation and signing")
+            //     .start();
             let forged_operation = operation_group.forge();
 
             let sig_info = state.signer().sign_forged_operation_bytes(
                 forged_operation.as_ref(),
             );
 
-            spinner.finish_succeed("operation forged and signed");
+            // spinner.finish_succeed("operation forged and signed");
             Ok(sig_info)
         } else {
             exit_with_error_no_wallet_type_selected()
@@ -466,10 +466,10 @@ impl OperationCommand {
     }
 
     fn confirm_operation(&mut self, operation_hash: &str) -> Result<(), Error> {
-        let spinner = SpinnerBuilder::new()
-            .with_prefix(style("[4/4]").bold().dim())
-            .with_text("waiting for confirmation")
-            .start();
+        // let spinner = SpinnerBuilder::new()
+        //     .with_prefix(style("[4/4]").bold().dim())
+        //     .with_text("waiting for confirmation")
+        //     .start();
 
         for _ in 0..10 {
             thread::sleep(Duration::from_secs(2));
@@ -477,7 +477,7 @@ impl OperationCommand {
             let status = self.api.get_pending_operation_status(&operation_hash)?;
             match status {
                 PendingOperationStatus::Refused => {
-                    spinner.finish_fail("operation_refused");
+                    // spinner.finish_fail("operation_refused");
                     return Ok(());
                 }
                 PendingOperationStatus::Applied => {
@@ -488,7 +488,7 @@ impl OperationCommand {
             }
         }
 
-        spinner.finish_succeed("operation confirmed");
+        // spinner.finish_succeed("operation confirmed");
 
         Ok(())
     }
@@ -503,16 +503,16 @@ impl OperationCommand {
             signature,
         } = self.sign_operation(&operation_group)?;
 
-        let spinner = SpinnerBuilder::new()
-            .with_prefix(style("[3/4]").bold().dim())
-            .with_text("applying and injecting the operation")
-            .start();
+        // let spinner = SpinnerBuilder::new()
+        //     .with_prefix(style("[3/4]").bold().dim())
+        //     .with_text("applying and injecting the operation")
+        //     .start();
 
         self.api.preapply_operations(&operation_group, &signature)?;
 
         self.api.inject_operations(&operation_with_signature)?;
 
-        spinner.finish_succeed("applied and injected the operation");
+        // spinner.finish_succeed("applied and injected the operation");
 
         self.confirm_operation(&operation_hash)?;
 
