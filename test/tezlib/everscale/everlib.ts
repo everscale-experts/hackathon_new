@@ -83,7 +83,14 @@ export class Wallet extends Account {
     }
 
     public balanceChange(onRecieved: (delta: number) => void, onSpent: (delta: number) => void = () => {}){
-        this.subscribeAccount("balance", (acc) => {
+        // TODO: try subscribeTransactions
+        // TODO: try subscribeMessages
+        // sender, amount, comment
+        this.subscribeTransactions('id,block_id,account_addr', (acc) => {
+            console.log('=====');
+            console.log(acc);
+            console.log('=====');
+
             const newBalance = parseInt(acc.balance, 16);
             const delta = (newBalance - this.balance) / 1_000_000_000;
             delta > 0 ? onRecieved(delta) : onSpent(-delta);
