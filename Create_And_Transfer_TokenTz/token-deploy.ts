@@ -42,7 +42,7 @@ async function deploy() {
       code: JSON.parse(fs.readFileSync('./token.json').toString()),
       // задаем состояние хранилища на языке Michelson. Замените оба адреса на адрес своего аккаунта в тестовой сети,
       // а числа — на количество токенов, которое вы хотите выпустить
-      init: '(Pair { Elt "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM" (Pair { Elt "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM" 1001 } 1001) } 1001)',
+      init: '(Pair (Pair { Elt "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM" (Pair { Elt "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM" 500 } 500) } { Elt "" 0x68747470733a2f2f676973742e67697468756275736572636f6e74656e742e636f6d2f4d616b73696d6b696e612f36313835393037366431373031626439316233356639346362313437636235312f7261772f313630643964396561356664613038623138396632666466346334346635376137643835626131312f666131322d6d657461646174612e6a736f6e }) 500)',
     })
 
     //начало развертывания
