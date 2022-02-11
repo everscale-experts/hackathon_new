@@ -26,6 +26,12 @@ const TokenFactory = {
   tvc: fs.readFileSync(path.resolve(__dirname, "ton-eth-bridge-token-contracts/build/TokenFactory.tvc")).toString("base64")
 }
 
+const TokenWallet = {
+  abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "ton-eth-bridge-token-contracts/build/TokenWallet.abi.json")).toString()),
+  tvc: fs.readFileSync(path.resolve(__dirname, "ton-eth-bridge-token-contracts/build/TokenTokenWallet.tvc")).toString("base64")
+}
+
+
 const SafeMultisig = {
   abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "ton-labs-contracts/solidity/safemultisig/SafeMultisigWallet.abi.json")).toString()),
   tvc: fs.readFileSync(path.resolve(__dirname, "ton-labs-contracts/solidity/safemultisig/SafeMultisigWallet.tvc")).toString("base64")
@@ -37,8 +43,8 @@ const TokenRoot = {
   tvc: fs.readFileSync(path.resolve(__dirname, "ton-eth-bridge-token-contracts/build/TokenRoot.tvc")).toString("base64")
 }
 const TokenRootLabs = {
-  abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "ton-labs-contracts/cpp/tokens-fungible/RootTokenContract.abi")).toString()),
-  tvc: fs.readFileSync(path.resolve(__dirname, "ton-labs-contracts/cpp/tokens-fungible//RootTokenContract.tvc")).toString("base64")
+  abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "flex/tokens-fungible/RootTokenContract.abi")).toString()),
+  tvc: fs.readFileSync(path.resolve(__dirname, "flex/tokens-fungible//RootTokenContract.tvc")).toString("base64")
 }
 
 async function main() {
@@ -52,7 +58,7 @@ async function main() {
 
   /* BROXUS TIP3 */
 
-  const acc = new Account(
+ const acc = new Account(
     TokenRoot,
     { signer: signerKeys(account1),
       //address:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
@@ -69,16 +75,44 @@ async function main() {
         remainingGasTo:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
       },useGiver:true,}).catch(e => console.log("ERROR:", e)));
 
-      const name = await(acc.run("name",{answerId:0}).catch(e => console.log("ERROR:", e)));
+      console.log(deploy)
 
-      const mint = await(acc.run("mint"),{
+    const name = await(acc.run("totalSupply",{answerId:0}).catch(e => console.log("ERROR:", e)));
+    console.log(name)
+
+
+    const acctrasnf = new Account(
+       TokenWallet,
+       { signer: signerKeys(account1),
+         //address:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
+         client}
+       );
+
+
+    const body = (await client.abi.encode_message_body({
+                 abi: abiContract(transferAbi),
+                 call_set: {
+                     function_name: "transfer",
+                     input: {
+                         //comment: Buffer.from("My comment").toString("hex"),
+                     },
+                 },
+                 is_internal: true,
+                 signer: signerNone(),
+             })).body;
+
+
+      const transfer = await(acctrasnf.run("transfer"),{
         amont:1000000,
         recipient:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
-        deployWalletValue:100000000,
         remainingGasTo:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
         notify:true,
-        payload:,
+        payload:body,
       })
+
+
+
+
     /*  const symbol = await(acc.run("symbol",{answerId:0}));
       const walletcode = await(acc.run("walletCode",{answerId:0}));
       const rootkey = await(acc.run("rootOwner",{answerId:0}));
@@ -90,7 +124,7 @@ async function main() {
       //console.log(deploy);*/
 
       /* TONLabs TIP3 */
-    /*  const acc = new Account(
+/*     const acc = new Account(
         TokenRootLabs,
         { signer: signerKeys(account1),
           //address:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
@@ -98,15 +132,18 @@ async function main() {
         );
         const deploy = await(acc.deploy({
           initInput: {
-            name: "ERTT",
-            symbol: "ERTT",
+            name: "54657374",
+            symbol: "54657374",
             decimals: 9,
-            root_public_key:"0xb66483a3491b26026520f35f7dad6b0c0185fcf5f857f756fad50a755cc6d270",
-            root_owner:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
-            total_supply:500000000000,
+            root_owner:"0",
+            root_public_key:"0x54d10fa26988490ea4c2065a495256b1ca314fd735a12756cf9bdc5102daeb1a",
+            total_supply:5000000000,
           },useGiver:true,}).catch(e => console.log("ERROR:", e)));
+
+
+        console.log(deploy);
           //const address = await deploy.getAddress();
-          const name = await(acc.run("getName",{}));
+        /*  const name = await(acc.run("getName",{}));
           const symbol = await(acc.run("getSymbol",{}));
           const walletcode = await(acc.run("getWalletCode",{}));
           const rootkey = await(acc.run("getRootKey",{}));
@@ -114,8 +151,8 @@ async function main() {
           console.log(symbol);
           console.log(walletcode);
           console.log(rootkey);
-          console.log(deploy);
-*/
+          console.log(deploy);*/
+
 
 
 

@@ -4,3 +4,6 @@
 [submodule "test/wallet_integration/everwallet/ton-eth-bridge-token-contracts"]
 	path = test/wallet_integration/everwallet/ton-eth-bridge-token-contracts
 	url = https://github.com/broxus/ton-eth-bridge-token-contracts.git
+[submodule "test/wallet_integration/everwallet/flex"]
+	path = test/wallet_integration/everwallet/flex
+	url = https://github.com/tonlabs/flex
