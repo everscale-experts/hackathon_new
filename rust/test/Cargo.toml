@@ -12,6 +12,7 @@ authors = ["javaharlalnehru"]
 
 [dependencies]
 ureq = { path = "../urequ" }
+json = "0.12.4"
 
 [dependencies.url]
 version = "2"
