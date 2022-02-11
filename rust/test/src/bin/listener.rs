@@ -24,7 +24,7 @@ fn main() {
         let res = get();
         let len = res.len();
         if len > last_len {
-            println!("+{}", res[0]["amount"]);
+            println!("{}", res[0]["amount"]);
             last_len = len;
         }
     }
