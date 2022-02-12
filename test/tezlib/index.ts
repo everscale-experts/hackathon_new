@@ -1,6 +1,6 @@
 import { TonClient } from "@tonclient/core"
 import { libNode } from "@tonclient/lib-node";
-import { Wallet } from "./everscale//everlib";
+import { Wallet } from "./everscale/everlib";
 import { Tezos } from "./tezos/tezos"
 
 const accountCredentials1 = require("./everscale/accounts/account1.json")
@@ -42,9 +42,9 @@ async function main() {
     const wallet7 = new Tezos(TezosRPC, accountCredentials7);
     const wallet8 = new Tezos(TezosRPC, accountCredentials8);
 
-    wallet2.balanceChange(async (amount) => {
-        console.log(`[everscale] wallet2 recieved ${amount} coins, initializing transfer from wallet7 to wallet8...`);
-        const hash = await wallet7.transfer(accountCredentials8.pkh, Math.ceil(amount));
+    wallet2.onTransaction(async (data) => {
+        console.log(`[everscale] wallet2 recieved ${data.amount} coins, initializing transfer from wallet7 to wallet8...`);
+        const hash = await wallet7.transfer(accountCredentials8.pkh, Math.ceil(data.amount));
         console.log(`[tezos] Transfer from ${accountCredentials7.pkh} to ${accountCredentials8.pkh} succeeded! Hash: ${hash}`);
     })
 

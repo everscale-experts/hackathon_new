@@ -9,7 +9,13 @@ import {
     KeyPair
 } from "@tonclient/core"
 
-
+interface ITransactionNotification {
+    id: string // txid
+    from: string
+    to: string
+    amount: number
+    payload: string
+}
 
 export function read(name: string, encoding?: BufferEncoding){
     return fs.readFileSync(path.resolve(__dirname, "contracts", name)).toString(encoding)
@@ -40,9 +46,10 @@ export class Wallet extends Account {
     private keys: KeyPair;
     public balance: number
 
-    constructor(client: TonClient, keys: KeyPair){
+    constructor(client: TonClient, keys: KeyPair | null, address?: string){
         super(getContract("Wallet"), {
-            signer: signerKeys(keys),
+            signer: keys ? signerKeys(keys) : signerNone(),
+            address: address,
             client
         });
 
@@ -82,22 +89,44 @@ export class Wallet extends Account {
         })).body;
     }
 
-    public balanceChange(onRecieved: (delta: number) => void, onSpent: (delta: number) => void = () => {}){
-        this.subscribeAccount("balance", (acc) => {
-            const newBalance = parseInt(acc.balance, 16);
-            const delta = (newBalance - this.balance) / 1_000_000_000;
-            delta > 0 ? onRecieved(delta) : onSpent(-delta);
-            this.balance = newBalance;
-        })
-    }
-
-    public async transfer(to: string, amount: number, comment: string){
+    public async transfer(to: string, amount: number, comment?: string){
         return this.run("submitTransaction", {
             dest: to,
             value: amount * 1_000_000_000,
             bounce: false,
             allBalance: false,
-            payload: await this.getCommentPayload(comment)
+            payload: comment ? await this.getCommentPayload(comment) : ""
         })
+    }
+    
+    public async onTransaction(callback: (data: ITransactionNotification) => void){
+        await this.client.net.subscribe_collection({
+            collection: "transactions",
+            filter: {
+                account_addr: { eq: await this.getAddress() }
+            },
+            result: "id in_message {value src dst} in_msg balance_delta aborted",
+        }, async (params) => {
+            const message = await this.client.net.query_collection({
+                collection: "messages",
+                filter: { id: { eq: params.result.in_msg } },
+                result: "boc"
+            })
+
+            const payload = await this.client.abi.decode_message({
+                abi: abiContract(transferCommentAbi),
+                message: message.result[0].boc,
+            })
+                .then(decoded => Buffer.from(decoded.value.comment, "hex").toString())
+                .catch(err => null);
+
+            callback({
+                id: params.result.id,
+                from: params.result.in_message.src,
+                to: params.result.in_message.dst,
+                amount: parseInt(params.result.balance_delta, 16) / 1_000_000_000,
+                payload: payload
+            })
+        });
     }
 }
