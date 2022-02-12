@@ -1,6 +1,7 @@
 ﻿# Run    
 ```bash  
 cd ./rust/listener  
+rustup override set 1.52.1  
 cargo run  
 ```  
   
