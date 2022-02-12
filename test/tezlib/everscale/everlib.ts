@@ -90,6 +90,8 @@ export class Wallet extends Account {
     }
 
     public async transfer(to: string, amount: number, comment?: string){
+        const balance = parseInt(await this.getBalance(), 16);
+        if(amount * 1_000_000_000 > balance) throw new Error("Not enough balance!");
         return this.run("submitTransaction", {
             dest: to,
             value: amount * 1_000_000_000,
