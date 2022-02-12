@@ -1,6 +1,6 @@
 ﻿# Run    
 ```bash  
-cd ./rust/test  
+cd ./rust/listener  
 cargo run  
 ```  
   
