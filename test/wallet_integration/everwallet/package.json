@@ -13,7 +13,8 @@
         "@tonclient/core": "^1.30.0",
         "@tonclient/lib-node": "^1.30.0",
         "@tonclient/lib-react-native": "^1.30.0",
-        "@tonclient/lib-web": "^1.30.0"
+        "@tonclient/lib-web": "^1.30.0",
+        "uint": "^21.6.2"
     },
     "devDependencies": {
         "@types/node": "^17.0.16",

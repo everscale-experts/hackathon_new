@@ -22,26 +22,38 @@ yarn
 git submodule update --init
 ```
 
-## TODO  
-- submodules;  
-
 ## Run
 
 ```bash
 npx ts-node transfertip.ts
 ```
+## Instruction
 
-## Install bridge package (depends on target JS platform)
+### Create & Deploy TIP3-Token
 
-The bridge package will download precompiled binaries from TON Labs cloud storage.
-If you want to rebuild binary from sources see [build binaries](#build binaries) section.
+``` bash
+npx ts-node create_TIP.ts
+```
+You can change in the file
+name:"ERT34",
+symbol:"ERT34",
+decimals:3,
 
-### NodeJs
-```shell script
-#npm i --save @tonclient/lib-node
+### Create & Deploy TIP3-Token-Wallet
+
+``` bash
+npx ts-node deploy_TIP_wallet.ts
+```
+### Mint & Grant TIP3-Token
+
+To mint TIP-3 tokens
+
+``` bash
+npx ts-node mint_TIP3.ts
 ```
 
-### Web
-```shell script
-#npm i --save @tonclient/lib-web
+Than
+
+```bash
+npx ts-node deployroot_TIP3.ts
 ```

@@ -67,6 +67,7 @@ async function main() {
     );
     const deploy = await(acc.deploy({
       initInput: {
+        name:'ERT',
         initialSupplyTo: "0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
         initialSupply: 500*100000000,
         deployWalletValue: 100000000,
@@ -78,14 +79,13 @@ async function main() {
 
       console.log(deploy)
 
-    const name = await(acc.run("totalSupply",{answerId:0}).catch(e => console.log("ERROR:", e)));
-    console.log(name)
 
 
-    const acctrasnf = new Account(
+
+/*    const acctrasnf = new Account(
        TokenWallet,
        { signer: signerKeys(account1),
-         //address:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
+         address:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
          client}
        );
 
@@ -96,7 +96,7 @@ async function main() {
     console.log(deploytrans)
 
 
-    const body = (await client.abi.encode_message_body({
+  /*  const body = (await client.abi.encode_message_body({
                  abi: abiContract(transferAbi),
                  call_set: {
                      function_name: "transfer",
@@ -106,85 +106,19 @@ async function main() {
                  },
                  is_internal: true,
                  signer: signerNone(),
-             })).body;
+             })).body;*/
 
 
-      const transfer = await(acctrasnf.run("transfer",{
-        amont:1000000,
+  /*    const transfer = await(acctrasnf.run("transfer",{
+        amont:100000,
         recipient:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
         remainingGasTo:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
         notify:true,
-        payload:body,
+        payload:'te6ccgEBAQEAMAAAW1t00puAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACLA=',
       }).catch(e => console.log("ERROR:", e)))
 
 
-      console.log(transfer)
-
-    /*  const symbol = await(acc.run("symbol",{answerId:0}));
-      const walletcode = await(acc.run("walletCode",{answerId:0}));
-      const rootkey = await(acc.run("rootOwner",{answerId:0}));
-
-      console.log(name);
-      console.log(symbol);
-      console.log(walletcode);
-      console.log(rootkey);
-      //console.log(deploy);*/
-
-      /* TONLabs TIP3 */
-/*     const acc = new Account(
-        TokenRootLabs,
-        { signer: signerKeys(account1),
-          //address:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
-          client}
-        );
-        const deploy = await(acc.deploy({
-          initInput: {
-            name: "54657374",
-            symbol: "54657374",
-            decimals: 9,
-            root_owner:"0",
-            root_public_key:"0x54d10fa26988490ea4c2065a495256b1ca314fd735a12756cf9bdc5102daeb1a",
-            total_supply:5000000000,
-          },useGiver:true,}).catch(e => console.log("ERROR:", e)));
-
-
-        console.log(deploy);
-          //const address = await deploy.getAddress();
-        /*  const name = await(acc.run("getName",{}));
-          const symbol = await(acc.run("getSymbol",{}));
-          const walletcode = await(acc.run("getWalletCode",{}));
-          const rootkey = await(acc.run("getRootKey",{}));
-          console.log(name);
-          console.log(symbol);
-          console.log(walletcode);
-          console.log(rootkey);
-          console.log(deploy);*/
-
-
-
-
-
-          //console.log(acc);
-          //console.log(address);
-          //const command
-          /*  const deployRoot = await(acc.run("deployRoot", {
-          answerId:0,
-          name: 'EVRT',
-          symbol: 'EVRT',
-          decimals: 9,
-          owner: "0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
-          initialSupplyTo: "0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
-          initialSupply: 500*100000000,
-          deployWalletValue: 100000000,
-          mintDisabled:false,
-          burnByRootDisabled:false,
-          burnPaused:true,
-          remainingGasTo:"0:502156647bd022bd41c0ccbd9dd4cf643502099f2c79eca49429cb6c83c4bbb4",
-        }).catch(e => console.log("ERROR:", e)));
-
-        console.log(deployRoot)*/
-
-
+      console.log(transfer)*/
 
       }
 
