@@ -26,6 +26,8 @@ https://medium.com/tezedge/tezos-rust-node-how-to-call-the-tezos-protocol-from-r
 https://docs.dipdup.net/  
 ##### AWS sdk for rust  
 https://aws.amazon.com/about-aws/whats-new/2021/12/aws-sdk-rust-developer-preview/  
+##### About rust server and API  
+https://betterprogramming.pub/rest-api-in-rust-step-by-step-guide-b8a6c5fcbff0  
   
 ## from Slack    
 Michael Zaikin - Baking Bad:  
