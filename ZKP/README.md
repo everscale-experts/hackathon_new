@@ -1,3 +1,6 @@
+### Folders structure  
+- (tezos-client)[tezos-client] studying tezos-client  
+  
 #### Links  
 - https://gitlab.com/nomadic-labs/privacy-team/-/blob/master/rollup/src/circuit.ml  
 - https://github.com/NilFoundation/evm-mina-verification  
