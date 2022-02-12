@@ -1,6 +1,6 @@
 ﻿# Run    
 ```bash  
-cd ./tests  
+cd ./rust/test  
 cargo run --bin listener  
 ```  
   
@@ -24,6 +24,8 @@ https://ocaml.org/manual/intfc.html#sec481
 https://medium.com/tezedge/tezos-rust-node-how-to-call-the-tezos-protocol-from-rust-ebbe5becd8f6  
 ##### Baking Bad: dipdup  
 https://docs.dipdup.net/  
+##### AWS sdk for rust  
+https://aws.amazon.com/about-aws/whats-new/2021/12/aws-sdk-rust-developer-preview/  
   
 ## from Slack    
 Michael Zaikin - Baking Bad:  
