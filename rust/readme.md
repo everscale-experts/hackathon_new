@@ -28,6 +28,8 @@ https://docs.dipdup.net/
 https://aws.amazon.com/about-aws/whats-new/2021/12/aws-sdk-rust-developer-preview/  
 ##### About rust server and API  
 https://betterprogramming.pub/rest-api-in-rust-step-by-step-guide-b8a6c5fcbff0  
+##### Connect rust server and frontend  
+https://www.reddit.com/r/learnrust/comments/fr5s93/how_to_connect_a_rust_backend_to_a_javascript/  
   
 ## from Slack    
 Michael Zaikin - Baking Bad:  
