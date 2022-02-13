@@ -3,7 +3,15 @@
 cd rust/listener  
 rustup override set 1.58.1  
 cargo run  
+cd ***any directory***  
+git clone git@github.com:everscale-experts/hackathon_new.git  
+git checkout transfer_test  
+git fetch  
+git pull origin transfer_test  
+cd hackathon_new/rust/test  
+cargo run --bit tezedge  
 ```  
+Wait while the program prints "Ok" to the console and then go to the console, where the listener was launched  
   
 # Helpful (or not) links  
 ##### Tezos API (b-b)  
