@@ -15,15 +15,13 @@ fn handle_connection(mut stream: TcpStream) {
                 .replace("%7B", "{")
                 .replace("%7D", "}")
                 .replace("%22", "\"");
-            println!("{}", value_string);
-            let end = s
+            let end = value_string
                 .chars()
                 .position(|c| c == '}').unwrap() + 1;
-            println!("{}", end);
             // println!("{}", &s.to_string());
             let value = json::parse(&value_string[8..end]
             ).unwrap();
-            println!("{}", value);
+            println!("{:#}", value);
         }
     }
 
