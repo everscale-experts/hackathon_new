@@ -1,14 +1,10 @@
-use std::fmt::{self, Display};
-use structopt::StructOpt;
 use console::style;
-
 use lib::utils::parse_float_amount;
-use lib::http_api::HttpApi;
 use lib::{Address, PrivateKey, PublicKey};
-
 use crate::commands::CommandError;
 use crate::common::exit_with_error;
 use crate::common::operation_command::*;
+use ureq;
 
 mod common;
 mod trezor;
@@ -140,15 +136,20 @@ impl TransferLocal {
 }
 
 fn main() {
+    let from = "tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R";
+    let to = "tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R";
+    let secret_key = "edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD";
+    let public_key = "edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH";
+    let amount = "1";
     let transfer_obj = TransferLocal {
         verbose: 3,
         no_prompt: false,
         endpoint: "https://rpctest.tzbeta.net".to_string(),
-        public_key: "edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH".to_string(),
-        private_key: "edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD".to_string(),
-        from: "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX".to_string(),
-        to: "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX".to_string(),
-        amount: "1".to_string(),
+        public_key: public_key.to_string(),
+        private_key: secret_key.to_string(),
+        from: from.to_string(),
+        to: to.to_string(),
+        amount: amount.to_string(),
         fee: Option::from("0.1".to_string())
         // Option::from()
     };
@@ -156,7 +157,9 @@ fn main() {
 
     match result {
         Ok(_) => {
-
+            println!("{:?}", ureq::get(format!("http://127.0.0.1:7878/comment=%7B{}%7D",
+                                       format!("%22from%22:%22{}%22,%22to%22:%22{}%22,%22amount%22:%22{}%22",
+                                               from, to, amount)).as_str()).call().unwrap());
             println!("Ok");
         },
         Err(err) => exit_with_error(err)

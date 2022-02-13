@@ -295,6 +295,7 @@ dependencies = [
  "structopt",
  "thiserror",
  "tokio",
+ "ureq",
  "url",
 ]
 
