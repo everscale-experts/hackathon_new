@@ -144,22 +144,21 @@ fn main() {
         verbose: 3,
         no_prompt: false,
         endpoint: "https://rpctest.tzbeta.net".to_string(),
-        // public_key: "edpkvLzwxgqDf9qp5vGq5UvTHLRvz54PXae1U4UhWSTdjzAiKJbbJB".to_string(),     // from tezedge-client/readme
-        public_key: "edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH".to_string(),     // Stepan
-        // private_key: "edsk3p1JnT4LFXuxmcddNoJ7J5u12T7423mshwEikWmcLJnf2XvH7t".to_string(),    // from tezedge-client/readme
-        private_key: "edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD".to_string(),    // Stepan
-        // from: "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX".to_string(),                             // from tezedge-client/readme
-        from: "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX".to_string(),                             // Stepan
-        // to: "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX".to_string(),                               // from tezedge-client/readme
-        to: "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX".to_string(),                               // Stepan
+        public_key: "edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH".to_string(),
+        private_key: "edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD".to_string(),
+        from: "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX".to_string(),
+        to: "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX".to_string(),
         amount: "1".to_string(),
-        fee: Option::from("0.1".to_string())   // ???
+        fee: Option::from("0.1".to_string())
         // Option::from()
     };
     let result = transfer_obj.execute();
 
     match result {
-        Ok(_) => println!("Ok"),
+        Ok(_) => {
+
+            println!("Ok");
+        },
         Err(err) => exit_with_error(err)
     }
 }
