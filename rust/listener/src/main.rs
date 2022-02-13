@@ -1,31 +1,21 @@
-use actix_web::{rt::System, web, App, HttpResponse, HttpServer};
-use std::sync::mpsc;
-use std::thread;
+use std::io::prelude::*;
+use std::net::TcpListener;
+use std::net::TcpStream;
 
-#[actix_web::main]
-async fn main() {
-    let (tx, rx) = mpsc::channel();
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
-    thread::spawn(move || {
-        let sys = System::new("http-server");
+    for stream in listener.incoming() {
+        let stream = stream.unwrap();
 
-        let srv = HttpServer::new(|| {
-            App::new().route("/", web::get().to(|| HttpResponse::Ok()))
-        })
-        .bind("127.0.0.1:8080")?
-        .shutdown_timeout(60) // <- Set shutdown timeout to 60 seconds
-        .run();
+        handle_connection(stream);
+    }
+}
 
-        let _ = tx.send(srv);
-        sys.run()
-    });
+fn handle_connection(mut stream: TcpStream) {
+    let mut buffer = [0; 1024];
 
-    let srv = rx.recv().unwrap();
+    stream.read(&mut buffer).unwrap();
 
-    // pause accepting new connections
-    srv.pause().await;
-    // resume accepting new connections
-    srv.resume().await;
-    // stop server
-    srv.stop(true).await;
+    println!("Request: {}", String::from_utf8_lossy(&buffer[..]));
 }
