@@ -21,8 +21,9 @@ fn handle_connection(mut stream: TcpStream) {
     // println!("{}", String::from_utf8_lossy(&buffer[5..]));
     let contents = "";
     for s in String::from_utf8_lossy(&buffer[..]).split('/') {
-        // if s[0..7] == 
-        println!("{}", s.to_string()[0..7]);
+        if s.len() > 7 {
+            println!("{}", &s.to_string()[0..7]);
+        }
     }
 
     let response = format!(
