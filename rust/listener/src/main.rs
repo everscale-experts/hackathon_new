@@ -1,15 +1,14 @@
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
+use serde_json as sjson;
+use serde::Deserialize;
 
-fn main() {
-    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
-
-    for stream in listener.incoming() {
-        let stream = stream.unwrap();
-
-        handle_connection(stream);
-    }
+#[derive(Deserialize, Debug)]
+struct Info {
+    from: String,
+    to: String,
+    amount: u64
 }
 
 fn handle_connection(mut stream: TcpStream) {
@@ -17,12 +16,11 @@ fn handle_connection(mut stream: TcpStream) {
 
     stream.read(&mut buffer).unwrap();
 
-    // println!("{}", String::from_utf8_lossy(&buffer[5..41]));
-    // println!("{}", String::from_utf8_lossy(&buffer[5..]));
     let contents = "";
     for s in String::from_utf8_lossy(&buffer[..]).split('/') {
-        if s.len() > 7 {
-            println!("{}", &s.to_string()[0..7]);
+        if s.len() > 7 && &s.to_string()[..8] == "comment=" {
+            let value: Info = sjson::from_str(&s.to_string()[8..]).unwrap();
+            println!("{:#?}", value);
         }
     }
 
@@ -34,4 +32,14 @@ fn handle_connection(mut stream: TcpStream) {
 
     stream.write(response.as_bytes()).unwrap();
     stream.flush().unwrap();
+}
+
+fn main() {
+    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+
+    for stream in listener.incoming() {
+        let stream = stream.unwrap();
+
+        handle_connection(stream);
+    }
 }
