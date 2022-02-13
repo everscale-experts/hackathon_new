@@ -11,13 +11,13 @@ use lib::{
 
 use lib::signer::{LocalSigner, OperationSignatureInfo};
 use lib::explorer_api::TzStats;
-use lib::trezor_api::{Trezor, TezosSignTx};
-use lib::ledger_api::Ledger;
+// use lib::trezor_api::{Trezor, TezosSignTx};
+// use lib::ledger_api::Ledger;
 use lib::api::*;
 
-use cli_spinner::SpinnerBuilder;
-use crate::trezor::trezor_execute;
-use crate::ledger::ledger_execute;
+// use cli_spinner::SpinnerBuilder;
+// use crate::trezor::trezor_execute;
+// use crate::ledger::ledger_execute;
 use crate::common::{
     exit_with_error,
     yes_no_custom_amount_input, YesNoCustomAmount,
@@ -59,16 +59,6 @@ impl Default for OperationCommandState {
     }
 }
 
-pub struct TrezorState {
-    pub trezor: Trezor,
-    pub key_path: KeyDerivationPath,
-}
-
-pub struct LedgerState {
-    pub ledger: Ledger,
-    pub key_path: KeyDerivationPath,
-}
-
 pub struct LocalWalletState {
     pub public_key: PublicKey,
     pub private_key: PrivateKey,
@@ -96,10 +86,6 @@ pub struct OperationCommand {
 
     pub api: Box<dyn OperationCommandApi>,
     pub state: OperationCommandState,
-    /// If `Some`, Trezor will be used to execute an operation.
-    pub trezor_state: Option<TrezorState>,
-    /// If `Some`, Ledger will be used to execute an operation.
-    pub ledger_state: Option<LedgerState>,
     /// If `Some`, Local wallet will be used to execute an operation.
     pub local_state: Option<LocalWalletState>,
 }
@@ -158,17 +144,7 @@ impl OperationCommand {
             return Ok(None);
         }
 
-        let public_key = if let Some(trezor_state) = self.trezor_state.as_mut() {
-            PublicKey::from_base58check(
-                &trezor_execute(
-                    trezor_state.trezor.get_public_key(&trezor_state.key_path)
-                ),
-            )?
-        } else if let Some(ledger_state) = self.ledger_state.as_mut() {
-            ledger_execute(
-                ledger_state.ledger.get_public_key(&ledger_state.key_path, false)
-            )
-        } else if let Some(local_state) = self.local_state.as_ref() {
+        let public_key = if let Some(local_state) = self.local_state.as_ref() {
             local_state.public_key.clone()
         } else {
             exit_with_error_no_wallet_type_selected()
@@ -303,18 +279,19 @@ impl OperationCommand {
 
                 let default_input = manual_fee.map(|_| YesNoCustomAmount::No)
                     .unwrap_or(YesNoCustomAmount::Yes);
-                let input = if self.options.no_prompt {
-                    default_input
-                } else {
-                    yes_no_custom_amount_input(
-                        format!(
-                            "Would you like to use estimated fee({} µꜩ ),\n  or continue with specified fee({} µꜩ )\n",
-                            style(estimated_fee).green(),
-                            style(manual_fee.unwrap_or(0)).yellow(),
-                        ),
-                        default_input,
-                    )
-                };
+                // let input = if self.options.no_prompt {
+                //     default_input
+                // } else {
+                //     yes_no_custom_amount_input(
+                //         format!(
+                //             "Would you like to use estimated fee({} µꜩ ),\n  or continue with specified fee({} µꜩ )\n",
+                //             style(estimated_fee).green(),
+                //             style(manual_fee.unwrap_or(0)).yellow(),
+                //         ),
+                //         default_input,
+                //     )
+                // };
+                let input = default_input;
 
                 let fee = match input {
                     YesNoCustomAmount::Custom(custom_fee) => custom_fee,
@@ -369,18 +346,19 @@ impl OperationCommand {
                 let default_input = manual_fee.map(|_| YesNoCustomAmount::No)
                     .unwrap_or(YesNoCustomAmount::Yes);
 
-                let input = if self.options.no_prompt {
-                    default_input
-                } else {
-                    yes_no_custom_amount_input(
-                        format!(
-                            "Would you like to add an estimated fee({} µꜩ ) resulting in total: {} µꜩ ",
-                            style(estimated_fee).bold(),
-                            style(estimated_fee + op_fee).green(),
-                        ),
-                        default_input,
-                    )
-                };
+                // let input = if self.options.no_prompt {
+                //     default_input
+                // } else {
+                //     yes_no_custom_amount_input(
+                //         format!(
+                //             "Would you like to add an estimated fee({} µꜩ ) resulting in total: {} µꜩ ",
+                //             style(estimated_fee).bold(),
+                //             style(estimated_fee + op_fee).green(),
+                //         ),
+                //         default_input,
+                //     )
+                // };
+                let input = default_input;
 
                 match input {
                     YesNoCustomAmount::Custom(custom_fee) => {
@@ -401,64 +379,11 @@ impl OperationCommand {
         operation_group: &NewOperationGroup,
     ) -> Result<OperationSignatureInfo, Error>
     {
-        if let Some(trezor_state) = self.trezor_state.as_mut() {
-            eprintln!(
-                "{} -   {}",
-                style("[2/4]").bold().dim(),
-                "forging and signing operation using Trezor",
-            );
-            let mut tx: TezosSignTx = operation_group.clone().into();
-            tx.set_address_n(trezor_state.key_path.clone().take());
-            let sig_info = OperationSignatureInfo::from(
-                trezor_execute(trezor_state.trezor.sign_tx(tx))
-            );
-
-            Term::stderr().clear_last_lines(1)?;
-            eprintln!(
-                "{} {} {}",
-                style("[2/4]").bold().dim().green(),
-                emojies::TICK,
-                "operation forged and signed",
-            );
-
-            Ok(sig_info)
-        } else if let Some(ledger_state) = self.ledger_state.as_mut() {
-            eprintln!(
-                "{} -   {}\n",
-                style("[2/4]").bold().dim(),
-                "signing operation using Ledger. Please confirm an operation on your ledger.",
-            );
-
-            eprintln!("please confirm an operation on Ledger once you see the dialog on the device.\n");
-
-            let sig_info = ledger_execute(
-                ledger_state.ledger.sign_tx(
-                    &ledger_state.key_path,
-                    operation_group.forge(),
-                )
-            );
-
-            Term::stderr().clear_last_lines(4)?;
-            eprintln!(
-                "{} {} {}",
-                style("[2/4]").bold().dim().green(),
-                emojies::TICK,
-                "operation signed",
-            );
-
-            Ok(sig_info)
-        } else if let Some(state) = self.local_state.as_ref() {
-            let spinner = SpinnerBuilder::new()
-                .with_prefix(style("[2/4]").bold().dim())
-                .with_text("forging the operation and signing")
-                .start();
+        if let Some(state) = self.local_state.as_ref() {
             let forged_operation = operation_group.forge();
-
             let sig_info = state.signer().sign_forged_operation_bytes(
                 forged_operation.as_ref(),
             );
-
-            spinner.finish_succeed("operation forged and signed");
             Ok(sig_info)
         } else {
             exit_with_error_no_wallet_type_selected()
@@ -466,18 +391,12 @@ impl OperationCommand {
     }
 
     fn confirm_operation(&mut self, operation_hash: &str) -> Result<(), Error> {
-        let spinner = SpinnerBuilder::new()
-            .with_prefix(style("[4/4]").bold().dim())
-            .with_text("waiting for confirmation")
-            .start();
-
         for _ in 0..10 {
             thread::sleep(Duration::from_secs(2));
 
             let status = self.api.get_pending_operation_status(&operation_hash)?;
             match status {
                 PendingOperationStatus::Refused => {
-                    spinner.finish_fail("operation_refused");
                     return Ok(());
                 }
                 PendingOperationStatus::Applied => {
@@ -487,8 +406,6 @@ impl OperationCommand {
                 }
             }
         }
-
-        spinner.finish_succeed("operation confirmed");
 
         Ok(())
     }
@@ -503,16 +420,9 @@ impl OperationCommand {
             signature,
         } = self.sign_operation(&operation_group)?;
 
-        let spinner = SpinnerBuilder::new()
-            .with_prefix(style("[3/4]").bold().dim())
-            .with_text("applying and injecting the operation")
-            .start();
-
         self.api.preapply_operations(&operation_group, &signature)?;
 
         self.api.inject_operations(&operation_with_signature)?;
-
-        spinner.finish_succeed("applied and injected the operation");
 
         self.confirm_operation(&operation_hash)?;
 
@@ -522,8 +432,8 @@ impl OperationCommand {
         match TzStats::new(network) {
             Ok(tzstats) => {
                 eprintln!(
-                    "\n  {}View operation at: {}/{}",
-                    emojies::FINGER_POINTER_RIGHT,
+                    "\n  View operation at: {}/{}",
+                    // emojies::FINGER_POINTER_RIGHT,
                     style(tzstats.operation_link_prefix()).cyan(),
                     style(&operation_hash).cyan(),
                 );

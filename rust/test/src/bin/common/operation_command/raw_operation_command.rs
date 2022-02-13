@@ -7,8 +7,6 @@ use lib::http_api::HttpApi;
 use lib::utils::parse_float_amount;
 use crate::common::operation_command::{OperationCommand, OperationOptions, OperationCommandState};
 
-use super::{LedgerState, TrezorState};
-
 pub fn ask_for_key_path() -> Result<String, std::io::Error> {
     eprintln!(
         "{} in order to create operation using trezor, you need to manually enter the {}, from which the {} was derived.\n\n      For more about key derivation path see: {}\n",
@@ -122,8 +120,6 @@ pub trait RawOperationCommand {
     fn parse(&self) -> Result<OperationCommand, ParseOperationCommandError> {
         let options = self.get_raw_options();
         let state = OperationCommandState::default();
-        let mut trezor_state = None;
-        let mut ledger_state = None;
 
         let api = match options.api_type.as_str() {
             "http" => Box::new(HttpApi::new(self.get_api_endpoint())),
@@ -132,7 +128,7 @@ pub trait RawOperationCommand {
 
         let from_is_key_path = self.get_raw_from().starts_with("m/");
 
-        let key_path = if options.use_trezor || options.use_ledger {
+        let key_path = if false {
             let raw_key_path = if from_is_key_path {
                 self.get_raw_from().to_string()
             } else if let Some(key_path) = self.get_raw_key_path() {
@@ -144,23 +140,13 @@ pub trait RawOperationCommand {
                 ask_for_key_path()?
             };
 
-            Some(raw_key_path.parse()?)
+            Some(raw_key_path)
         } else {
             None
         };
 
-        if let Some(key_path) = key_path.clone() {
-            if options.use_trezor {
-                let trezor = crate::trezor::find_device_and_connect();
-                trezor_state = Some(TrezorState { trezor, key_path });
-            } else if options.use_ledger {
-                let ledger = crate::ledger::find_device_and_connect();
-                ledger_state = Some(LedgerState { ledger, key_path });
-            }
-        }
-
         let from = match (from_is_key_path, key_path) {
-            (false, _) | (_, None) => {
+            (false, _) | (_, None) | (true, _) => {
                 Address::from_base58check(self.get_raw_from())
                     .map_err(|err| ParseAddressError {
                         kind: AddressKind::Source,
@@ -168,18 +154,18 @@ pub trait RawOperationCommand {
                         address: self.get_raw_from().to_string(),
                     })?
             }
-            (true, Some(key_path)) => {
-                if let Some(trezor_state) = trezor_state.as_mut() {
-                    crate::trezor::get_address(&mut trezor_state.trezor, &key_path)
-                } else if let Some(ledger_state) = ledger_state.as_mut() {
-                    crate::ledger::ledger_execute(
-                        ledger_state.ledger.get_address(&key_path, false),
-                    )
-                } else {
-                    // key_path won't be set if neither `use_ledger` or `use_trezor` is set.
-                    unreachable!()
-                }.into()
-            }
+            // (true, Some(key_path)) => {
+            //     if let Some(trezor_state) = trezor_state.as_mut() {
+            //         crate::trezor::get_address(&mut trezor_state.trezor, &key_path)
+            //     } else if let Some(ledger_state) = ledger_state.as_mut() {
+            //         crate::ledger::ledger_execute(
+            //             ledger_state.ledger.get_address(&key_path, false),
+            //         )
+            //     } else {
+            //         // key_path won't be set if neither `use_ledger` or `use_trezor` is set.
+            //         unreachable!()
+            //     }.into()
+            // }
         };
 
         let fee = if let Some(raw_fee) = self.get_raw_fee() {
@@ -197,8 +183,6 @@ pub trait RawOperationCommand {
             fee,
             api,
             state,
-            trezor_state,
-            ledger_state,
             local_state: None,
         })
     }
