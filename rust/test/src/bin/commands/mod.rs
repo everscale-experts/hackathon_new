@@ -19,7 +19,7 @@ pub enum Command {
     UnsafeTransferLocal(transfer_local::TransferLocal),
     UnsafeDelegateLocal(delegate_local::DelegateLocal),
     // #[structopt(setting(structopt::clap::AppSettings::Hidden))]
-    Originate(originate::Originate),
+    // Originate(originate::Originate),
 }
 
 impl Command {
@@ -31,7 +31,7 @@ impl Command {
             Self::Delegate(cmd) => Some(cmd.endpoint.as_str()),
             Self::UnsafeTransferLocal(cmd) => Some(cmd.endpoint.as_str()),
             Self::UnsafeDelegateLocal(cmd) => Some(cmd.endpoint.as_str()),
-            Self::Originate(cmd) => Some(cmd.endpoint.as_str()),
+            // Self::Originate(cmd) => Some(cmd.endpoint.as_str()),
         }
     }
 }

@@ -47,23 +47,7 @@ impl GetAddress {
     pub fn execute(self) -> Result<(), CommandError> {
         let path: KeyDerivationPath = self.path.parse()?;
 
-        let address = if self.trezor {
-            crate::trezor::get_address(
-                &mut crate::trezor::find_device_and_connect(),
-                &path,
-            ).to_base58check()
-        } else if self.ledger {
-            let mut ledger = crate::ledger::find_device_and_connect();
-
-            crate::ledger::ledger_execute(
-                ledger.get_address(&path, false)
-            )
-                .to_base58check()
-        } else {
-            Err(NoSourceSpecifiedError)?
-        };
-
-        println!("{}", address);
+        let address = Err(NoSourceSpecifiedError)?;
         Ok(())
     }
 }

@@ -167,8 +167,6 @@ impl DelegateLocal {
             from: public_key.hash().into(),
             fee: self.fee()?,
             state: Default::default(),
-            trezor_state: None,
-            ledger_state: None,
             local_state: Some(LocalWalletState { public_key, private_key }),
         }.delegate(to)?)
     }

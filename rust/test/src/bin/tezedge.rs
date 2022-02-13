@@ -134,8 +134,6 @@ impl TransferLocal {
             // from: public_key,
             fee: self.fee()?,
             state: Default::default(),
-            trezor_state: None,
-            ledger_state: None,
             local_state: Some(LocalWalletState { public_key, private_key }),
         }.transfer(to, self.get_amount())?)
     }
