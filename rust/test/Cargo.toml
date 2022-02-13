@@ -20,7 +20,7 @@ serde = { version = "1.0.123", features = ["derive"] }
 crypto = { path = "../crypto" }
 lib = { path = "../lib" }
 # emojies = { package = "cli_emojies", path = "../cli_emojies" }
-# cli_spinner = { path = "../cli_spinner" }
+ureq = { path = "../urequ" }
 structopt = "0.3.21"
 console = "0.14.0"
 dialoguer = "0.8"
