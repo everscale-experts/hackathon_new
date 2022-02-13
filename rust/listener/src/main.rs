@@ -18,9 +18,12 @@ fn handle_connection(mut stream: TcpStream) {
     stream.read(&mut buffer).unwrap();
 
     // println!("{}", String::from_utf8_lossy(&buffer[5..41]));
-    println!("{}", String::from_utf8_lossy(&buffer[5..]));
-
+    // println!("{}", String::from_utf8_lossy(&buffer[5..]));
     let contents = "";
+    for s in String::from_utf8_lossy(&buffer[..]).split('/') {
+        // if s[0..7] == 
+        println!("{}", s.to_string()[0..7]);
+    }
 
     let response = format!(
         "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
