@@ -19,34 +19,32 @@ async function main() {
     }
   });
 
-  const keyPair = JSON.parse(fs.readFileSync(path.join(__dirname, "keys.json"), "utf8"));
+  const keyPair = JSON.parse(fs.readFileSync(path.join(__dirname, "keys_main.json"), "utf8"));
 
   /* Deploy TIP3 */
 
-  const TokenRootLabs = {
-    abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "flex/tokens-fungible/RootTokenContract.abi")).toString()),
-    tvc: fs.readFileSync(path.resolve(__dirname, "flex/tokens-fungible//RootTokenContract.tvc")).toString("base64")
+  const TokenWallet = {
+    abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "flex/tokens-fungible/TONTokenWallet.abi")).toString()),
+    tvc: fs.readFileSync(path.resolve(__dirname, "flex/tokens-fungible/TONTokenWallet.tvc")).toString("base64")
   }
 
   const tip3create = new Account(
-    TokenRootLabs,
+    TokenWallet,
     { signer: signerKeys(keyPair),
+      address:"0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1",
       client}
     );
+  console.log(tip3create);
 
-  //console.log(tip3create)
-
-  const name = await(tip3create.runLocal("getName",{}).catch(e => console.log("ERROR:", e)))
-  const symbol = await(tip3create.runLocal("getSymbol",{}).catch(e => console.log("ERROR:", e)))
-  console.log(name)
-  console.log(symbol)
-
-  const mint = await(tip3create.run("mint",{
-    _answer_id:0,
-    tokens:50000000000,
+  const trasnfer = await(tip3create.run("transfer",{
+    answer_addr:"0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1",
+    to:"0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1",
+    tokens:1000000000,
+    evers:0,
+    return_ownership:0,
   }).catch(e => console.log("ERROR:", e)))
 
-  console.log(mint)
+  console.log(trasnfer)
 
   }
 
