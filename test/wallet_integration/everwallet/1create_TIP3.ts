@@ -35,11 +35,11 @@ const tip3create = new Account(
 
 const deploytip3 =  await(tip3create.deploy({
   initInput: {
-    name:"ERT34",
-    symbol:"ERT34",
+    name:"ERTEZ21",
+    symbol:"ERTEZ21",
     decimals:3,
     root_pubkey:"0x"+keys.public,
-    //root_owner:"0",
+    root_owner:"0:44a4b9b63c47c2a13c29948833315bb1a8f0d741255055c9cb0915e192ec291a",
     total_supply:500000000000,
     },
     useGiver:true

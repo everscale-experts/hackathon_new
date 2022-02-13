@@ -4,6 +4,7 @@
 
 - Node.js 14 LTS
 - Yarn package manager
+- TVM Linker [https://github.com/tonlabs/TVM-linker]
 
 Command to check:
 ```bash

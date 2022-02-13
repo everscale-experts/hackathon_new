@@ -20,17 +20,20 @@ async function main() {
   });
 
   const keyPair = JSON.parse(fs.readFileSync(path.join(__dirname, "keys.json"), "utf8"));
+  const keyPairWallet = JSON.parse(fs.readFileSync(path.join(__dirname, "keys_main.json"), "utf8"));
+
 
   /* Deploy TIP3 */
 
   const TokenRootLabs = {
     abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "flex/tokens-fungible/RootTokenContract.abi")).toString()),
-    tvc: fs.readFileSync(path.resolve(__dirname, "flex/tokens-fungible//RootTokenContract.tvc")).toString("base64")
+    tvc: fs.readFileSync(path.resolve(__dirname, "flex/tokens-fungible/RootTokenContract.tvc")).toString("base64")
   }
 
   const tip3create = new Account(
     TokenRootLabs,
-    { signer: signerKeys(keyPair),
+    { signer: signerKeys(keyPairWallet),
+      address:"0:962339c63ec9ff6bf62a043d88dfbaeeb26809fe9f982846b6d0782b367ef36a",
       client}
     );
 

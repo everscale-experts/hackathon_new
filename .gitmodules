@@ -7,3 +7,6 @@
 [submodule "test/wallet_integration/everwallet/flex"]
 	path = test/wallet_integration/everwallet/flex
 	url = https://github.com/tonlabs/flex
+[submodule "test/wallet_integration/everwallet/TVM-linker"]
+	path = test/wallet_integration/everwallet/TVM-linker
+	url = https://github.com/tonlabs/TVM-linker.git
