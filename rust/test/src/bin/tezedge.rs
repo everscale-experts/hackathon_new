@@ -135,11 +135,7 @@ impl TransferLocal {
     }
 }
 
-fn main() {
-    let from = "tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R";
-    let to = "tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R";
-    let secret_key = "edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD";
-    let public_key = "edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH";
+fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount: &str) {
     let amount = "1";
     let transfer_obj = TransferLocal {
         verbose: 3,
@@ -164,4 +160,13 @@ fn main() {
         },
         Err(err) => exit_with_error(err)
     }
+}
+
+fn main() {
+    let from = "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX";
+    let to = "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX";
+    let secret_key = "edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD";
+    let public_key = "edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH";
+    let amount = "1";
+    transfer(from, to, public_key, secret_key, amount);
 }
