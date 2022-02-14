@@ -1,6 +1,15 @@
 ## Installation  
+
+https://assets.tqtezos.com/docs/setup/1-tezos-client/  
+```bash
+brew tap serokell/tezos-packaging-stable https://github.com/serokell/tezos-packaging.git
+brew install tezos-client
+brew install tezos-signer
+```  
   
 ## Documentation  
+- https://medium.com/protofire-blog/tezos-part-5-token-standards-28b8733a3ce5 - some basic lessions about Tezos,
+they user tezos-client to create a wallet;
 ```bash
 tezos-client sapling man
 ```  
