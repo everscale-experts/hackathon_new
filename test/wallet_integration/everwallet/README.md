@@ -63,8 +63,10 @@ npx ts-node 4transfer_TIP3.ts
 ### Other variant with toncli.
 
 To create TokenWallet for your Wallet
-./tonos-cli call 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae deployWallet '{"_answer_id":"0", "pubkey":"0x+pubkey", "tokens":"10000000000","evers":"2000000000"}' --sign deploy.keys.json --abi flex/tokens-fungible/RootTokenContract.abi
 
+```bash
+./tonos-cli call 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae deployWallet '{"_answer_id":"0", "pubkey":"0x+pubkey", "tokens":"10000000000","evers":"2000000000"}' --sign deploy.keys.json --abi flex/tokens-fungible/RootTokenContract.abi
+```
 
 
 ### To look the Balance
