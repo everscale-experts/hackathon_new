@@ -2,11 +2,11 @@
 #### Main links  
 https://hackathon2022.tezos.org.ua  
 https://tezos.com  
-
-**RPC тестнета:** https://rpc.hangzhounet.teztnets.xyz
-**Explorer тестнета:** https://hangzhou.tzstats.com
-**Кран тестнета:** https://teztnets.xyz/hangzhounet-faucet
-
+  
+**RPC тестнета:** https://rpc.hangzhounet.teztnets.xyz  
+**Explorer тестнета:** https://hangzhou.tzstats.com  
+**Кран тестнета:** https://teztnets.xyz/hangzhounet-faucet  
+  
   
 ## Required result  
   
@@ -65,7 +65,7 @@ https://tezos.com
 * минимальная задержка;
 * максимальная пропускная способность;
 * DAO для управления мостом;
-* шифрование? ZKP?
+* шифрование? [ZKP](ZKP)?
 * Поддержка всех кошельков !!!
 * что бы во время свапа минтились токены проекта. И потому на них играть, лотерею и т.д.
 * Unit-tests, e2e-tests
