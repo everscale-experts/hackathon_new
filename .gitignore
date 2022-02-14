@@ -21,3 +21,6 @@ temp/
 
 # sensitive information
 keys/
+
+# big files
+tonos-cli

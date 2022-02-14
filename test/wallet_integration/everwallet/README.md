@@ -59,7 +59,15 @@ npx ts-node 3mint_TIP3.ts
 npx ts-node 4transfer_TIP3.ts
 ```
 
-### To look the getBalance
+
+### Other variant with toncli.
+
+To create TokenWallet for your Wallet
+./tonos-cli call 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae deployWallet '{"_answer_id":"0", "pubkey":"0x+pubkey", "tokens":"10000000000","evers":"2000000000"}' --sign deploy.keys.json --abi flex/tokens-fungible/RootTokenContract.abi
+
+
+
+### To look the Balance
 
 ```bash
 ./tonos-cli run 0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1 getBalance {} --abi flex/tokens-fungible/TONTokenWallet.abi
