@@ -32,7 +32,6 @@ pub enum KeyKind {
 //     Destination,
 // }
 
-
 pub struct TransferLocal {
     /// Verbose mode (-v, -vv, -vvv, etc.)
     // #[structopt(short, long, parse(from_occurrences))]
@@ -136,7 +135,6 @@ impl TransferLocal {
 }
 
 fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount: &str) {
-    let amount = "1";
     let transfer_obj = TransferLocal {
         verbose: 3,
         no_prompt: false,
