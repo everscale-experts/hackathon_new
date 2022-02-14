@@ -33,7 +33,7 @@ npx ts-node transfertip.ts
 ### Create & Deploy TIP3-Token
 
 ``` bash
-npx ts-node create_TIP.ts
+npx ts-node 1create_TIP.ts
 ```
 You can change in the file
 name:"ERT34",
@@ -43,18 +43,25 @@ decimals:3,
 ### Create & Deploy TIP3-Token-Wallet
 
 ``` bash
-npx ts-node deploy_TIP_wallet.ts
+npx ts-node 2deploy_TIP_wallet.ts
 ```
 ### Mint & Grant TIP3-Token
 
 To mint TIP-3 tokens
 
 ``` bash
-npx ts-node mint_TIP3.ts
+npx ts-node 3mint_TIP3.ts
 ```
 
-Than
+### Than finally
 
 ```bash
-npx ts-node deployroot_TIP3.ts
+npx ts-node 4transfer_TIP3.ts
+```
+
+### To look the getBalance
+
+```bash
+./tonos-cli run 0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1 getBalance {} --abi flex/tokens-fungible/TONTokenWallet.abi
+./tonos-cli run 0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647 getBalance {} --abi flex/tokens-fungible/TONTokenWallet.abi
 ```

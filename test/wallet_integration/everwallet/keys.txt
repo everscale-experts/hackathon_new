@@ -1,7 +1,13 @@
 "meat alcohol target lyrics aware impose ti
 mber trial cash foot improve notable"
 
+second wallet
 stuff leaf funny wrap depart diesel author comfort thrive breeze come smart
+
+./tonos-cli getkeypair 2ndaccount.keys.json "stuff leaf funny wrap depart diesel author comfort thrive breeze come smart"
+
+0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647
+
 
 Raw address: 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae
 testnet:
@@ -12,6 +18,8 @@ Non-bounceable address (for init): UQB_YiX0uE2YiVk_sdk2bhITK2sMAH24E_F4l-MwM-mpr
 Bounceable address (for later access): EQB_YiX0uE2YiVk_sdk2bhITK2sMAH24E_F4l-MwM-mprkPl
 
 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9a
+
+0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647
 
 ./tonos-cli deploy flex/tokens-fungible/RootTokenContract.tvc '{"name":"455654","symbol":"455654", "decimals":"2","root_public_key":"0x77cdeb6d17ec6c95127198fdf00dc6cc2f76e81ad91dc86cea661bb120d2cbd5", "root_owner":"0", "wallet_code":"'$TVM_WALLET_CODE'","total_supply":"5000000000000"}' --abi flex/tokens-fungible/RootTokenContract.abi --sign deploy.keys.json
 
@@ -36,3 +44,7 @@ s
 
 
 ./tonos-cli run 0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1 getBalance {} --abi flex/tokens-fungible/TONTokenWallet.abi
+./tonos-cli run 0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647 getBalance {} --abi flex/tokens-fungible/TONTokenWallet.abi
+
+
+./tonos-cli call 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae deployWallet '{"_answer_id":"0", "pubkey":"0xfdee028b0ab1bff8845447a2ac16a44b3598ae53cd7558824d124b214db5e724", "tokens":"10000000000","evers":"2000000000"}' --sign deploy.keys.json --abi flex/tokens-fungible/RootTokenContract.abi
