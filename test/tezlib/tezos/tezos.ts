@@ -1,4 +1,4 @@
-import { TezosToolkit, Subscription, OperationContent } from '@taquito/taquito'
+import { TezosToolkit, Subscription, OperationContent, OpKind } from '@taquito/taquito'
 import { importKey } from '@taquito/signer';
 
 interface IAccount {
@@ -104,7 +104,7 @@ export class Tezos {
    */
   public async transfer(address: string, amount: number){
     const op = await this.tezos.contract.transfer({to: address, amount});
-    await op.confirmation(3);
+    await op.confirmation(1);
     return op.hash;
   }
 
@@ -134,5 +134,36 @@ export class Tezos {
     })
     const contract = await op.contract()
     return contract.address;
+  }
+  /**
+   * Перевод коинов вместе с токенами одной транзакцией. WIP
+   */
+  public async _test(){
+    return await this.tezos.wallet.transfer({
+      to: "KT1U5poZbk19ym28pK2tarU2Lohb8kpgvLME",
+      amount: 50,
+      parameter: {
+        entrypoint: "transfer",
+        value:{
+           prim: "Pair",
+           args: [
+              {
+                string: "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+              },
+              {
+                prim: "Pair",
+                 args:[
+                    {
+                      string: "tz1f1c3WWBBd4wGF57sJNgej9vKSCG5GTLjd"
+                    },
+                    {
+                      int: "30"
+                    }
+                 ]
+              }
+           ]
+        }
+     }
+    }).send();
   }
 }
