@@ -7,8 +7,6 @@ use crate::common::operation_command::*;
 use ureq;
 
 mod common;
-mod trezor;
-mod ledger;
 mod commands;
 
 // #[derive(thiserror::Error, Debug)]
