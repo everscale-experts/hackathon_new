@@ -55,7 +55,7 @@ async function main() {
     }).catch(e => console.log("ERROR:", e));
 
     console.log(transfer);
-    client.close();
+    //client.close();
 
 }
 

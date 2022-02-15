@@ -10,3 +10,6 @@
 [submodule "test/wallet_integration/everwallet/TVM-linker"]
 	path = test/wallet_integration/everwallet/TVM-linker
 	url = https://github.com/tonlabs/TVM-linker.git
+[submodule "test/deploy_call_contracts/smart-contracts"]
+	path = test/deploy_call_contracts/smart-contracts
+	url = https://github.com/oxheadalpha/smart-contracts.git
