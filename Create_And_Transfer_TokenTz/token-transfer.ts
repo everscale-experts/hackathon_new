@@ -3,7 +3,6 @@
 import { TezosToolkit } from '@taquito/taquito'
 import { InMemorySigner } from '@taquito/signer'
 const acc = require('./account1.json')
-
 export class token_transfer {
   // настраиваем ссылку на публичный узел тестовой сети
   private tezos: TezosToolkit
@@ -36,8 +35,12 @@ export class token_transfer {
         console.log(`Awaiting for ${op.hash} to be confirmed...`)
         return op.confirmation(1).then(() => op.hash) //ждем одно подтверждение сети
       })
-      .then((hash) => console.log(`Hash: https://hangzhou.tzstats.com//${hash}`)) //получаем хеш операции
+      .then((hash) => console.log(`Hash: https://hangzhou.tzstats.com/${hash}`)) //получаем хеш операции
       .catch((error) => console.log(`Error: ${JSON.stringify(error, null, 2)}`))
   }
+
+
 }
+
+
 
