@@ -1,0 +1,41 @@
+./tvm_linker decode --tvc ton-eth-bridge-token-contracts/build/TokenRoot.tvc > tokenroot.txt
+./tvm_linker decode --tvc ton-eth-bridge-token-contracts/build/TokenWallet.tvc > tokenwallet.txt
+
+./tonos-cli deploy ton-eth-bridge-token-contracts/build/TokenFactory.tvc '{"owner":"0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa","deployValue":"2000000000", "rootCode":"'$TVM_ROOT_CODE'","walletCode":"'$TVM_WALLET_CODE'"}' --abi ton-eth-bridge-token-contracts/build/TokenFactory.abi.json --sign keys_main.json
+./tonos-cli genaddr ton-eth-bridge-token-contracts/build/TokenFactory.tvc ton-eth-bridge-token-contracts/build/TokenFactory.abi.json --setkey keys_main.json
+
+
+export TVM_ROOT_CODE=`cat tokenroot.txt`
+export TVM_WALLET_CODE=`cat tokenwallet.txt`
+
+"refuse near cause excuse zoo assist physical reform equal lift race review"
+Raw address: 0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa
+testnet:
+Non-bounceable address (for init): 0QBcgRm7gUuRyzxm0T_UTyO13-4wcCL3XCWypCwHEXlKqg-F
+Bounceable address (for later access): kQBcgRm7gUuRyzxm0T_UTyO13-4wcCL3XCWypCwHEXlKqlJA
+mainnet:
+Non-bounceable address (for init): UQBcgRm7gUuRyzxm0T_UTyO13-4wcCL3XCWypCwHEXlKqrQP
+Bounceable address (for later access): EQBcgRm7gUuRyzxm0T_UTyO13-4wcCL3XCWypCwHEXlKqunK
+
+
+Контракт TokenFactory
+0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa
+
+./tonos-cli call 0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa deployRoot '{
+"answerId":"0",
+"name":"EVTEZ21",
+"symbol":"EVTEZ21",
+"decimals":"9",
+"owner":"0:3daf7dab491d7b27fb171fd332d317f75cfc5349392a8ad3ab67094f6c8dd011",
+"initialSupplyTo":"0:3daf7dab491d7b27fb171fd332d317f75cfc5349392a8ad3ab67094f6c8dd011",
+"initialSupply":"5000000000000",
+"deployWalletValue":"2000000000",
+"mintDisabled":"false",
+"burnByRootDisabled":"false",
+"burnPaused":"false",
+"remainingGasTo":"0:3daf7dab491d7b27fb171fd332d317f75cfc5349392a8ad3ab67094f6c8dd011"
+}' --sign keys_main.json --abi ton-eth-bridge-token-contracts/build/TokenFactory.abi.json
+
+./tonos-cli genaddr ton-labs-contracts/solidity/safemultisig/SafeMultisigWallet.tvc ton-labs-contracts/solidity/safemultisig/SafeMultisigWallet.abi.json --setkey account.json
+
+0:3daf7dab491d7b27fb171fd332d317f75cfc5349392a8ad3ab67094f6c8dd011
