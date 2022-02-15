@@ -26,7 +26,7 @@ git submodule update --init
 ## Run
 
 ```bash
-npx ts-node transfertip.ts
+npx ts-node 4transfer_TIP3.ts
 ```
 ## Instruction
 
@@ -72,3 +72,6 @@ To create TokenWallet for your Wallet
 ```bash
 npx ts-node 4transfer_TIP3.ts
 ```
+
+
+### Процесс от и до если хочется очень

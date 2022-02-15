@@ -43,7 +43,7 @@ async function main() {
   const name = await(tip3create.runLocal("getName",{}).catch(e => console.log("ERROR:", e)))
   const symbol = await(tip3create.runLocal("getSymbol",{}).catch(e => console.log("ERROR:", e)))
   const rootkey = await(tip3create.runLocal("getRootKey",{}).catch(e => console.log("ERROR:", e)))
-  //const walletcode = await(tip3create.run("setWalletCode",{_answer_id:0,wallet_code:tvwcodewallet}).catch(e => console.log("ERROR:", e)))
+  const walletcode = await(tip3create.run("setWalletCode",{_answer_id:0,wallet_code:tvwcodewallet}).catch(e => console.log("ERROR:", e)))
 
 //  console.log(name)
   //console.log(symbol)

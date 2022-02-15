@@ -40,7 +40,7 @@ async function main() {
     answer_addr:"0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647",
     to:"0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1",
     tokens:2000000000,
-    evers:0,
+    evers:500000000,
     return_ownership:0,
   }).catch(e => console.log("ERROR:", e)))
 
