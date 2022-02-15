@@ -22,7 +22,7 @@ fn main() {
         let res = get();
         let len = res.len();
         if len > last_len {
-            println!("{:#}", res);
+            println!("{:#}", res[0]);
             last_len = len;
         }
     }
