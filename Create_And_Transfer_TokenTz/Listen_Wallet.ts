@@ -28,6 +28,9 @@
 //     );
 //   });
 
+
+//способ первый
+
 import { TezosToolkit } from '@taquito/taquito';
 
 async function example() {
@@ -41,7 +44,7 @@ async function example() {
     // }
 
     const bakerDelegation = {
-      and: [{ destination: 'tz1VcUcuUEcUGSZRcxNcj8JCrCG1xhZVRYt6' }]
+      and: [{ destination: 'KT1N3zKv9JkGDseaNX3he6pQivWrwDVthhRW' }]
     }
     // const bakerDelegatio = {
     //     and: [{ destination: 'tz1VcUcuUEcUGSZRcxNcj8JCrCG1xhZVRYt6' }, { kind: 'transaction' }]
@@ -62,17 +65,42 @@ async function example() {
 example();
 
 
+//способ второй
 
+// import { TezosToolkit } from '@taquito/taquito';
+// import { delay, retryWhen, tap, scan } from 'rxjs/operators';
 
-// import { Tezos } from "./tezos"
+// async function example() {
+//     // This example will intentionally fail after two attempts as the RPC URL is invalid. 
+//     const provider = 'https://rpc.hangzhounet.teztnets.xyz';
+//     const tezos = new TezosToolkit(provider)
+//     tezos.setProvider({
+//         rpc: provider, config: {
+//             shouldObservableSubscriptionRetry: true, observableSubscriptionRetryFunction:
+//                 retryWhen(error =>
+//                     error.pipe(
+//                         scan((acc, error) => {
+//                             if (acc > 2) throw error;
+//                             console.log("attempt " + acc);
+//                             return acc + 1;
+//                         }, 1),
+//                         delay(3),
+//                         tap(() => console.log("Retrying ..."))
+//                     )
+//                 )
+//         }
+//     });
 
-// const TezosRPC = "https://rpc.hangzhounet.teztnets.xyz";
-// const account1= require("/account1.json")
+   
+//     const bakerDelegation = {
+//         and: [{ destination: 'tz1VcUcuUEcUGSZRcxNcj8JCrCG1xhZVRYt6' }]
+//     }
 
-// const wallet = new Tezos(TezosRPC, account1)
+//     tezos.stream.subscribeOperation({
+//         or: [bakerDelegation]
+//     })
+//     console.log("Запуск")
+// }
 
-// wallet.subscribe(async (data) => {
-//     console.log("GHbikj")
-// })
-
+// example();
 
