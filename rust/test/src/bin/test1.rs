@@ -1,8 +1,17 @@
 struct TezosToolKit {
     stream: SubscribeProvider,
     options: SetProviderOptions,
-    rpcClient: RpcClientInterface,
-    
+    rpc_client: RpcClientInterface,
+    wallet: Wallet,
+    context: Context
+}
+
+impl TezosToolKit {
+    fn new(&mut self, rpc: &str) {
+        self.rpc_client = RpcClient::new(rpc);
+        self.context = Context::new(rpc);
+        self.wallet = Wallet::new(self.context);
+    }
 }
 
 fn run() {
