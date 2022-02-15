@@ -1,11 +1,17 @@
 use ureq::Agent;
 use json::parse;
+use std::fs;
 // use std::thread;
 // use std::time::Duration;
-const ADDR: &str = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
 fn get() -> json::JsonValue {
     let agent = Agent::new();
-    let path = format!("https://api.hangzhounet.tzkt.io/v1/accounts/{}/operations", ADDR);
+    let path = format!("https://api.hangzhounet.tzkt.io/v1/accounts/{}/operations", parse(fs::read_to_string(PATH)
+        .unwrap()
+        .as_str())
+        .unwrap()["address"]
+        .as_str()
+        .unwrap()
+    );
     let res = agent.get(&path)
         .call()
         .unwrap()
@@ -15,13 +21,14 @@ fn get() -> json::JsonValue {
     res_json
 }
 
+const PATH: &str = "config.json";
 fn main() {
-    println!("started");
+    // println!("listening {}", address);
     let mut last_len = get().len();
     loop {
         let res = get();
         let len = res.len();
-        if len > last_len {
+        if len > last_len { // если транзакций стало больше
             println!("{:#}", res[0]);
             last_len = len;
         }
