@@ -44,7 +44,6 @@ const transferCommentAbi = {
 
 export class Wallet extends Account {
     private keys: KeyPair;
-    public balance: number
 
     constructor(client: TonClient, keys: KeyPair | null, address?: string){
         super(getContract("Wallet"), {
@@ -58,20 +57,15 @@ export class Wallet extends Account {
 
     static async init (client, keys) {
         const wallet = new Wallet(client, keys);
-        const walletBalance = parseInt(await wallet.getBalance(), 16);
-        wallet.balance = walletBalance;
+        const {acc_type} = await wallet.getAccount();
 
-        if (Number.isNaN(walletBalance)) {
-            await wallet.deploy({
-                initInput: {
-                    owners: ["0x" + keys.public],
-                    reqConfirms: 1
-                },
-                useGiver: true
-            })
-            wallet.balance = parseInt(await wallet.getBalance(), 16);
-        }
-
+        if (acc_type === 3) await wallet.deploy({
+            initInput: {
+                owners: ["0x" + keys.public],
+                reqConfirms: 1
+            },
+            useGiver: true
+        })
         return wallet;
     }
 
@@ -102,16 +96,12 @@ export class Wallet extends Account {
     }
     
     public async onTransaction(callback: (data: ITransactionNotification) => void){
-        await this.client.net.subscribe_collection({
-            collection: "transactions",
-            filter: {
-                account_addr: { eq: await this.getAddress() }
-            },
-            result: "id in_message {value src dst} in_msg balance_delta aborted",
-        }, async (params) => {
+        await this.subscribe("transactions", {
+            account_addr: { eq: await this.getAddress() }
+        },  "id in_message {value src dst} in_msg balance_delta aborted", async params => {
             const message = await this.client.net.query_collection({
                 collection: "messages",
-                filter: { id: { eq: params.result.in_msg } },
+                filter: { id: { eq: params.in_msg } },
                 result: "boc"
             })
 
@@ -123,12 +113,12 @@ export class Wallet extends Account {
                 .catch(err => null);
 
             callback({
-                id: params.result.id,
-                from: params.result.in_message.src,
-                to: params.result.in_message.dst,
-                amount: parseInt(params.result.balance_delta, 16) / 1_000_000_000,
+                id: params.id,
+                from: params.in_message.src,
+                to: params.in_message.dst,
+                amount: parseInt(params.balance_delta, 16) / 1_000_000_000,
                 payload: payload
             })
-        });
+        })
     }
 }
