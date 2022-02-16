@@ -1,6 +1,6 @@
 use console::style;
 use lib::utils::parse_float_amount;
-use lib::{Address, PrivateKey, PublicKey};
+use lib::{Address, OriginatedAddress, PrivateKey, PublicKey};
 use crate::commands::CommandError;
 use crate::common::exit_with_error;
 use crate::common::operation_command::*;
@@ -92,7 +92,9 @@ impl TransferLocal {
                 no_prompt: self.no_prompt,
             },
             api: Box::new(lib::http_api::HttpApi::new(self.endpoint.clone())),
-            from: public_key.hash().into(),
+            // from: public_key.hash().into(),
+            from: Address::from_base58check("KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1").unwrap(),
+            // from: "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
             // from: public_key,
             fee: self.fee()?,
             state: Default::default(),
@@ -113,7 +115,6 @@ fn transfer(contract: &str, from: &str, to: &str, public_key: &str, secret_key: 
         to: to.to_string(),
         amount: amount.to_string(),
         fee: Option::from("0.1".to_string())
-        // Option::from()
     };
     let result = transfer_obj.execute();
 
@@ -126,12 +127,12 @@ fn transfer(contract: &str, from: &str, to: &str, public_key: &str, secret_key: 
 }
 
 fn main() {
-    let from = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
+    let from = "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1";
     // let to = "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX";
     let contract = "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1";
     let to = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
-    let secret_key = "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R";
-    let public_key = "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd";
+    let secret_key = "edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD";
+    let public_key = "edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH";
     let amount = "0.00001";
     transfer(contract, from, to, public_key, secret_key, amount);
 }
