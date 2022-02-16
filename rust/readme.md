@@ -6,7 +6,7 @@ change variable `from` to the correct one on line 154
 change variable `to` to the correct one on line 156  
 Also you can change `amount` and `fee` on lines 157 and 158  
 ```bash  
-cd ./tests  
+cd ./test  
 cargo run --bin tezedge  
 ```  
 If not working, try  
