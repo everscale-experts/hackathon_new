@@ -42,7 +42,7 @@ async function transferToken(tokenAddress: string, from: Tezos, to: Tezos, amoun
 }
 
 async function onContractAction(data: any){
-    if (data.kind === "transaction"){
+    if (data.kind === "transaction" && data.parameters.entrypoint === "transfer"){
         const [{string: reciever}, {int: amount}] = data.parameters.value.args[1].args;
         console.log(`[!] На адрес ${reciever} пришло ${amount} токенов!`);
         const everscale1 = createEverscaleTokenWallet();
