@@ -161,7 +161,7 @@ fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount: &s
 fn main() {
     let from = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
     // let to = "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX";
-    let to = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
+    let to = "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1";
     let secret_key = "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R";
     let public_key = "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd";
     let amount = "0.00001";

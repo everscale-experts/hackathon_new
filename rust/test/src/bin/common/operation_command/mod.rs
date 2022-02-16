@@ -92,7 +92,6 @@ pub struct OperationCommand {
 
 impl OperationCommand {
     fn get_version(&mut self) -> GetVersionInfoResult {
-        println!("[rust/test/srs/bin/tezedge.rs > execute > transfer > execute > build_operation_group > get_version]");
         let version = self.state.version.as_ref()
             .map(|version| Ok(version.clone()))
             .unwrap_or_else(|| {
@@ -169,6 +168,7 @@ impl OperationCommand {
     {
         Ok(NewTransactionOperationBuilder {
             amount,
+            from: self.from.clone(),
             source,
             destination,
             counter: self.get_counter()?,
