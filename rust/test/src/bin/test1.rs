@@ -92,8 +92,8 @@ impl TransferLocal {
                 no_prompt: self.no_prompt,
             },
             api: Box::new(lib::http_api::HttpApi::new(self.endpoint.clone())),
-            // from: public_key.hash().into(),
-            from: Address::from_base58check("KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1").unwrap(),
+            from: public_key.hash().into(),
+            // from: Address::from_base58check("KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1").unwrap(),
             // from: "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
             // from: public_key,
             fee: self.fee()?,
@@ -127,7 +127,7 @@ fn transfer(contract: &str, from: &str, to: &str, public_key: &str, secret_key: 
 }
 
 fn main() {
-    let from = "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1";
+    let from = "";
     // let to = "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX";
     let contract = "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1";
     let to = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
