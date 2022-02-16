@@ -12,22 +12,22 @@ const client = new TonClient({
 
 
 async function main() {
-
-    const account1 = {
-        public: '43534945ae83b679309fd89df124f862aa398e9584f8090a25dab0b1921d4d59',
-        secret: '141573167c3d0ea2f13e05355704ecc1556433fc2dd2afa85971c035e9c461b5'
-    }
+    const keys = await client.crypto.generate_random_sign_keys();
 
     const reciever = "0:691e08ff23923954d895faa8146364b9b03a5baac90a24197da84b6293f9f287";
 
-    const wallet1 = await Wallet.init(client, account1);
+    const wallet1 = await Wallet.init(client, keys);
     const wallet2 = new Wallet(client, null, reciever);
 
-    wallet2.onTransaction(data => {
-        console.log(data);
+    wallet1.onTransaction(data => {
+        if(data.amount < 0){
+            console.log("Money sent!")
+        } else {
+            console.log("Money Recived:", data);
+        }
     })
 
-    await wallet1.transfer(reciever, 1);
+    await wallet1.transfer(reciever, 5, "custom payload");
 }
 
 main();
