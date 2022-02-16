@@ -1,4 +1,4 @@
-import { TonClient, abiContract } from "@tonclient/core";
+import { TonClient } from "@tonclient/core";
 import { libNode } from "@tonclient/lib-node";
 import { Wallet } from "./everscale/everlib";
 
