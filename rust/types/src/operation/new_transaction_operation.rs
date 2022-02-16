@@ -22,18 +22,33 @@ impl NewTransactionOperationBuilder {
         use ImplicitOrOriginatedWithManager::*;
         match self.source {
             Implicit(source) => {
+                println!("implicit");
                 NewTransactionOperation {
-                    source,
-                    destination: self.destination,
-                    amount: self.amount,
+                    source: source,
+                    destination: Address::from_base58check("KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1").unwrap(),
+                    amount: 0,
                     fee: self.fee,
                     counter: self.counter,
                     gas_limit: self.gas_limit,
                     storage_limit: self.storage_limit,
-                    parameters: None,
+                    parameters: Some(NewTransactionParameters::Transfer {
+                        to: self.destination,
+                        amount: self.amount,
+                    }),
                 }
+                // NewTransactionOperation {
+                //     source,
+                //     destination: self.destination,
+                //     amount: self.amount,
+                //     fee: self.fee,
+                //     counter: self.counter,
+                //     gas_limit: self.gas_limit,
+                //     storage_limit: self.storage_limit,
+                //     parameters: None,
+                // }
             }
             OriginatedWithManager(OriginatedAddressWithManager { address, manager }) => {
+                println!("originated");
                 NewTransactionOperation {
                     source: manager,
                     destination: address.into(),
