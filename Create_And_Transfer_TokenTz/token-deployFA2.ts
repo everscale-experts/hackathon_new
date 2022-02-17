@@ -48,10 +48,8 @@ async function example() {
   try {
     console.log('Deploying contract...');
     
-    const LocalTez1 = await createAddress();
-			const localTez1Pkh = await LocalTez1.signer.publicKeyHash();
-			const LocalTez2 = await createAddress();
-			const localTez2Pkh = await LocalTez2.signer.publicKeyHash();
+  
+			
 
 			const ledger = new MichelsonMap();
 			ledger.set(
