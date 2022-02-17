@@ -48,8 +48,7 @@ async function example() {
   try {
     console.log('Deploying contract...');
     
-  
-			
+
 
 			const ledger = new MichelsonMap();
 			ledger.set(
@@ -87,9 +86,10 @@ async function example() {
 
 			const token_metadata = new MichelsonMap();
 			const token1 = new MichelsonMap();
-			token1.set('name', char2Bytes('wToken'));
-			token1.set('symbol', char2Bytes('wTK'));
-			token1.set('decimals', '36');
+			token1.set('name', char2Bytes('Slonik'));
+			token1.set('symbol', char2Bytes('SLN'));
+			token1.set('decimals', '30');
+			token1.set("icon", char2Bytes('https://icon-library.com/images/194204.svg.svg'))//ссылка на иконку
 			const token2 = new MichelsonMap();
 			token2.set('name', char2Bytes('AliceToken'));
 			token2.set('symbol', char2Bytes('CSD'));
