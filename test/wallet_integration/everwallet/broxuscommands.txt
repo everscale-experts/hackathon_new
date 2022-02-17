@@ -26,16 +26,23 @@ Bounceable address (for later access): EQBcgRm7gUuRyzxm0T_UTyO13-4wcCL3XCWypCwHE
 "name":"EVTEZ21",
 "symbol":"EVTEZ21",
 "decimals":"9",
-"owner":"0:3daf7dab491d7b27fb171fd332d317f75cfc5349392a8ad3ab67094f6c8dd011",
-"initialSupplyTo":"0:3daf7dab491d7b27fb171fd332d317f75cfc5349392a8ad3ab67094f6c8dd011",
-"initialSupply":"5000000000000",
+"owner":"0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa",
+"initialSupplyTo":"0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa",
+"initialSupply":"0",
 "deployWalletValue":"2000000000",
 "mintDisabled":"false",
 "burnByRootDisabled":"false",
 "burnPaused":"false",
-"remainingGasTo":"0:3daf7dab491d7b27fb171fd332d317f75cfc5349392a8ad3ab67094f6c8dd011"
+"remainingGasTo":"0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa"
 }' --sign keys_main.json --abi ton-eth-bridge-token-contracts/build/TokenFactory.abi.json
+
+./tonos-cli run 0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa _deployValue {} --abi ton-eth-bridge-token-contracts/build/TokenFactory.abi.json
+
 
 ./tonos-cli genaddr ton-labs-contracts/solidity/safemultisig/SafeMultisigWallet.tvc ton-labs-contracts/solidity/safemultisig/SafeMultisigWallet.abi.json --setkey account.json
 
 0:3daf7dab491d7b27fb171fd332d317f75cfc5349392a8ad3ab67094f6c8dd011
+
+
+352e36fc218a33d65bb87b40c8ff58df04a0bdd0e8673138c40d1e1291b6c687
+0:ab93c48b102fb86f7400adbe58c29db1e8094e31f7d5601274958078f2de0642

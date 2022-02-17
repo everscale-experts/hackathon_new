@@ -19,20 +19,20 @@ async function main() {
         }
     });
 
-    const keyPair = JSON.parse(fs.readFileSync(path.join(__dirname, "2ndaccount.keys.json"), "utf8"));
+    const keyPair = JSON.parse(fs.readFileSync(path.join(__dirname, "work_acc.json"), "utf8"));
 
     /* Deploy TIP3 */
 
     const TokenWallet = {
-        abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "flex/tokens-fungible/TONTokenWallet.abi")).toString()),
-        tvc: fs.readFileSync(path.resolve(__dirname, "flex/tokens-fungible/TONTokenWallet.tvc")).toString("base64")
+        abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "ton-eth-bridge-token-contracts/build/TokenWallet.abi.json")).toString()),
+        tvc: fs.readFileSync(path.resolve(__dirname, "ton-eth-bridge-token-contracts/build/TokenWallet.tvc")).toString("base64")
     }
 
     const tip3create = new Account(
         TokenWallet,
         {
             signer: signerKeys(keyPair),
-            address: "0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647",
+            address: "0:b95d8f510a029401dda2b1d3b9ec1b656238fa19e96d0b4dbcc41ee82821b6ab",
             client
         }
     );
