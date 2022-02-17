@@ -1,7 +1,7 @@
 ﻿# Run  
 Go to `rust/test`    
 ```bash  
-cargo run --bin tezedge  
+cargo run --bin test1  
 ```  
 If not working, try  
 ```bash  
