@@ -1,12 +1,6 @@
 ﻿# Run  
-Go to `rust/tests/src/bin/tezedge`  
-change variable `public_key` to the correct one on line 150  
-change variable `private_key` to the correct one on line 152  
-change variable `from` to the correct one on line 154  
-change variable `to` to the correct one on line 156  
-Also you can change `amount` and `fee` on lines 157 and 158  
+Go to `rust/test`    
 ```bash  
-cd ./test  
 cargo run --bin tezedge  
 ```  
 If not working, try  
@@ -81,8 +75,12 @@ changing ureq version
 
 ## [ERROR] getting version information failed! Reason: Unknown! Http status: (405, Method Not Allowed), message: Unsupported HTTP method  
 ### error: process didn't exit successfully: 'target\debug\tezedge.exe' (exit code: 1)  
-##### ***Working on solution***  
+##### ***Fixed***  
   
+  
+## [ERROR] operation simulation failed! Reason: Failed to read JSON: missing field `consumed_gas` at line 1 column 1014  
+### error: process didn't exit successfully: `target\debug\tezedge.exe` (exit code: 1)  
+##### ***Working on solution***  
   
 ## From Slack  
 Michael Zaikin - Baking Bad:  
