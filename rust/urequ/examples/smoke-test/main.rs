@@ -33,7 +33,7 @@ impl fmt::Display for Oops {
 type Result<T> = result::Result<T, Oops>;
 
 fn get(agent: &ureq::Agent, url: &str) -> Result<Vec<u8>> {
-    let response = agent.get(url).call()?;
+    let response = agent.get(url, "").call()?;
     let mut reader = response.into_reader();
     let mut bytes = vec![];
     reader.read_to_end(&mut bytes)?;
