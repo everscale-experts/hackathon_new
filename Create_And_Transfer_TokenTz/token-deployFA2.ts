@@ -46,7 +46,7 @@ async function example() {
   );
   
   try {
-    console.log('Deploying Tzip12BigMapsTokenMetadata contract...');
+    console.log('Deploying contract...');
     
     const LocalTez1 = await createAddress();
 			const localTez1Pkh = await LocalTez1.signer.publicKeyHash();
@@ -56,7 +56,7 @@ async function example() {
 			const ledger = new MichelsonMap();
 			ledger.set(
 				{
-					owner: "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
+					owner: 'tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM',//адресс кошелька владельца 
 					token_id: 1
 				},
 				10000000,// количество токенов в сатошинах(меньших единиц токена)
@@ -64,7 +64,7 @@ async function example() {
 			);
 			ledger.set(
 				{
-					owner: "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
+					owner: 'tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM',
 					token_id: 2
 				},
 				990000000// количество токенов в сатошинах(меньших единиц токена)
@@ -79,11 +79,11 @@ async function example() {
 
 			const token_admins = new MichelsonMap();
 			token_admins.set('1', {
-				0: localTez1Pkh,
+				0: 'tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM',
 				1: true
 			});
 			token_admins.set('2', {
-				0: localTez2Pkh,
+				0: 'tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM',
 				1: true
 			});
 
@@ -126,10 +126,8 @@ async function example() {
 
     console.log('Awaiting confirmation...');
     const contract = await op.contract();
-    console.log('Tzip12BigMapsTokenMetadata Contract address',contract.address)
+    console.log('Contract address',contract.address)
     console.log('Gas Used', op.consumedGas);
-
-    console.log('Storage', await contract.storage());
     console.log('Operation hash:', op.hash, 'Included in block level:', op.includedInBlock);
   } catch (ex) {
     console.error(ex);
