@@ -25,7 +25,8 @@ impl NewTransactionOperationBuilder {
                 println!("implicit");
                 NewTransactionOperation {
                     source: source,
-                    destination: Address::from_base58check("KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1").unwrap(),
+                    // destination: Address::from_base58check("KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1").unwrap(),
+                    destination: Address::from_base58check("tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R").unwrap(),
                     amount: 0,
                     fee: self.fee,
                     counter: self.counter,

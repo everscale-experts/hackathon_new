@@ -30,7 +30,7 @@ fn dribble_body_respond(mut stream: TcpStream, contents: &[u8]) -> io::Result<()
 fn get_and_expect_timeout(url: String) {
     let timeout = Duration::from_millis(500);
     let agent = builder().timeout(timeout).build();
-    let resp = agent.get(&url).call().unwrap();
+    let resp = agent.get(&url, "").call().unwrap();
 
     match resp.into_string() {
         Err(io_error) => match io_error.kind() {
@@ -55,7 +55,7 @@ fn read_timeout_during_body() {
     let server = TestServer::new(|stream| dribble_body_respond(stream, &[b'a'; 300]));
     let url = format!("http://localhost:{}/", server.port);
     let agent = builder().timeout_read(Duration::from_millis(70)).build();
-    let resp = match agent.get(&url).call() {
+    let resp = match agent.get(&url, "").call() {
         Ok(r) => r,
         Err(e) => panic!("got error during headers, not body: {:?}", e),
     };
@@ -88,7 +88,7 @@ fn read_timeout_during_headers() {
     let server = TestServer::new(dribble_headers_respond);
     let url = format!("http://localhost:{}/", server.port);
     let agent = builder().timeout_read(Duration::from_millis(10)).build();
-    let result = agent.get(&url).call();
+    let result = agent.get(&url, "").call();
     match result {
         Ok(_) => Err("successful response".to_string()),
         Err(e) if e.kind() == ErrorKind::Io => {
@@ -109,7 +109,7 @@ fn overall_timeout_during_headers() {
     let server = TestServer::new(dribble_headers_respond);
     let url = format!("http://localhost:{}/", server.port);
     let agent = builder().timeout(Duration::from_millis(500)).build();
-    let result = agent.get(&url).call();
+    let result = agent.get(&url, "").call();
     match result {
         Ok(_) => Err("successful response".to_string()),
         Err(e) if e.kind() == ErrorKind::Io => {
@@ -142,7 +142,7 @@ fn overall_timeout_reading_json() {
 
     let timeout = Duration::from_millis(500);
     let agent = builder().timeout(timeout).build();
-    let result: Result<serde_json::Value, io::Error> = agent.get(&url).call().unwrap().into_json();
+    let result: Result<serde_json::Value, io::Error> = agent.get(&url, "").call().unwrap().into_json();
 
     match result {
         Ok(_) => Err("successful response".to_string()),
