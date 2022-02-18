@@ -1,10 +1,27 @@
 import type { NextPage } from 'next'
+import { useState } from 'react';
 import Head from 'next/head'
 import Image from 'next/image'
 import Select from 'react-select'
 import styles from '../styles/Home.module.css'
+import { login } from '../store/actions/account';
+import { Wallet } from "../store/libs/everlib";
+
+
 
 const Home: NextPage = () => {
+  const [address, setAddress] = useState('');
+ const [token, setToken] = useState('');
+
+ const handleSubmit = e => {
+   e.preventDefault();
+   const data = {
+     address,
+     token,
+   };
+   console.log(data);
+   
+ };
   return (
     <div className={styles.container}>
     <Head>
@@ -18,17 +35,12 @@ const Home: NextPage = () => {
     Welcome to Everangers Bridge!
     </h1>
 
-    <p className={styles.description}>
-    Get started exchange
-
-    </p>
 
     <div>
-    <form action="http://www.acme.com/register" method="POST">
-
-    <label for="name">Name</label>
-    <input id="name" type="text" autocomplete="name" required />
-    <button type="submit">Register</button>
+    <form action="" onSubmit={handleSubmit}>
+    <input id="address" type="text" autocomplete="address" placeholder="Address" onChange={e => setAddress(e.target.value)} required />
+    <input id="token" type="text" autocomplete="token" placeholder="Number of Tokens" onChange={e => setToken(e.target.value)} required />
+    <button type="submit"><p>Send</p></button>
     </form>
     </div>
     </main>
