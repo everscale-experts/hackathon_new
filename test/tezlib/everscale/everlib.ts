@@ -122,3 +122,74 @@ export class Wallet extends Account {
         })
     }
 }
+
+interface ITokenRecievedNotification {
+    message_id: string
+    from: string
+    amount: number
+}
+
+export class TokenWallet {
+    public address: string;
+    private account: Account;
+    private keys: KeyPair | null;
+
+    constructor(client: TonClient, keys: KeyPair | null, address: string){
+        this.address = address;
+        this.keys = keys;
+        this.account = new Account(getContract("TokenWallet"), {
+            signer: keys ? signerKeys(keys) : signerNone(),
+            address, 
+            client
+        });
+    }
+
+    private messageHandler(data: {boc: string, id: string, src: string}, callback: (data: ITokenRecievedNotification) => void){
+        this.account.decodeMessage(data.boc).then(decoded => {
+            if(decoded.name === "internalTransfer"){
+                callback({
+                    message_id: data.id,
+                    from: data.src,
+                    amount: decoded.value.tokens / 100_000_000
+                })
+            }
+        }).catch(error => {
+
+        })
+    }
+
+    public async onTokenRecieved(callback: (data: ITokenRecievedNotification) => void){
+        this.account.subscribeMessages("boc src id", data => this.messageHandler(data, callback));
+    }
+
+    public async getBalance(){
+        return {
+            tokens: (await this.account.runLocal("getBalance", {})).decoded.output.value0 / 100_000_000,
+            evers: parseInt(await this.account.getBalance(), 16) / 1_000_000_000
+        }
+    }
+
+    /**
+     * Совершает перевод с привязанного адреса на указанный.
+     * @param to Адрес получателя
+     * @param tokens Сумма в токенах
+     * @param gas_limit Лимит газа в эверах на выполнение перевода
+     * @returns ID транзакции
+     */
+    public async transfer (to: string, tokens: number, gas_limit: number = 3){
+        if(!this.keys) throw new Error("Keys not provided!");
+
+        const {tokens: balance} = await this.getBalance();
+        if(tokens > balance) throw new Error("Not enough balance!");
+
+        const transfer = await this.account.run("transfer", {
+            answer_addr: this.address,
+            to,
+            tokens: tokens * 100_000_000,
+            evers: gas_limit * 1_000_000_000,
+            return_ownership: 0,
+        });
+        
+        return transfer.out_messages.length ? transfer.transaction.id : null
+    }
+}

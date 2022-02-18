@@ -106,6 +106,7 @@ export class Tezos {
    * Совершает перевод с привязанного адреса на указанный.
    * @param address Адрес получателя
    * @param amount Сумма перевода
+   * @returns Хэш операции
    */
   public async transfer(address: string, amount: number){
     const op = await this.tezos.contract.transfer({to: address, amount});
