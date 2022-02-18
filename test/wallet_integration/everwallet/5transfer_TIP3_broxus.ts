@@ -39,11 +39,11 @@ async function main() {
     //console.log(tip3create);
 
   const trasnfer = await(tip3create.run("transfer",{
-    answer_addr:"0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647",
-    to:"0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1",
-    tokens:2000000000,
+    amount:1000000000,
+    recipient:"0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1",
+    deployWalletValue:50000000000,
     evers:500000000,
-    return_ownership:0,
+    remainingGasTo:0,
   }).catch(e => console.log("ERROR:", e)))
 
 

@@ -4,6 +4,7 @@
 ./tonos-cli deploy ton-eth-bridge-token-contracts/build/TokenFactory.tvc '{"owner":"0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa","deployValue":"2000000000", "rootCode":"'$TVM_ROOT_CODE'","walletCode":"'$TVM_WALLET_CODE'"}' --abi ton-eth-bridge-token-contracts/build/TokenFactory.abi.json --sign keys_main.json
 ./tonos-cli genaddr ton-eth-bridge-token-contracts/build/TokenFactory.tvc ton-eth-bridge-token-contracts/build/TokenFactory.abi.json --setkey keys_main.json
 
+./tonos-cli genaddr ton-eth-bridge-token-contracts/build/TokenFactory.tvc ton-eth-bridge-token-contracts/build/TokenWallet.abi.json --setkey work_acc.json
 
 export TVM_ROOT_CODE=`cat tokenroot.txt`
 export TVM_WALLET_CODE=`cat tokenwallet.txt`
@@ -46,3 +47,5 @@ Bounceable address (for later access): EQBcgRm7gUuRyzxm0T_UTyO13-4wcCL3XCWypCwHE
 
 352e36fc218a33d65bb87b40c8ff58df04a0bdd0e8673138c40d1e1291b6c687
 0:ab93c48b102fb86f7400adbe58c29db1e8094e31f7d5601274958078f2de0642
+
+te6ccgEBAwEAcAABi3PiIUMAAAAAAAAAAAAAAAJUC+QAgAJTuAtuc7FXIsNY4hclw8e59mXFCUoT2wMB0vCqljwtYAAAAAAAAAAAAAAAAL68IBABAUOAGDNgBnKX3sqNAWBglsZOUeTJULd1NQtwnwEhw5pzvgQoAgAA
