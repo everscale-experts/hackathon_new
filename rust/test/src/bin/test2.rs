@@ -137,13 +137,13 @@ impl Serialize for PublicKey {
     }
 }
 
-fn batch(parameters) {
+// fn batch(parameters) {
 
-}
+// }
 
-fn send_operations(parameters) {
+// fn send_operations(parameters) {
 
-}
+// }
 
 fn transfer() {
     let params = json!("{
