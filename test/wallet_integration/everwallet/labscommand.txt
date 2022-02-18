@@ -25,6 +25,9 @@ Bounceable address (for later access): EQB_YiX0uE2YiVk_sdk2bhITK2sMAH24E_F4l-MwM
 
 s
 
+
+tvm_linker decode --tvc flex/tokens-fungible/TONTokenWallet.tvc > decode.txt
+
 ./tonos-cli deploy flex/tokens-fungible/RootTokenContract.tvc '{"name":"EVTEZ21","symbol":"EVTEZ21", "decimals":"0","root_pubkey":"0x77cdeb6d17ec6c95127198fdf00dc6cc2f76e81ad91dc86cea661bb120d2cbd5", "total_supply":"5000000000000"}' --abi flex/tokens-fungible/RootTokenContract.abi --sign deploy.keys.json
 
 

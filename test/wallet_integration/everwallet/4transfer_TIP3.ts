@@ -48,11 +48,13 @@ async function main() {
   //console.log(tip3create);
   const balancedo1 = await(tip3create.runLocal("getBalance",{}).catch(e => console.log("ERROR:", e)))
   const balancedo2 = await(tip3create2nd.runLocal("getBalance",{}).catch(e => console.log("ERROR:", e)))
+  console.log("-----------------------")
   console.log("Balance before transfer")
-  console.log("Balance of sender wallet")
-  console.log(balancedo1["decoded"]["output"])
-  console.log("Balance of receiver wallet")
-  console.log(balancedo2["decoded"]["output"])
+  console.log("-----------------------")
+  console.log("Balance of sender wallet: "+(balancedo1["decoded"]["output"]["value0"]))
+  console.log("Balance of receiver wallet: "+(balancedo2["decoded"]["output"]["value0"]))
+  console.log("-----------------------")
+
 
   const transfer = await(tip3create.run("transfer",{
     answer_addr:"0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647",
@@ -65,11 +67,12 @@ async function main() {
   //console.log(transfer);
   const balance1 = await(tip3create.runLocal("getBalance",{}).catch(e => console.log("ERROR:", e)))
   const balance2 = await(tip3create2nd.runLocal("getBalance",{}).catch(e => console.log("ERROR:", e)))
+  console.log("-----------------------")
   console.log("Balance after transfer")
-  console.log("Balance of sender wallet")
-  console.log(balance1["decoded"]["output"])
-  console.log("Balance of receiver wallet")
-  console.log(balance2["decoded"]["output"])
+  console.log("-----------------------")
+  console.log("Balance of sender wallet: "+(balance1["decoded"]["output"]["value0"]))
+  console.log("Balance of receiver wallet: "+(balance2["decoded"]["output"]["value0"]))
+  console.log("-----------------------")
   client.close();
 
 }
