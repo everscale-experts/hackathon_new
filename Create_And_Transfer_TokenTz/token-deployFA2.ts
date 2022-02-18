@@ -64,7 +64,7 @@ async function example() {
 					owner: 'tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM',
 					token_id: 2
 				},
-				990000000// количество токенов в сатошинах(меньших единиц токена)
+				990000000// количество токенов 
 			);
 
 			const url = 'https://storage.googleapis.com/tzip-16/fa2-token-factory.json';
@@ -88,7 +88,7 @@ async function example() {
 			const token1 = new MichelsonMap();
 			token1.set('name', char2Bytes('Slonik'));
 			token1.set('symbol', char2Bytes('SLN'));
-			token1.set('decimals', '30');
+			token1.set('decimals', '36');
 			token1.set("icon", char2Bytes('https://icon-library.com/images/194204.svg.svg'))//ссылка на иконку
 			const token2 = new MichelsonMap();
 			token2.set('name', char2Bytes('AliceToken'));
