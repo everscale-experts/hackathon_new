@@ -22,7 +22,6 @@ async function main() {
     console.log(`[!] TEZOS: Listening ${config.tezos_token_contract} for incoming tokens...`)
 
     everscale.onTokenRecieved(data => {
-        console.log("everscale", data)
         console.log(`[!] EVERSCALE: На адрес ${everscale.address} пришло ${data.amount} токенов!`);
     })
 
