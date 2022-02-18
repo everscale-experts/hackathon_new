@@ -1,8 +1,4 @@
 import { Tezos } from "./tezos";
-import { signerKeys, TonClient } from "@tonclient/core";
-import { Account } from "@tonclient/appkit";
-import { libNode } from "@tonclient/lib-node";
-import { Wallet, TokenWallet, getContract } from "./everscale/everlib";
 import config from "./config.json";
 
 const RPC = "https://rpc.hangzhounet.teztnets.xyz";

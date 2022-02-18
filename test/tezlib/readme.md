@@ -23,3 +23,7 @@ yarn
 Для симуляции отправки токенов запускайте файлы ```transfer_everscale_token.ts``` и ```transfer_tezos_token.ts```
 
 Если в Everscale на адресе отправителя токенов закончились Эверы, запустите файл ```refill_ever_balance.ts```
+
+```transfer_everscale_token.ts``` – Отправляет сумму токенов, указанную в ```everscale_token_sender.amount``` с аккаунта, ключи которого указаны в ```everscale_token_sender.keys```
+
+```transfer_tezos_token.ts``` – Отправляет сумму токенов, указанную в ```tezos_token_sender.amount``` с аккаунта, ключи которого указаны в ```tezos_token_sender.keys```
