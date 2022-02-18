@@ -46,6 +46,20 @@ async function main() {
     }
   );
   //console.log(tip3create);
+  console.log("-----------------------")
+  console.log("Address of Sender Wallet:")
+  console.log(tip3create.getAddress())
+  console.log("Keys of Sender Wallet:")
+  console.log("-----------------------")
+  console.log(tip3create.signer["keys"])
+  console.log("-----------------------")
+  console.log("-----------------------")
+  console.log("Address of Receiver Wallet:")
+  console.log(tip3create2nd.getAddress())
+  console.log("Keys of Receiver Wallet:")
+  console.log("-----------------------")
+  console.log(tip3create2nd.signer["keys"])
+
   const balancedo1 = await(tip3create.runLocal("getBalance",{}).catch(e => console.log("ERROR:", e)))
   const balancedo2 = await(tip3create2nd.runLocal("getBalance",{}).catch(e => console.log("ERROR:", e)))
   console.log("-----------------------")
