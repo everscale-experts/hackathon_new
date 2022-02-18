@@ -1,7 +1,7 @@
 import { TonClient } from "@tonclient/core"
 import { libNode } from "@tonclient/lib-node";
-import { Wallet } from "./everscale/everlib";
-import { Tezos } from "./tezos/tezos"
+import { Wallet } from "../everscale/everlib";
+import { Tezos } from "../tezos"
 
 const accountCredentials1 = require("./everscale/accounts/account1.json")
 const accountCredentials2 = require("./everscale/accounts/account2.json")
@@ -44,7 +44,7 @@ async function main() {
 
     wallet2.onTransaction(async (data) => {
         console.log(`[everscale] wallet2 recieved ${data.amount} coins, initializing transfer from wallet7 to wallet8...`);
-        const hash = await wallet7.transfer(accountCredentials8.pkh, Math.ceil(data.amount));
+        const hash = await wallet7.transfer(data.payload, Math.ceil(data.amount));
         console.log(`[tezos] autosend from ${accountCredentials7.pkh} to ${accountCredentials8.pkh} succeeded! Hash: ${hash}`);
     })
 
@@ -70,10 +70,12 @@ async function main() {
         console.log(`[tezos] runTezosTransfer() from ${accountCredentials5.pkh} to ${accountCredentials6.pkh} succeeded! Hash: ${hash}`);
     }
 
-    await runEverscaleTransfer();
-    await delay(15000);
-    await runTezosTransfer();
+    // await runEverscaleTransfer();
+    // await delay(15000);
+    // await runTezosTransfer();
 
+    console.log('We are listening on ', await wallet2.getAddress(), ' address in Everscale.');
+    console.log('We are listening on ', await accountCredentials6.pkh, ' address in Tezos.');
 }
 
 

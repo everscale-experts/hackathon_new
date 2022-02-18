@@ -1,0 +1,42 @@
+{
+    "tezos_token_contract": "KT1MPrXmeAhHMdz9L3V25D38PndpT4cDwAi8",
+    "everscale_token_listener": "0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1",
+    "everscale_token_target": "",
+    "tezos_token_listener": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM",
+    "tezos_token_target": "",
+    "everscale_token_sender": {
+        "keys": {
+            "public": "fdee028b0ab1bff8845447a2ac16a44b3598ae53cd7558824d124b214db5e724",
+            "secret": "8a102aee621fbe2b4b57ecf68a220bcf5826c69a5ac585d109337e3dbc230614"
+        },
+        "address": "0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647",
+        "amount": 1
+    },
+    "tezos_token_sender": {
+        "keys": {
+            "pkh": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM",
+            "mnemonic": [
+                "myself",
+                "nothing",
+                "fury",
+                "disagree",
+                "uncover",
+                "embrace",
+                "custom",
+                "bike",
+                "frown",
+                "emotion",
+                "uncle",
+                "tissue",
+                "trip",
+                "render",
+                "lake"
+            ],
+            "email": "neaqjwkm.gcmmrqga@teztnets.xyz",
+            "password": "zTUenCLIRQ",
+            "amount": "81902732788",
+            "activation_code": "e859bdd3ce75b99abec30d1305cf84f520595f43"
+        },
+        "amount": 1
+    }
+}

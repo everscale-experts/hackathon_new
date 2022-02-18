@@ -51,6 +51,13 @@ export class Tezos {
   }
 
   /**
+   * @returns Возвращает адрес аккаунта
+   */
+  public async getAddress() {
+    return await this.tezos.wallet.pkh()
+  }
+
+  /**
    * Вызывает callback каждый раз, когда на привязанный к инстансу адрес поступают средства.
    */
   public subscribe(callback: (data: any) => void){
@@ -62,7 +69,7 @@ export class Tezos {
   }
   /**
    * Вызывает callback каждый раз, когда происходит взаимодействие с контрактом.
-   * @param address адрес контракта для подписки
+   * @param address Адрес контракта для подписки
    */
   public subscribeContract(address: string, callback: (data: any) => void){
     this.subscription = this.tezos.stream.subscribeOperation({
@@ -90,7 +97,7 @@ export class Tezos {
 
   /**
    * Возвращает баланс указанного адреса.
-   * @param address адрес для получения баланса
+   * @param address Адрес для получения баланса
    */
   public async getBalance(address: string){
     const balance = await this.tezos.tz.getBalance(address);
@@ -99,8 +106,9 @@ export class Tezos {
 
   /**
    * Совершает перевод с привязанного адреса на указанный.
-   * @param address адрес получателя
-   * @param amount сумма перевода
+   * @param address Адрес получателя
+   * @param amount Сумма перевода
+   * @returns Хэш операции
    */
   public async transfer(address: string, amount: number){
     const op = await this.tezos.contract.transfer({to: address, amount});
@@ -110,14 +118,14 @@ export class Tezos {
 
   /**
    * Совершает перевод токенов
-   * @param contract_address адрес контракта токена
-   * @param sender адрес отправителя
-   * @param receiver адрес получателя
-   * @param amount сумма перевода
+   * @param contract_address Адрес контракта токена
+   * @param receiver Адрес получателя
+   * @param amount Сумма перевода
+   * @returns Hash операции
    */
-  public async transferToken(address: string, sender: string, receiver: string, amount: number) {
-    const contract = await this.tezos.contract.at(address);
-    const op = await contract.methods.transfer(sender, receiver, amount).send()
+  public async transferToken(contract_address: string, receiver: string, amount: number) {
+    const contract = await this.tezos.contract.at(contract_address);
+    const op = await contract.methods.transfer(this.account.pkh, receiver, amount).send()
     return op.confirmation(1).then(() => op.hash)
   }
 
@@ -125,7 +133,7 @@ export class Tezos {
    * Создаёт токен и деплоит его в сеть.
    * @param contract_code JSON кода контракта для создания токена.
    * @param initial_balance Количество монет, которые получит привязанный адрес.
-   * @returns адрес контракта токена
+   * @returns Адрес контракта токена
    */
   public async createToken(contract_code: any, initial_balance: number){
     const op = await this.tezos.contract.originate({
@@ -135,6 +143,7 @@ export class Tezos {
     const contract = await op.contract()
     return contract.address;
   }
+
   /**
    * Перевод коинов вместе с токенами одной транзакцией. WIP
    */
