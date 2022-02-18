@@ -1,5 +1,5 @@
-import {TezosToolkit} from "@taquito/taquito";
-import { signerKeys, TonClient } from "@tonclient/core";
+import { TezosToolkit } from "@taquito/taquito";
+import { TonClient } from "@tonclient/core";
 import { libNode } from "@tonclient/lib-node";
 import { TokenWallet } from "./everscale/everlib";
 import config from "./config.json";

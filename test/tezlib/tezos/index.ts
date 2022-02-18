@@ -11,7 +11,6 @@ interface IAccount {
 }
 
 export class Tezos {
-  public address: string
   private tezos: TezosToolkit
   private rpcUrl: string
   private account: IAccount
@@ -51,6 +50,9 @@ export class Tezos {
     console.log("Activation successful!")
   }
 
+  /**
+   * @returns Возвращает адрес аккаунта
+   */
   public async getAddress() {
     return await this.tezos.wallet.pkh()
   }
@@ -121,8 +123,8 @@ export class Tezos {
    * @param amount Сумма перевода
    * @returns Hash операции
    */
-  public async transferToken(address: string, receiver: string, amount: number) {
-    const contract = await this.tezos.contract.at(address);
+  public async transferToken(contract_address: string, receiver: string, amount: number) {
+    const contract = await this.tezos.contract.at(contract_address);
     const op = await contract.methods.transfer(this.account.pkh, receiver, amount).send()
     return op.confirmation(1).then(() => op.hash)
   }
@@ -141,6 +143,7 @@ export class Tezos {
     const contract = await op.contract()
     return contract.address;
   }
+
   /**
    * Перевод коинов вместе с токенами одной транзакцией. WIP
    */

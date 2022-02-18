@@ -1,4 +1,4 @@
-import {Tezos} from "./tezos"
+import {Tezos} from "../tezos"
 
 const account1 = require("./tezos/accounts/account1.json")
 const contract_code = require("./tezos/contracts/token_contract.json");
