@@ -1833,6 +1833,83 @@ export class OperationFactory {
 
 export type TokenFactory = (val: any, idx: number) => Token;
 
+export type BaseTokenSchema = {
+  __michelsonType:
+    | 'address'
+    | 'bool'
+    | 'bytes'
+    | 'int'
+    | 'key'
+    | 'key_hash'
+    | 'mutez'
+    | 'nat'
+    | 'string'
+    | 'timestamp'
+    | 'bls12_381_fr'
+    | 'bls12_381_g1'
+    | 'bls12_381_g2'
+    | 'chain_id'
+    | 'never'
+    | 'operation'
+    | 'chest'
+    | 'chest_key'
+    | 'signature'
+    | 'unit';
+  schema: string;
+};
+
+export type OrTokenSchema = { __michelsonType: 'or'; schema: Record<string, TokenSchema> };
+export type PairTokenSchema = { __michelsonType: 'pair'; schema: Record<string, TokenSchema> };
+export type ListTokenSchema = { __michelsonType: 'list'; schema: TokenSchema };
+export type SetTokenSchema = { __michelsonType: 'set'; schema: TokenSchema };
+export type OptionTokenSchema = { __michelsonType: 'option'; schema: TokenSchema };
+export type MapTokenSchema = {
+  __michelsonType: 'map';
+  schema: { key: TokenSchema; value: TokenSchema };
+};
+export type BigMapTokenSchema = {
+  __michelsonType: 'big_map';
+  schema: { key: TokenSchema; value: TokenSchema };
+};
+export type ConstantTokenSchema = { __michelsonType: 'constant'; schema: { hash: string } };
+export type ContractTokenSchema = { __michelsonType: 'contract'; schema: { parameter: TokenSchema } };
+export type LambdaTokenSchema = {
+  __michelsonType: 'lambda';
+  schema: { parameters: TokenSchema; returns: TokenSchema };
+};
+export type SaplingStateTokenSchema = {
+  __michelsonType: 'sapling_state';
+  schema: { memoSize: string };
+};
+export type SaplingTransactionTokenSchema = {
+  __michelsonType: 'sapling_transaction';
+  schema: { memoSize: string };
+};
+export type TicketTokenSchema = {
+  __michelsonType: 'ticket';
+  schema: {
+    value: TokenSchema;
+    ticketer: { __michelsonType: 'contract'; schema: 'contract' };
+    amount: { __michelsonType: 'int'; schema: 'int' };
+  };
+};
+
+export type TokenSchema =
+  | BaseTokenSchema
+  | OrTokenSchema
+  | PairTokenSchema
+  | ListTokenSchema
+  | SetTokenSchema
+  | OptionTokenSchema
+  | MapTokenSchema
+  | BigMapTokenSchema
+  | ConstantTokenSchema
+  | ContractTokenSchema
+  | LambdaTokenSchema
+  | SaplingStateTokenSchema
+  | SaplingTransactionTokenSchema
+  | TicketTokenSchema;
+
 export abstract class Token {
   constructor(
     protected val: { prim: string; args?: any[]; annots?: any[] },
@@ -1896,6 +1973,1371 @@ export abstract class Token {
   abstract findAndReturnTokens(tokenToFind: string, tokens: Array<Token>): Array<Token>;
 }
 
+export interface Semantic {
+  [key: string]: (value: MichelsonV1Expression, schema: MichelsonV1Expression) => any;
+}
+const schemaTypeSymbol = Symbol.for('taquito-schema-type-symbol');
+
+export abstract class ComparableToken extends Token {
+  abstract ToBigMapKey(val: BigMapKeyType): {
+    key: { [key: string]: string | object[] };
+    type: { prim: string; args?: object[] };
+  };
+
+  abstract ToKey(val: string): any;
+
+  compare(o1: string, o2: string): number {
+    if (o1 === o2) {
+      return 0;
+    }
+
+    return o1 < o2 ? -1 : 1;
+  }
+}
+
+export type BigMapKeyType = string | number | object;
+
+export abstract class TokenValidationError extends Error {
+  name = 'ValidationError';
+
+  constructor(public value: any, public token: Token, baseMessage: string) {
+    super();
+    const annot = this.token.annot();
+    const annotText = annot ? `[${annot}] ` : '';
+    this.message = `${annotText}${baseMessage}`;
+  }
+}
+
+export class BigMapValidationError extends TokenValidationError {
+  name = 'BigMapValidationError';
+  constructor(public value: any, public token: BigMapToken, message: string) {
+    super(value, token, message);
+  }
+}
+export type MichelsonMapKey = Array<any> | object | string | boolean | number;
+const michelsonMapTypeSymbol = Symbol.for('taquito-michelson-map-type-symbol');
+const isMapType = (
+  value: MichelsonV1Expression
+): value is { prim: 'map' | 'big_map'; args: [MichelsonV1Expression, MichelsonV1Expression] } => {
+  return 'args' in value && Array.isArray(value.args) && value.args.length === 2;
+};
+
+export class MapTypecheckError extends Error {
+  name = 'MapTypecheckError';
+
+  constructor(public readonly value: any, public readonly type: any, errorType: 'key' | 'value') {
+    super(`${errorType} not compliant with underlying michelson type`);
+  }
+};
+
+function stringify(obj: any): string {
+	return (JSON.stringify(obj) || 'undefined').replace(/[\u2028\u2029]/g, char => `\\u${('000' + char.charCodeAt(0).toString(16)).slice(-4)}`);
+}
+
+export class MichelsonMap<K extends MichelsonMapKey, T> {
+  private valueMap = new Map<string, T>();
+  private keyMap = new Map<string, K>();
+
+  public [michelsonMapTypeSymbol] = true;
+
+  // Used to check if an object is a michelson map.
+  // Using instanceof was not working for project that had multiple instance of taquito dependencies
+  // as the class constructor is different
+  static isMichelsonMap(obj: any): obj is MichelsonMap<any, any> {
+    return obj && obj[michelsonMapTypeSymbol] === true;
+  }
+
+  private keySchema?: Schema;
+  private valueSchema?: Schema;
+
+  /**
+   * @param mapType If specified key and value will be type-checked before being added to the map
+   *
+   * @example new MichelsonMap({ prim: "map", args: [{prim: "string"}, {prim: "int"}]})
+   */
+  constructor(mapType?: MichelsonV1Expression) {
+    if (mapType) {
+      this.setType(mapType);
+    }
+  }
+
+  setType(mapType: MichelsonV1Expression) {
+    if (!isMapType(mapType)) {
+      throw new Error('mapType is not a valid michelson map type');
+    }
+
+    this.keySchema = new Schema(mapType.args[0]);
+    this.valueSchema = new Schema(mapType.args[1]);
+  }
+
+  removeType() {
+    this.keySchema = undefined;
+    this.valueSchema = undefined;
+  }
+
+  static fromLiteral(obj: { [key: string]: any }, mapType?: MichelsonV1Expression) {
+    const map = new MichelsonMap(mapType);
+    Object.keys(obj).forEach((key) => {
+      map.set(key, obj[key]);
+    });
+    return map;
+  }
+
+  private typecheckKey(key: K) {
+    if (this.keySchema) {
+      return this.keySchema.Typecheck(key);
+    }
+
+    return true;
+  }
+
+  private typecheckValue(value: T) {
+    if (this.valueSchema) {
+      return this.valueSchema.Typecheck(value);
+    }
+
+    return true;
+  }
+
+  private assertTypecheckValue(value: T) {
+    if (!this.typecheckValue(value)) {
+      throw new MapTypecheckError(value, this.valueSchema, 'value');
+    }
+  }
+
+  private assertTypecheckKey(key: K) {
+    if (!this.typecheckKey(key)) {
+      throw new MapTypecheckError(key, this.keySchema, 'key');
+    }
+  }
+
+  private serializeDeterministically(key: K): string {
+    return stringify(key);
+  }
+
+  *keys(): Generator<K> {
+    for (const [key] of this.entries()) {
+      yield key;
+    }
+  }
+
+  *values(): Generator<T> {
+    for (const [, value] of this.entries()) {
+      yield value;
+    }
+  }
+
+  *entries(): Generator<[K, T]> {
+    for (const key of this.valueMap.keys()) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      yield [this.keyMap.get(key)!, this.valueMap.get(key)!];
+    }
+  }
+
+  get(key: K): T | undefined {
+    this.assertTypecheckKey(key);
+
+    const strKey = this.serializeDeterministically(key);
+    return this.valueMap.get(strKey);
+  }
+
+  /**
+   *
+   * @description Set a key and a value in the MichelsonMap. If the key already exists, override the current value.
+   *
+   * @example map.set("myKey", "myValue") // Using a string as key
+   *
+   * @example map.set({0: "test", 1: "test1"}, "myValue") // Using a pair as key
+   *
+   * @warn The same key can be represented in multiple ways, depending on the type of the key. This duplicate key situation will cause a runtime error (duplicate key) when sending the map data to the Tezos RPC node.
+   *
+   * For example, consider a contract with a map whose key is of type boolean.  If you set the following values in MichelsonMap: map.set(false, "myValue") and map.set(null, "myValue").
+   *
+   * You will get two unique entries in the MichelsonMap. These values will both be evaluated as falsy by the MichelsonEncoder and ultimately rejected by the Tezos RPC.
+   */
+  set(key: K, value: T) {
+    this.assertTypecheckKey(key);
+    this.assertTypecheckValue(value);
+
+    const strKey = this.serializeDeterministically(key);
+    this.keyMap.set(strKey, key);
+    this.valueMap.set(strKey, value);
+  }
+
+  delete(key: K) {
+    this.assertTypecheckKey(key);
+
+    this.keyMap.delete(this.serializeDeterministically(key));
+    this.valueMap.delete(this.serializeDeterministically(key));
+  }
+
+  has(key: K) {
+    this.assertTypecheckKey(key);
+
+    const strKey = this.serializeDeterministically(key);
+    return this.keyMap.has(strKey) && this.valueMap.has(strKey);
+  }
+
+  clear(): void {
+    this.keyMap.clear();
+    this.valueMap.clear();
+  }
+
+  get size() {
+    return this.keyMap.size;
+  }
+
+  forEach(cb: (value: T, key: K, map: MichelsonMap<K, T>) => void) {
+    for (const [key, value] of this.entries()) {
+      cb(value, key, this);
+    }
+  }
+}
+
+export class BigMapToken extends Token {
+  static prim: 'big_map' = 'big_map';
+  constructor(
+    protected val: { prim: string; args: any[]; annots?: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  get ValueSchema() {
+    return this.createToken(this.val.args[1], 0);
+  }
+
+  get KeySchema(): ComparableToken {
+    return this.createToken(this.val.args[0], 0) as unknown as ComparableToken;
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return {
+      big_map: {
+        key: this.KeySchema.ExtractSchema(),
+        value: this.ValueSchema.ExtractSchema(),
+      },
+    };
+  }
+
+  generateSchema(): BigMapTokenSchema {
+    return {
+      __michelsonType: BigMapToken.prim,
+      schema: {
+        key: this.KeySchema.generateSchema(),
+        value: this.ValueSchema.generateSchema(),
+      },
+    };
+  }
+
+  private isValid(value: any): BigMapValidationError | null {
+    if (MichelsonMap.isMichelsonMap(value)) {
+      return null;
+    }
+
+    return new BigMapValidationError(value, this, 'Value must be a MichelsonMap');
+  }
+
+  public Encode(args: any[]): any {
+    const val: MichelsonMap<any, any> = args.pop();
+
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+
+    return Array.from(val.keys())
+      .sort((a: any, b: any) => this.KeySchema.compare(a, b))
+      .map((key) => {
+        return {
+          prim: 'Elt',
+          args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
+        };
+      });
+  }
+
+  public EncodeObject(args: any): any {
+    const val: MichelsonMap<any, any> = args;
+
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+
+    return Array.from(val.keys())
+      .sort((a: any, b: any) => this.KeySchema.compare(a, b))
+      .map((key) => {
+        return {
+          prim: 'Elt',
+          args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
+        };
+      });
+  }
+
+  public Execute(val: any[] | { int: string }, semantic?: Semantic) {
+    if (semantic && semantic[BigMapToken.prim]) {
+      return semantic[BigMapToken.prim](val as any, this.val);
+    }
+
+    if (Array.isArray(val)) {
+      // Athens is returning an empty array for big map in storage
+      // Internal: In taquito v5 it is still used to decode big map diff (as if they were a regular map)
+      const map = new MichelsonMap(this.val);
+      val.forEach((current) => {
+        map.set(this.KeySchema.ToKey(current.args[0]), this.ValueSchema.Execute(current.args[1]));
+      });
+      return map;
+    } else if ('int' in val) {
+      // Babylon is returning an int with the big map id in contract storage
+      return val.int;
+    } else {
+      // Unknown case
+      throw new Error(
+        `Big map is expecting either an array (Athens) or an object with an int property (Babylon). Got ${JSON.stringify(
+          val
+        )}`
+      );
+    }
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (BigMapToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    this.KeySchema.findAndReturnTokens(tokenToFind, tokens);
+    this.ValueSchema.findAndReturnTokens(tokenToFind, tokens);
+    return tokens;
+  }
+}
+export type Falsy<T> = T | undefined | false;
+
+export class OrToken extends ComparableToken {
+  static prim: 'or' = 'or';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  public Encode(args: any[]): any {
+    const label = args[args.length - 1];
+
+    const leftToken = this.createToken(this.val.args[0], this.idx);
+    let keyCount = 1;
+    if (leftToken instanceof OrToken) {
+      keyCount = Object.keys(leftToken.ExtractSchema()).length;
+    }
+
+    const rightToken = this.createToken(this.val.args[1], this.idx + keyCount);
+
+    if (String(leftToken.annot()) === String(label) && !(leftToken instanceof OrToken)) {
+      args.pop();
+      return { prim: 'Left', args: [leftToken.Encode(args)] };
+    } else if (String(rightToken.annot()) === String(label) && !(rightToken instanceof OrToken)) {
+      args.pop();
+      return { prim: 'Right', args: [rightToken.Encode(args)] };
+    } else {
+      if (leftToken instanceof OrToken) {
+        const val = leftToken.Encode(args);
+        if (val) {
+          return { prim: 'Left', args: [val] };
+        }
+      }
+
+      if (rightToken instanceof OrToken) {
+        const val = rightToken.Encode(args);
+        if (val) {
+          return { prim: 'Right', args: [val] };
+        }
+      }
+      return null;
+    }
+  }
+
+  public ExtractSignature(): any {
+    const leftToken = this.createToken(this.val.args[0], this.idx);
+    let keyCount = 1;
+    if (leftToken instanceof OrToken) {
+      keyCount = Object.keys(leftToken.ExtractSchema()).length;
+    }
+
+    const rightToken = this.createToken(this.val.args[1], this.idx + keyCount);
+
+    const newSig = [];
+
+    if (leftToken instanceof OrToken) {
+      newSig.push(...leftToken.ExtractSignature());
+    } else {
+      for (const sig of leftToken.ExtractSignature()) {
+        newSig.push([leftToken.annot(), ...sig]);
+      }
+    }
+
+    if (rightToken instanceof OrToken) {
+      newSig.push(...rightToken.ExtractSignature());
+    } else {
+      for (const sig of rightToken.ExtractSignature()) {
+        newSig.push([rightToken.annot(), ...sig]);
+      }
+    }
+
+    return newSig;
+  }
+
+  public EncodeObject(args: any): any {
+    const label = Object.keys(args)[0];
+
+    const leftToken = this.createToken(this.val.args[0], this.idx);
+    let keyCount = 1;
+    if (leftToken instanceof OrToken) {
+      keyCount = Object.keys(leftToken.ExtractSchema()).length;
+    }
+
+    const rightToken = this.createToken(this.val.args[1], this.idx + keyCount);
+
+    if (String(leftToken.annot()) === String(label) && !(leftToken instanceof OrToken)) {
+      return { prim: 'Left', args: [leftToken.EncodeObject(args[label])] };
+    } else if (String(rightToken.annot()) === String(label) && !(rightToken instanceof OrToken)) {
+      return { prim: 'Right', args: [rightToken.EncodeObject(args[label])] };
+    } else {
+      if (leftToken instanceof OrToken) {
+        const val = leftToken.EncodeObject(args);
+        if (val) {
+          return { prim: 'Left', args: [val] };
+        }
+      }
+
+      if (rightToken instanceof OrToken) {
+        const val = rightToken.EncodeObject(args);
+        if (val) {
+          return { prim: 'Right', args: [val] };
+        }
+      }
+      return null;
+    }
+  }
+
+  public Execute(val: any, semantics?: Semantic): any {
+    const leftToken = this.createToken(this.val.args[0], this.idx);
+    let keyCount = 1;
+    if (leftToken instanceof OrToken) {
+      keyCount = Object.keys(leftToken.ExtractSchema()).length;
+    }
+    const rightToken = this.createToken(this.val.args[1], this.idx + keyCount);
+
+    if (val.prim === 'Right') {
+      if (rightToken instanceof OrToken) {
+        return rightToken.Execute(val.args[0], semantics);
+      } else {
+        return {
+          [rightToken.annot()]: rightToken.Execute(val.args[0], semantics),
+        };
+      }
+    } else if (val.prim === 'Left') {
+      if (leftToken instanceof OrToken) {
+        return leftToken.Execute(val.args[0], semantics);
+      }
+      return {
+        [leftToken.annot()]: leftToken.Execute(val.args[0], semantics),
+      };
+    } else {
+      throw new Error(`Was expecting Left or Right prim but got: ${val.prim}`);
+    }
+  }
+
+  private traversal(
+    getLeftValue: (token: Token) => any,
+    getRightValue: (token: Token) => any,
+    concat: (left: any, right: any) => any
+  ) {
+    const leftToken = this.createToken(this.val.args[0], this.idx);
+    let keyCount = 1;
+    let leftValue;
+    if (leftToken instanceof OrToken && !leftToken.hasAnnotations()) {
+      leftValue = getLeftValue(leftToken);
+      keyCount = Object.keys(leftToken.ExtractSchema()).length;
+    } else {
+      leftValue = { [leftToken.annot()]: getLeftValue(leftToken) };
+    }
+
+    const rightToken = this.createToken(this.val.args[1], this.idx + keyCount);
+    let rightValue;
+    if (rightToken instanceof OrToken && !rightToken.hasAnnotations()) {
+      rightValue = getRightValue(rightToken);
+    } else {
+      rightValue = { [rightToken.annot()]: getRightValue(rightToken) };
+    }
+
+    const res = concat(leftValue, rightValue);
+
+    return res;
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema(): any {
+    return this.traversal(
+      (leftToken) => leftToken.ExtractSchema(),
+      (rightToken) => rightToken.ExtractSchema(),
+      (leftValue, rightValue) => ({
+        ...leftValue,
+        ...rightValue,
+      })
+    );
+  }
+
+  generateSchema(): OrTokenSchema {
+    return {
+      __michelsonType: OrToken.prim,
+      schema: this.traversal(
+        (leftToken) => {
+          if (leftToken instanceof OrToken && !leftToken.hasAnnotations()) {
+            return leftToken.generateSchema().schema;
+          } else {
+            return leftToken.generateSchema();
+          }
+        },
+        (rightToken) => {
+          if (rightToken instanceof OrToken && !rightToken.hasAnnotations()) {
+            return rightToken.generateSchema().schema;
+          } else {
+            return rightToken.generateSchema();
+          }
+        },
+        (leftValue, rightValue) => ({
+          ...leftValue,
+          ...rightValue,
+        })
+      ),
+    };
+  }
+
+  private findToken(label: any): Token | null {
+    const leftToken = this.createToken(this.val.args[0], this.idx);
+    let keyCount = 1;
+    if (leftToken instanceof OrToken) {
+      keyCount = Object.keys(leftToken.ExtractSchema()).length;
+    }
+
+    const rightToken = this.createToken(this.val.args[1], this.idx + keyCount);
+
+    if (
+      String(leftToken.annot()) === String(label) &&
+      !(leftToken instanceof OrToken) &&
+      leftToken instanceof ComparableToken
+    ) {
+      return leftToken;
+    } else if (
+      String(rightToken.annot()) === String(label) &&
+      !(rightToken instanceof OrToken) &&
+      rightToken instanceof ComparableToken
+    ) {
+      return rightToken;
+    } else {
+      if (leftToken instanceof OrToken) {
+        const tok = leftToken.findToken(label);
+        if (tok) {
+          return tok;
+        }
+      }
+
+      if (rightToken instanceof OrToken) {
+        const tok = rightToken.findToken(label);
+        if (tok) {
+          return tok;
+        }
+      }
+      return null;
+    }
+  }
+
+  compare(val1: any, val2: any): any {
+    const labelVal1 = Object.keys(val1)[0];
+    const labelVal2 = Object.keys(val2)[0];
+
+    if (labelVal1 === labelVal2) {
+      const token = this.findToken(labelVal1);
+      if (token instanceof ComparableToken) {
+        return token.compare(val1[labelVal1], val2[labelVal1]);
+      }
+    } else {
+      const encoded1 = JSON.stringify(this.EncodeObject(val1));
+      const encoded2 = JSON.stringify(this.EncodeObject(val2));
+      return encoded1 < encoded2 ? -1 : 1;
+    }
+  }
+
+  public ToKey(val: any) {
+    return this.Execute(val);
+  }
+
+  public ToBigMapKey(val: any) {
+    return {
+      key: this.EncodeObject(val),
+      type: this.typeWithoutAnnotations(),
+    };
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (OrToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    this.traversal(
+      (leftToken) => leftToken.findAndReturnTokens(tokenToFind, tokens),
+      (rightToken) => rightToken.findAndReturnTokens(tokenToFind, tokens),
+      (leftValue, rightValue) => ({
+        ...leftValue,
+        ...rightValue,
+      })
+    );
+    return tokens;
+  }
+}
+function collapse(val: Token['val'] | any[], prim: string = PairToken.prim): [any, any] {
+  if (Array.isArray(val)) {
+    return collapse(
+      {
+        prim: prim,
+        args: val,
+      },
+      prim
+    );
+  }
+  if (val.args === undefined) {
+    throw new Error('Token has no arguments');
+  }
+  if (val.args.length > 2) {
+    return [
+      val.args[0],
+      {
+        prim: prim,
+        args: val.args.slice(1),
+      },
+    ];
+  }
+  return [val.args[0], val.args[1]];
+}
+export class PairToken extends ComparableToken {
+  static prim: 'pair' = 'pair';
+
+  constructor(
+    val: { prim: string; args: any[]; annots: any[] } | any[],
+    idx: number,
+    fac: TokenFactory
+  ) {
+    super(
+      Array.isArray(val)
+        ? {
+            prim: PairToken.prim,
+            args: val,
+          }
+        : val,
+      idx,
+      fac
+    );
+  }
+
+  private args(): [any, any] {
+    // collapse comb pair
+    return collapse(this.val);
+  }
+
+  private tokens(): [Token, Token] {
+    let cnt = 0;
+    return this.args().map((a) => {
+      const tok = this.createToken(a, this.idx + cnt);
+      if (tok instanceof PairToken) {
+        cnt += Object.keys(tok.ExtractSchema()).length;
+      } else {
+        cnt++;
+      }
+      return tok;
+    }) as [Token, Token];
+  }
+
+  public Encode(args: any[]): any {
+    return {
+      prim: 'Pair',
+      args: this.tokens().map((t) => t.Encode(args)),
+    };
+  }
+
+  public ExtractSignature(): any {
+    const args = this.args();
+    const leftToken = this.createToken(args[0], this.idx);
+    let keyCount = 1;
+    if (leftToken instanceof OrToken) {
+      keyCount = Object.keys(leftToken.ExtractSchema()).length;
+    }
+
+    const rightToken = this.createToken(args[1], this.idx + keyCount);
+
+    const newSig = [];
+
+    for (const leftSig of leftToken.ExtractSignature()) {
+      for (const rightSig of rightToken.ExtractSignature()) {
+        newSig.push([...leftSig, ...rightSig]);
+      }
+    }
+
+    return newSig;
+  }
+
+  public ToBigMapKey(val: any) {
+    return {
+      key: this.EncodeObject(val),
+      type: this.typeWithoutAnnotations(),
+    };
+  }
+
+  public ToKey(val: any) {
+    return this.Execute(val);
+  }
+
+  public EncodeObject(args: any): any {
+    const [leftToken, rightToken] = this.tokens();
+
+    let leftValue;
+    if (leftToken instanceof PairToken && !leftToken.hasAnnotations()) {
+      leftValue = args;
+    } else {
+      leftValue = args[leftToken.annot()];
+    }
+
+    let rightValue;
+    if (rightToken instanceof PairToken && !rightToken.hasAnnotations()) {
+      rightValue = args;
+    } else {
+      rightValue = args[rightToken.annot()];
+    }
+
+    return {
+      prim: 'Pair',
+      args: [leftToken.EncodeObject(leftValue), rightToken.EncodeObject(rightValue)],
+    };
+  }
+
+  private traversal(getLeftValue: (token: Token) => any, getRightValue: (token: Token) => any) {
+    const args = this.args();
+
+    const leftToken = this.createToken(args[0], this.idx);
+    let keyCount = 1;
+    let leftValue;
+    if (leftToken instanceof PairToken && !leftToken.hasAnnotations()) {
+      leftValue = getLeftValue(leftToken);
+      keyCount = Object.keys(leftToken.ExtractSchema()).length;
+    } else {
+      leftValue = { [leftToken.annot()]: getLeftValue(leftToken) };
+    }
+
+    const rightToken = this.createToken(args[1], this.idx + keyCount);
+    let rightValue;
+    if (rightToken instanceof PairToken && !rightToken.hasAnnotations()) {
+      rightValue = getRightValue(rightToken);
+    } else {
+      rightValue = { [rightToken.annot()]: getRightValue(rightToken) };
+    }
+
+    const res = {
+      ...leftValue,
+      ...rightValue,
+    };
+
+    return res;
+  }
+
+  public Execute(val: any, semantics?: Semantic): { [key: string]: any } {
+    const args = collapse(val, 'Pair');
+    return this.traversal(
+      (leftToken) => leftToken.Execute(args[0], semantics),
+      (rightToken) => rightToken.Execute(args[1], semantics)
+    );
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema(): any {
+    return this.traversal(
+      (leftToken) => leftToken.ExtractSchema(),
+      (rightToken) => rightToken.ExtractSchema()
+    );
+  }
+
+  generateSchema(): PairTokenSchema {
+    return {
+      __michelsonType: PairToken.prim,
+      schema: this.traversal(
+        (leftToken) => {
+          if (leftToken instanceof PairToken && !leftToken.hasAnnotations()) {
+            return leftToken.generateSchema().schema;
+          } else {
+            return leftToken.generateSchema();
+          }
+        },
+        (rightToken) => {
+          if (rightToken instanceof PairToken && !rightToken.hasAnnotations()) {
+            return rightToken.generateSchema().schema;
+          } else {
+            return rightToken.generateSchema();
+          }
+        }
+      ),
+    };
+  }
+
+  public compare(val1: any, val2: any) {
+    const [leftToken, rightToken] = this.tokens();
+
+    const getValue = (token: Token, args: any) => {
+      if (token instanceof PairToken && !token.hasAnnotations()) {
+        return args;
+      } else {
+        return args[token.annot()];
+      }
+    };
+
+    if (leftToken instanceof ComparableToken && rightToken instanceof ComparableToken) {
+      const result: number = leftToken.compare(
+        getValue(leftToken, val1),
+        getValue(leftToken, val2)
+      );
+
+      if (result === 0) {
+        return rightToken.compare(getValue(rightToken, val1), getValue(rightToken, val2));
+      }
+
+      return result;
+    }
+
+    throw new Error('Not a comparable pair');
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (PairToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    this.tokens().map((t) => t.findAndReturnTokens(tokenToFind, tokens));
+    return tokens;
+  }
+}
+
+export class NatValidationError extends TokenValidationError {
+  name = 'NatValidationError';
+  constructor(public value: any, public token: NatToken, message: string) {
+    super(value, token, message);
+  }
+}
+
+export class NatToken extends ComparableToken {
+  static prim: 'nat' = 'nat';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  public Execute(val: any): { [key: string]: any } {
+    return new BigNumber(val[Object.keys(val)[0]]);
+  }
+
+  public Encode(args: any[]): any {
+    const val = args.pop();
+
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+
+    return { int: new BigNumber(val).toFixed() };
+  }
+
+  private isValid(val: any): NatValidationError | null {
+    const bigNumber = new BigNumber(val);
+    if (bigNumber.isNaN()) {
+      return new NatValidationError(val, this, `Value is not a number: ${val}`);
+    } else if (bigNumber.isNegative()) {
+      return new NatValidationError(val, this, `Value cannot be negative: ${val}`);
+    } else {
+      return null;
+    }
+  }
+
+  public EncodeObject(val: any): any {
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+
+    return { int: new BigNumber(val).toFixed() };
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return NatToken.prim;
+  }
+
+  generateSchema(): BaseTokenSchema {
+    return {
+      __michelsonType: NatToken.prim,
+      schema: NatToken.prim,
+    };
+  }
+
+  public ToBigMapKey(val: string | number) {
+    return {
+      key: { int: String(val) },
+      type: { prim: NatToken.prim },
+    };
+  }
+
+  public ToKey({ int }: any) {
+    return new BigNumber(int);
+  }
+
+  compare(nat1: string | number, nat2: string | number) {
+    const o1 = Number(nat1);
+    const o2 = Number(nat2);
+    if (o1 === o2) {
+      return 0;
+    }
+
+    return o1 < o2 ? -1 : 1;
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (NatToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    return tokens;
+  }
+}
+
+export class StringToken extends ComparableToken {
+  static prim: 'string' = 'string';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  public Execute(val: any): string {
+    return val[Object.keys(val)[0]];
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return StringToken.prim;
+  }
+
+  generateSchema(): BaseTokenSchema {
+    return {
+      __michelsonType: StringToken.prim,
+      schema: StringToken.prim,
+    };
+  }
+
+  public Encode(args: any[]): any {
+    const val = args.pop();
+    return { string: val };
+  }
+
+  public EncodeObject(val: any): any {
+    return { string: val };
+  }
+
+  public ToKey({ string }: any) {
+    return string;
+  }
+
+  public ToBigMapKey(val: string) {
+    return {
+      key: { string: val },
+      type: { prim: StringToken.prim },
+    };
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (StringToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    return tokens;
+  }
+}
+export function b58decode(payload: string) {
+  const buf: Buffer = Bs58check.decode(payload);
+
+  const prefixMap = {
+    [prefix.tz1.toString()]: '0000',
+    [prefix.tz2.toString()]: '0001',
+    [prefix.tz3.toString()]: '0002',
+  };
+
+  const pref = prefixMap[new Uint8Array(buf.slice(0, 3)).toString()];
+  if (pref) {
+    // tz addresses
+    const hex = buf2hex(buf.slice(3));
+    return pref + hex;
+  } else {
+    // other (kt addresses)
+    return '01' + buf2hex(buf.slice(3, 42)) + '00';
+  }
+}
+
+export class AddressToken extends ComparableToken {
+  static prim: 'address' = 'address';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  public ToBigMapKey(val: any) {
+    const decoded = b58decode(val);
+    return {
+      key: { bytes: decoded },
+      type: { prim: 'bytes' },
+    };
+  }
+
+  private isValid(value: any): AddressValidationError | null {
+    if (validateAddress(value) !== ValidationResult.VALID) {
+      return new AddressValidationError(value, this, `Address is not valid: ${value}`);
+    }
+
+    return null;
+  }
+
+  public Encode(args: any[]): any {
+    const val = args.pop();
+
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+
+    return { string: val };
+  }
+
+  public EncodeObject(val: any): any {
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+
+    return { string: val };
+  }
+
+  public Execute(val: { bytes: string; string: string }): string {
+    if (val.string) {
+      return val.string;
+    }
+
+    return encodePubKey(val.bytes);
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return AddressToken.prim;
+  }
+
+  generateSchema(): BaseTokenSchema {
+    return {
+      __michelsonType: AddressToken.prim,
+      schema: AddressToken.prim,
+    };
+  }
+
+  public ToKey({ bytes, string }: any) {
+    if (string) {
+      return string;
+    }
+
+    return encodePubKey(bytes);
+  }
+
+  compare(address1: string, address2: string) {
+    const isImplicit = (address: string) => {
+      return address.startsWith('tz');
+    };
+
+    if (isImplicit(address1) && isImplicit(address2)) {
+      return super.compare(address1, address2);
+    } else if (isImplicit(address1)) {
+      return -1;
+    } else if (isImplicit(address2)) {
+      return 1;
+    } else {
+      return super.compare(address1, address2);
+    }
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (AddressToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    return tokens;
+  }
+}
+
+export class MapToken extends Token {
+  static prim: 'map' = 'map';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  get ValueSchema() {
+    return this.createToken(this.val.args[1], 0);
+  }
+
+  get KeySchema(): ComparableToken {
+    return this.createToken(this.val.args[0], 0) as any;
+  }
+
+  private isValid(value: any): MapValidationError | null {
+    if (MichelsonMap.isMichelsonMap(value)) {
+      return null;
+    }
+
+    return new MapValidationError(value, this, 'Value must be a MichelsonMap');
+  }
+
+  public Execute(val: any[], semantics?: Semantic): { [key: string]: any } {
+    const map = new MichelsonMap(this.val);
+
+    val.forEach((current) => {
+      map.set(
+        this.KeySchema.ToKey(current.args[0]),
+        this.ValueSchema.Execute(current.args[1], semantics)
+      );
+    });
+    return map;
+  }
+
+  public Encode(args: any[]): any {
+    const val: MichelsonMap<any, any> = args.pop();
+
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+
+    return Array.from(val.keys())
+      .sort((a: any, b: any) => this.KeySchema.compare(a, b))
+      .map((key) => {
+        return {
+          prim: 'Elt',
+          args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
+        };
+      });
+  }
+
+  public EncodeObject(args: any): any {
+    const val: MichelsonMap<any, any> = args;
+
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+
+    return Array.from(val.keys())
+      .sort((a: any, b: any) => this.KeySchema.compare(a, b))
+      .map((key) => {
+        return {
+          prim: 'Elt',
+          args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
+        };
+      });
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return {
+      map: {
+        key: this.KeySchema.ExtractSchema(),
+        value: this.ValueSchema.ExtractSchema(),
+      },
+    };
+  }
+
+  generateSchema(): MapTokenSchema {
+    return {
+      __michelsonType: MapToken.prim,
+      schema: {
+        key: this.KeySchema.generateSchema(),
+        value: this.ValueSchema.generateSchema(),
+      },
+    };
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (MapToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    this.KeySchema.findAndReturnTokens(tokenToFind, tokens);
+    this.ValueSchema.findAndReturnTokens(tokenToFind, tokens);
+    return tokens;
+  }
+}
+
+export class BoolToken extends ComparableToken {
+  static prim: 'bool' = 'bool';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  public Execute(val: any): boolean {
+    return String(val.prim).toLowerCase() === 'true' ? true : false;
+  }
+
+  public Encode(args: any[]): any {
+    const val = args.pop();
+    return { prim: val ? 'True' : 'False' };
+  }
+
+  public EncodeObject(val: any) {
+    return { prim: val ? 'True' : 'False' };
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return BoolToken.prim;
+  }
+
+  generateSchema(): BaseTokenSchema {
+    return {
+      __michelsonType: BoolToken.prim,
+      schema: BoolToken.prim,
+    };
+  }
+
+  ToBigMapKey(val: string): { key: { [key: string]: string }; type: { prim: string } } {
+    return {
+      key: this.EncodeObject(val),
+      type: { prim: BoolToken.prim },
+    };
+  }
+
+  ToKey(val: string) {
+    return this.EncodeObject(val);
+  }
+
+  compare(val1: any, val2: any) {
+    if ((val1 && val2) || (!val1 && !val2)) {
+      return 0;
+    } else if (val1) {
+      return 1;
+    } else {
+      return -1;
+    }
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (BoolToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    return tokens;
+  }
+}
+
+export const tokens = [
+  PairToken,
+  NatToken,
+  StringToken,
+  BigMapToken,
+  AddressToken,
+  MapToken,
+  BoolToken,
+  OrToken,
+  ContractToken,
+  ListToken,
+  MutezToken,
+  BytesToken,
+  OptionToken,
+  TimestampToken,
+  IntToken,
+  UnitToken,
+  KeyToken,
+  KeyHashToken,
+  SignatureToken,
+  LambdaToken,
+  OperationToken,
+  SetToken,
+  ChainIDToken,
+  TicketToken,
+  NeverToken,
+  SaplingStateToken,
+  SaplingTransactionToken,
+  Bls12381frToken,
+  Bls12381g1Token,
+  Bls12381g2Token,
+  ChestToken,
+  ChestKeyToken,
+  GlobalConstantToken
+];
+
+export class InvalidTokenError extends Error {
+  name = 'Invalid token error';
+  constructor(public message: string, public data: any) {
+    super(message);
+  }
+}
+export function createToken(val: any, idx: number): Token {
+  if (Array.isArray(val)) {
+    return new PairToken(val, idx, createToken);
+  }
+
+  const t = tokens.find((x) => x.prim === val.prim);
+  if (!t) {
+    throw new InvalidTokenError('Malformed data expected a value with a valid prim property', val);
+  }
+  return new t(val, idx, createToken);
+}
 export class Schema {
   private root: Token;
 
