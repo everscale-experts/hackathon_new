@@ -27,6 +27,7 @@ import {
   timeoutWith,
 } from 'rxjs/operators';
 import BigNumber from 'bignumber.js';
+import Bs58check from 'bs58check-ts';
 
 export interface WalletTransferParams {
     to: string;
@@ -1392,7 +1393,7 @@ function validatePrefixedValue(value: any, prefixes: Prefix[]) {
   }
 
   // decodeUnsafe return undefined if decoding fail
-  let decoded = bs58check.decodeUnsafe(value);
+  let decoded = Bs58check.decodeUnsafe(value);
   if (!decoded) {
     return ValidationResult.INVALID_CHECKSUM;
   }
@@ -1405,9 +1406,91 @@ function validatePrefixedValue(value: any, prefixes: Prefix[]) {
   return ValidationResult.VALID;
 }
 
+export const prefixLength: { [key: string]: number } = {
+  [Prefix.TZ1]: 20,
+  [Prefix.TZ2]: 20,
+  [Prefix.TZ3]: 20,
+  [Prefix.KT]: 20,
+  [Prefix.KT1]: 20,
+  [Prefix.EDPK]: 32,
+  [Prefix.SPPK]: 33,
+  [Prefix.P2PK]: 33,
+  [Prefix.EDSIG]: 64,
+  [Prefix.SPSIG]: 64,
+  [Prefix.P2SIG]: 64,
+  [Prefix.SIG]: 64,
+  [Prefix.NET]: 4,
+  [Prefix.B]: 32,
+  [Prefix.P]: 32,
+  [Prefix.O]: 32
+};
+
+const operationPrefix = [Prefix.O];
+
 export function validateOperation(value: any): ValidationResult {
   return validatePrefixedValue(value, operationPrefix);
 }
+
+export class InvalidOperationHashError extends Error {
+  public name = 'InvalidOperationHashError';
+  constructor(public message: string) {
+    super(message)
+  }
+}
+
+export interface Subscribable<T> {
+  subscribe(observer?: PartialObserver<T>): Unsubscribable;
+  /** @deprecated Use an observer instead of a complete callback */
+  subscribe(next: null | undefined, error: null | undefined, complete: () => void): Unsubscribable;
+  /** @deprecated Use an observer instead of an error callback */
+  subscribe(next: null | undefined, error: (error: any) => void, complete?: () => void): Unsubscribable;
+  /** @deprecated Use an observer instead of a complete callback */
+  subscribe(next: (value: T) => void, error: null | undefined, complete: () => void): Unsubscribable;
+  subscribe(next?: (value: T) => void, error?: (error: any) => void, complete?: () => void): Unsubscribable;
+}
+
+export interface Unsubscribable {
+  unsubscribe(): void;
+}
+
+export declare type InteropObservable<T> = {
+    [Symbol.observable]: () => Subscribable<T>;
+};
+
+export interface CompletionObserver<T> {
+  closed?: boolean;
+  next?: (value: T) => void;
+  error?: (err: any) => void;
+  complete: () => void;
+}
+
+export interface ErrorObserver<T> {
+  closed?: boolean;
+  next?: (value: T) => void;
+  error: (err: any) => void;
+  complete?: () => void;
+}
+
+export interface NextObserver<T> {
+    closed?: boolean;
+    next: (value: T) => void;
+    error?: (err: any) => void;
+    complete?: () => void;
+}
+
+const MAX_BRANCH_ANCESTORS = 60;
+
+export declare function combineLatest<O1 extends ObservableInput<any>>(sources: [O1]): Observable<[ObservedValueOf<O1>]>;
+export declare function combineLatest<O1 extends ObservableInput<any>, O2 extends ObservableInput<any>>(sources: [O1, O2]): Observable<[ObservedValueOf<O1>, ObservedValueOf<O2>]>;
+export declare function combineLatest<O1 extends ObservableInput<any>, O2 extends ObservableInput<any>, O3 extends ObservableInput<any>>(sources: [O1, O2, O3]): Observable<[ObservedValueOf<O1>, ObservedValueOf<O2>, ObservedValueOf<O3>]>;
+export declare function combineLatest<O1 extends ObservableInput<any>, O2 extends ObservableInput<any>, O3 extends ObservableInput<any>, O4 extends ObservableInput<any>>(sources: [O1, O2, O3, O4]): Observable<[ObservedValueOf<O1>, ObservedValueOf<O2>, ObservedValueOf<O3>, ObservedValueOf<O4>]>;
+export declare function combineLatest<O1 extends ObservableInput<any>, O2 extends ObservableInput<any>, O3 extends ObservableInput<any>, O4 extends ObservableInput<any>, O5 extends ObservableInput<any>>(sources: [O1, O2, O3, O4, O5]): Observable<[ObservedValueOf<O1>, ObservedValueOf<O2>, ObservedValueOf<O3>, ObservedValueOf<O4>, ObservedValueOf<O5>]>;
+export declare function combineLatest<O1 extends ObservableInput<any>, O2 extends ObservableInput<any>, O3 extends ObservableInput<any>, O4 extends ObservableInput<any>, O5 extends ObservableInput<any>, O6 extends ObservableInput<any>>(sources: [O1, O2, O3, O4, O5, O6]): Observable<[ObservedValueOf<O1>, ObservedValueOf<O2>, ObservedValueOf<O3>, ObservedValueOf<O4>, ObservedValueOf<O5>, ObservedValueOf<O6>]>;
+export declare type SubscribableOrPromise<T> = Subscribable<T> | Subscribable<never> | PromiseLike<T> | InteropObservable<T>;
+export declare function combineLatest<O extends ObservableInput<any>>(sources: O[]): Observable<ObservedValueOf<O>[]>;
+export declare type PartialObserver<T> = NextObserver<T> | ErrorObserver<T> | CompletionObserver<T>;
+export declare type ObservableInput<T> = SubscribableOrPromise<T> | ArrayLike<T> | Iterable<T>;
+export declare type ObservedValueOf<O> = O extends ObservableInput<infer T> ? T : never;
 
 export class WalletOperation {
   protected _operationResult = new ReplaySubject<OperationContentsAndResult[]>(1);
@@ -1562,6 +1645,87 @@ export class WalletOperation {
   }
 }
 
+export const BATCH_KINDS = [
+  OpKind.ACTIVATION,
+  OpKind.ORIGINATION,
+  OpKind.TRANSACTION,
+  OpKind.DELEGATION,
+];
+
+export class BatchWalletOperation extends WalletOperation {
+  constructor(
+    public readonly opHash: string,
+    protected readonly context: Context,
+    newHead$: Observable<BlockResponse>
+  ) {
+    super(opHash, context, newHead$);
+  }
+
+  public async revealOperation() {
+    const operationResult = await this.operationResults();
+    return operationResult.find(x => x.kind === OpKind.REVEAL) as
+      | OperationContentsAndResultReveal
+      | undefined;
+  }
+
+  async status(): Promise<OperationStatus> {
+    if (!this._included) {
+      return 'pending';
+    }
+
+    const op = await this.operationResults();
+
+    return (
+      op
+        .filter((result) => BATCH_KINDS.indexOf(result.kind) !== -1)
+        .map((result) => {
+          if (hasMetadataWithResult(result)) {
+            return result.metadata.operation_result.status;
+          } else {
+            return 'unknown';
+          }
+        })[0] || 'unknown'
+    );
+  }
+}
+
+export class DelegationWalletOperation extends WalletOperation {
+  constructor(
+    public readonly opHash: string,
+    protected readonly context: Context,
+    newHead$: Observable<BlockResponse>
+  ) {
+    super(opHash, context, newHead$);
+  }
+
+  public async revealOperation() {
+    const operationResult = await this.operationResults();
+    return operationResult.find(x => x.kind === OpKind.REVEAL) as
+      | OperationContentsAndResultReveal
+      | undefined;
+  }
+
+  public async delegationOperation() {
+    const operationResult = await this.operationResults();
+    return operationResult.find(x => x.kind === OpKind.DELEGATION) as
+      | OperationContentsAndResultReveal
+      | undefined;
+  }
+
+  public async status(): Promise<OperationStatus> {
+    if (!this._included) {
+      return 'pending';
+    }
+
+    const op = await this.delegationOperation();
+    if (!op) {
+      return 'unknown';
+    }
+
+    return op.metadata.operation_result.status;
+  }
+}
+
 export class OperationFactory {
   constructor(private context: Context) {}
 
@@ -1664,6 +1828,487 @@ export class OperationFactory {
       this.context.clone(),
       await this.createHeadObservableFromConfig(config)
     );
+  }
+}
+
+export type TokenFactory = (val: any, idx: number) => Token;
+
+export abstract class Token {
+  constructor(
+    protected val: { prim: string; args?: any[]; annots?: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {}
+
+  protected typeWithoutAnnotations() {
+    const removeArgsRec = (val: Token['val']): { prim: string; args?: any[] } => {
+      if (val.args) {
+        return {
+          prim: val.prim,
+          args: val.args.map((x) => removeArgsRec(x)),
+        };
+      } else {
+        return {
+          prim: val.prim,
+        };
+      }
+    };
+
+    return removeArgsRec(this.val);
+  }
+
+  annot() {
+    return (
+      Array.isArray(this.val.annots) && this.val.annots.length > 0
+        ? this.val.annots[0]
+        : String(this.idx)
+    ).replace(/(%|:)(_Liq_entry_)?/, '');
+  }
+
+  hasAnnotations() {
+    return Array.isArray(this.val.annots) && this.val.annots.length;
+  }
+
+  get tokenVal() {
+    return this.val;
+  }
+
+  public createToken = this.fac;
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public abstract ExtractSchema(): any;
+
+  abstract generateSchema(): TokenSchema;
+
+  public abstract Execute(val: any, semantics?: Semantic): any;
+
+  public abstract Encode(_args: any[]): any;
+
+  public abstract EncodeObject(args: any): any;
+
+  public ExtractSignature() {
+    return [[this.ExtractSchema()]];
+  }
+
+  abstract findAndReturnTokens(tokenToFind: string, tokens: Array<Token>): Array<Token>;
+}
+
+export class Schema {
+  private root: Token;
+
+  public [schemaTypeSymbol] = true;
+
+  public static isSchema(obj: any): obj is Schema {
+    return obj && obj[schemaTypeSymbol] === true;
+  }
+
+  // TODO: Should we deprecate this?
+  private bigMap?: BigMapToken;
+
+  static fromRPCResponse(val: { script: ScriptResponse }) {
+    const storage: Falsy<MichelsonV1ExpressionExtended> =
+      val &&
+      val.script &&
+      Array.isArray(val.script.code) &&
+      (val.script.code.find((x: any) => x.prim === 'storage') as MichelsonV1ExpressionExtended);
+
+    if (!storage || !Array.isArray(storage.args)) {
+      throw new Error('Invalid rpc response passed as arguments');
+    }
+
+    return new Schema(storage.args[0]);
+  }
+
+  private isExpressionExtended(
+    val: any
+  ): val is Required<Pick<MichelsonV1ExpressionExtended, 'prim' | 'args'>> {
+    return 'prim' in val && Array.isArray(val.args);
+  }
+
+  constructor(readonly val: MichelsonV1Expression) {
+    this.root = createToken(val, 0);
+
+    if (this.root instanceof BigMapToken) {
+      this.bigMap = this.root;
+    } else if (this.isExpressionExtended(val) && val.prim === 'pair') {
+      const exp = val.args[0];
+      if (this.isExpressionExtended(exp) && exp.prim === 'big_map') {
+        this.bigMap = new BigMapToken(exp, 0, createToken);
+      }
+    }
+  }
+
+  private removeTopLevelAnnotation(obj: any) {
+    // PairToken and OrToken can have redundant top level annotation in their storage
+    if (this.root instanceof PairToken || this.root instanceof OrToken) {
+      if (this.root.hasAnnotations() && typeof obj === 'object' && Object.keys(obj).length === 1) {
+        return obj[Object.keys(obj)[0]];
+      }
+    }
+
+    return obj;
+  }
+
+  Execute(val: any, semantics?: Semantic) {
+    const storage = this.root.Execute(val, semantics);
+
+    return this.removeTopLevelAnnotation(storage);
+  }
+
+  Typecheck(val: any) {
+    if (this.root instanceof BigMapToken && Number.isInteger(Number(val))) {
+      return true;
+    }
+    try {
+      this.root.EncodeObject(val);
+      return true;
+    } catch (ex) {
+      return false;
+    }
+  }
+
+  ExecuteOnBigMapDiff(diff: any[], semantics?: Semantic) {
+    if (!this.bigMap) {
+      throw new Error('No big map schema');
+    }
+
+    if (!Array.isArray(diff)) {
+      throw new Error('Invalid big map diff. It must be an array');
+    }
+
+    const eltFormat = diff.map(({ key, value }) => ({ args: [key, value] }));
+
+    return this.bigMap.Execute(eltFormat, semantics);
+  }
+
+  ExecuteOnBigMapValue(key: any, semantics?: Semantic) {
+    if (!this.bigMap) {
+      throw new Error('No big map schema');
+    }
+
+    return this.bigMap.ValueSchema.Execute(key, semantics);
+  }
+
+  EncodeBigMapKey(key: BigMapKeyType) {
+    if (!this.bigMap) {
+      throw new Error('No big map schema');
+    }
+
+    try {
+      return this.bigMap.KeySchema.ToBigMapKey(key);
+    } catch (ex) {
+      throw new Error('Unable to encode big map key: ' + ex);
+    }
+  }
+
+  Encode(_value?: any) {
+    try {
+      return this.root.EncodeObject(_value);
+    } catch (ex) {
+      if (ex instanceof TokenValidationError) {
+        throw ex;
+      }
+
+      throw new Error(`Unable to encode storage object. ${ex}`);
+    }
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  ExtractSchema() {
+    return this.removeTopLevelAnnotation(this.root.ExtractSchema());
+  }
+
+  generateSchema(): TokenSchema {
+    return this.removeTopLevelAnnotation(this.root.generateSchema());
+  }
+
+  ComputeState(tx: RpcTransaction[], state: any) {
+    if (!this.bigMap) {
+      throw new Error('No big map schema');
+    }
+
+    const bigMap = tx.reduce((prev, current) => {
+      return {
+        ...prev,
+        ...this.ExecuteOnBigMapDiff(current.contents[0].metadata.operation_result.big_map_diff),
+      };
+    }, {});
+
+    return {
+      ...this.Execute(state),
+      [this.bigMap.annot()]: bigMap,
+    };
+  }
+
+  FindFirstInTopLevelPair<T extends MichelsonV1Expression>(storage: any, valueType: any) {
+    return this.findValue(this.root['val'], storage, valueType) as T | undefined;
+  }
+
+  private findValue(schema: Token['val'] | any[], storage: any, valueToFind: any): any {
+    if (deepEqual(valueToFind, schema)) {
+      return storage;
+    }
+    if (Array.isArray(schema) || schema['prim'] === 'pair') {
+      const sch = collapse(schema);
+      const str = collapse(storage, 'Pair');
+      if (sch.args === undefined || str.args === undefined) {
+        throw new Error('Tokens have no arguments'); // unlikely
+      }
+      return (
+        this.findValue(sch.args[0], str.args[0], valueToFind) ||
+        this.findValue(sch.args[1], str.args[1], valueToFind)
+      );
+    }
+  }
+
+  findToken(tokenToFind: string): Array<Token> {
+    const tokens: Array<Token> = [];
+    return this.root.findAndReturnTokens(tokenToFind, tokens);
+  }
+}
+
+export type ContractSchema = Schema | unknown;
+
+export interface StorageProvider {
+  getStorage<T>(contract: string, schema?: ContractSchema): Promise<T>;
+  getBigMapKey<T>(contract: string, key: string, schema?: ContractSchema): Promise<T>;
+  getBigMapKeyByID<T>(id: string, keyToEncode: BigMapKeyType, schema: Schema, block?: number): Promise<T>;
+  getBigMapKeysByID<T>(id: string, keysToEncode: Array<BigMapKeyType>, schema: Schema, block?: number, batchSize?: number): Promise<MichelsonMap<MichelsonMapKey, T | undefined>>;
+  getSaplingDiffByID(id: string, block?: number): Promise<SaplingDiffResponse>;
+}
+
+export interface ContractProvider extends StorageProvider {
+  originate<TContract extends DefaultContractType = DefaultContractType>(contract: OriginateParams<ContractStorageType<TContract>>): Promise<OriginationOperation<TContract>>;
+  setDelegate(params: DelegateParams): Promise<DelegateOperation>;
+  registerDelegate(params: RegisterDelegateParams): Promise<DelegateOperation>;
+  transfer(params: TransferParams): Promise<TransactionOperation>;
+  reveal(params: RevealParams): Promise<RevealOperation>;
+  at<T extends ContractAbstraction<ContractProvider>>(address: string, contractAbstractionComposer?: (abs: ContractAbstraction<ContractProvider>, context: Context) => T): Promise<T>;
+  batch(params?: ParamsWithKind[]): OperationBatch ;
+  registerGlobalConstant(params: RegisterGlobalConstantParams): Promise<RegisterGlobalConstantOperation>;
+}
+
+export class ContractAbstraction<T extends ContractProvider | Wallet,
+  TMethods extends DefaultMethods<T> = DefaultMethods<T>,
+  TMethodsObject extends DefaultMethodsObject<T> = DefaultMethodsObject<T>,
+  TViews extends DefaultViews = DefaultViews,
+  TContractViews extends DefaultContractViews = DefaultContractViews,
+  TStorage extends DefaultStorage = DefaultStorage
+> {
+  private contractMethodFactory: ContractMethodFactory<T>;
+  public methods: TMethods = {} as TMethods;
+  public methodsObject: TMethodsObject = {} as TMethodsObject;
+  public views: TViews = {} as TViews;
+  public contractViews: TContractViews = {} as TContractViews;
+
+  public readonly schema: Schema;
+
+  public readonly parameterSchema: ParameterSchema;
+  public readonly viewSchema: ViewSchema[];
+
+  constructor(
+    public readonly address: string,
+    public readonly script: ScriptResponse,
+    provider: T,
+    private storageProvider: StorageProvider,
+    public readonly entrypoints: EntrypointsResponse,
+    private chainId: string,
+    rpc: RpcClientInterface
+  ) {
+    this.contractMethodFactory = new ContractMethodFactory(provider, address);
+    this.schema = Schema.fromRPCResponse({ script: this.script });
+    this.parameterSchema = ParameterSchema.fromRPCResponse({ script: this.script });
+
+    this.viewSchema = ViewSchema.fromRPCResponse({ script: this.script });
+    if (this.viewSchema.length !== 0) {
+      this._initializeOnChainViews(this, rpc, this.viewSchema);
+    }
+    this._initializeMethods(this, provider, this.entrypoints.entrypoints, this.chainId);
+  }
+
+  private _initializeMethods(
+    currentContract: ContractAbstraction<T>,
+    provider: T,
+    entrypoints: {
+      [key: string]: object;
+    },
+    chainId: string
+  ) {
+    const parameterSchema = this.parameterSchema;
+    const keys = Object.keys(entrypoints);
+    if (parameterSchema.isMultipleEntryPoint) {
+      keys.forEach((smartContractMethodName) => {
+        const smartContractMethodSchema = new ParameterSchema(entrypoints[smartContractMethodName]);
+
+        (this.methods as DefaultMethods<T>)[smartContractMethodName] = function (...args: any[]) {
+          return currentContract.contractMethodFactory.createContractMethodFlatParams(
+            smartContractMethodSchema,
+            smartContractMethodName,
+            args
+          );
+        };
+
+        (this.methodsObject as DefaultMethodsObject<T>)[smartContractMethodName] = function (args: any) {
+          return currentContract.contractMethodFactory.createContractMethodObjectParam(
+            smartContractMethodSchema,
+            smartContractMethodName,
+            args
+          );
+        };
+
+        if (isContractProvider(provider)) {
+          if (isView(entrypoints[smartContractMethodName])) {
+            const view = function (...args: any[]) {
+              const entrypointParamWithoutCallback = (entrypoints[smartContractMethodName] as any)
+                .args[0];
+              const smartContractMethodSchemaWithoutCallback = new ParameterSchema(
+                entrypointParamWithoutCallback
+              );
+              const parametersCallback = (entrypoints[smartContractMethodName] as any).args[1]
+                .args[0];
+              const smartContractMethodCallbackSchema = new ParameterSchema(parametersCallback);
+
+              validateArgs(args, smartContractMethodSchemaWithoutCallback, smartContractMethodName);
+              return new ContractView(
+                currentContract,
+                provider,
+                smartContractMethodName,
+                chainId,
+                smartContractMethodCallbackSchema,
+                smartContractMethodSchemaWithoutCallback,
+                args
+              );
+            };
+            (this.views as DefaultViews)[smartContractMethodName] = view;
+          }
+        }
+      });
+
+      const anonymousMethods = Object.keys(parameterSchema.ExtractSchema()).filter(
+        (key) => Object.keys(entrypoints).indexOf(key) === -1
+      );
+
+      anonymousMethods.forEach((smartContractMethodName) => {
+        (this.methods as DefaultMethods<T>)[smartContractMethodName] = function (...args: any[]) {
+          return currentContract.contractMethodFactory.createContractMethodFlatParams(
+            parameterSchema,
+            smartContractMethodName,
+            args,
+            false,
+            true
+          );
+        };
+
+        (this.methodsObject as DefaultMethodsObject<T>)[smartContractMethodName] = function (args: any) {
+          return currentContract.contractMethodFactory.createContractMethodObjectParam(
+            parameterSchema,
+            smartContractMethodName,
+            args,
+            false,
+            true
+          );
+        };
+      });
+    } else {
+      const smartContractMethodSchema = this.parameterSchema;
+      (this.methods as DefaultMethods<T>)[DEFAULT_SMART_CONTRACT_METHOD_NAME] = function (...args: any[]) {
+        return currentContract.contractMethodFactory.createContractMethodFlatParams(
+          smartContractMethodSchema,
+          DEFAULT_SMART_CONTRACT_METHOD_NAME,
+          args,
+          false
+        );
+      };
+
+      (this.methodsObject as DefaultMethodsObject<T>)[DEFAULT_SMART_CONTRACT_METHOD_NAME] = function (args: any) {
+        return currentContract.contractMethodFactory.createContractMethodObjectParam(
+          smartContractMethodSchema,
+          DEFAULT_SMART_CONTRACT_METHOD_NAME,
+          args,
+          false
+        );
+      };
+    }
+  }
+
+  private _initializeOnChainViews(
+    currentContract: ContractAbstraction<T>,
+    rpc: RpcClientInterface,
+    allContractViews: ViewSchema[]
+  ) {
+    const storageType = this.schema.val;
+    const storageValue = this.script.storage;
+
+    allContractViews.forEach((viewSchema) => {
+      (this.contractViews as DefaultContractViews)[viewSchema.viewName] = function (args: any) {
+        return currentContract.contractMethodFactory.createContractViewObjectParam(
+          rpc,
+          viewSchema,
+          storageType,
+          storageValue,
+          args
+        );
+      };
+    });
+  }
+
+  public storage<T extends TStorage = TStorage>() {
+    return this.storageProvider.getStorage<T>(this.address, this.schema);
+  }
+
+  public bigMap(key: string) {
+    return this.storageProvider.getBigMapKey(this.address, key, this.schema);
+  }
+}
+
+export type DefaultWalletType = ContractAbstraction<Wallet>;
+
+export class OriginationWalletOperation<TWallet extends DefaultWalletType = DefaultWalletType> extends WalletOperation {
+  constructor(
+    public readonly opHash: string,
+    protected readonly context: Context,
+    newHead$: Observable<BlockResponse>
+  ) {
+    super(opHash, context, newHead$);
+  }
+
+  public async originationOperation() {
+    const operationResult = await this.operationResults();
+    return findWithKind(operationResult, OpKind.ORIGINATION) as
+      | OperationContentsAndResultOrigination
+      | undefined;
+  }
+
+  public async revealOperation() {
+    const operationResult = await this.operationResults();
+    return findWithKind(operationResult, OpKind.REVEAL) as
+      | OperationContentsAndResultReveal
+      | undefined;
+  }
+
+  public async status(): Promise<OperationStatus> {
+    if (!this._included) {
+      return 'pending';
+    }
+
+    const op = await this.originationOperation();
+    if (!op) {
+      return 'unknown';
+    }
+
+    return op.metadata.operation_result.status;
+  }
+
+  public async contract() {
+    const op = await this.originationOperation();
+    const address = (op?.metadata.operation_result.originated_contracts || [])[0];
+    return this.context.wallet.at<TWallet>(address);
   }
 }
 
@@ -1893,7 +2538,7 @@ export class TransactionWalletOperation {
     constructor(
         public readonly opHash: string,
         protected readonly context: Context,
-        // private _newHead$: Observable<BlockResponse>
+        private _newHead$: Observable<BlockResponse>
     ) {
         // if (validateOperation(this.opHash) !== ValidationResult.VALID) {
         // throw new InvalidOperationHashError(`Invalid operation hash: ${this.opHash}`);
