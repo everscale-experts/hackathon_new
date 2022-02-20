@@ -17,6 +17,8 @@ interface ITransactionNotification {
     payload: string
 }
 
+const PayloadAbi = JSON.parse(read("Payload.abi.json"));
+
 export function read(name: string, encoding?: BufferEncoding){
     return fs.readFileSync(path.resolve(__dirname, "contracts", name)).toString(encoding)
 }
@@ -26,20 +28,6 @@ export function getContract(name: string){
         abi: JSON.parse(read(`${name}.abi.json`)),
         tvc: read(`${name}.tvc`, "base64")
     }
-}
-
-const transferCommentAbi = {
-    "ABI version": 2,
-    "functions": [
-        {
-            "name": "transfer",
-            "id": "0x00000000",
-            "inputs": [{"name":"comment","type":"bytes"}],
-            "outputs": []
-        }
-    ],
-    "events": [],
-    "data": []
 }
 
 export class Wallet extends Account {
@@ -69,13 +57,13 @@ export class Wallet extends Account {
         return wallet;
     }
 
-    private async getCommentPayload(text: string){
+    private async encodePayload(text: string){
         return (await this.client.abi.encode_message_body({
-            abi: abiContract(transferCommentAbi),
+            abi: abiContract(PayloadAbi),
             call_set: {
-                function_name: "transfer",
+                function_name: "attachPayload",
                 input: {
-                    comment: Buffer.from(text).toString("hex"),
+                    payload: Buffer.from(text).toString("hex"),
                 },
             },
             is_internal: true,
@@ -83,7 +71,16 @@ export class Wallet extends Account {
         })).body;
     }
 
-    public async transfer(to: string, amount: number, comment?: string){
+    private async decodePayload(payload: string){
+        return await this.client.abi.decode_message({
+            abi: abiContract(PayloadAbi),
+            message: payload
+        })
+            .then(decoded => Buffer.from(decoded.value.payload, "hex").toString())
+            .catch(err => null);
+    }
+
+    public async transfer(to: string, amount: number, payload?: string){
         const balance = parseInt(await this.getBalance(), 16);
         if(amount * 1_000_000_000 > balance) throw new Error("Not enough balance!");
         return this.run("submitTransaction", {
@@ -91,7 +88,7 @@ export class Wallet extends Account {
             value: amount * 1_000_000_000,
             bounce: false,
             allBalance: false,
-            payload: comment ? await this.getCommentPayload(comment) : ""
+            payload: payload ? await this.encodePayload(payload) : ""
         })
     }
     
@@ -105,19 +102,12 @@ export class Wallet extends Account {
                 result: "boc"
             })
 
-            const payload = await this.client.abi.decode_message({
-                abi: abiContract(transferCommentAbi),
-                message: message.result[0].boc,
-            })
-                .then(decoded => Buffer.from(decoded.value.comment, "hex").toString())
-                .catch(err => null);
-
             callback({
                 id: params.id,
                 from: params.in_message.src,
                 to: params.in_message.dst,
                 amount: parseInt(params.balance_delta, 16) / 1_000_000_000,
-                payload: payload
+                payload: await this.decodePayload(message.result[0].boc)
             })
         })
     }
@@ -127,6 +117,7 @@ interface ITokenRecievedNotification {
     message_id: string
     from: string
     amount: number
+    payload: string
 }
 
 export class TokenWallet {
@@ -145,13 +136,13 @@ export class TokenWallet {
     }
 
     private messageHandler(data: {boc: string, id: string, src: string}, callback: (data: ITokenRecievedNotification) => void){
-        this.account.decodeMessage(data.boc).then(decoded => {
-            console.log(decoded);
+        this.account.decodeMessage(data.boc).then(async decoded => {
             if(decoded.name === "internalTransfer"){
                 callback({
                     message_id: data.id,
                     from: data.src,
-                    amount: decoded.value.tokens / 100_000_000
+                    amount: decoded.value.tokens / 100_000_000,
+                    payload: await this.decodePayload(decoded.value.payload)
                 })
             }
         }).catch(error => {
@@ -170,18 +161,28 @@ export class TokenWallet {
         }
     }
 
-    private async getCommentPayload(text: string){
+    private async encodePayload(text: string){
         return (await this.account.client.abi.encode_message_body({
-            abi: abiContract(transferCommentAbi),
+            abi: abiContract(PayloadAbi),
             call_set: {
-                function_name: "transfer",
+                function_name: "attachPayload",
                 input: {
-                    comment: Buffer.from(text).toString("hex"),
+                    payload: Buffer.from(text).toString("hex"),
                 },
             },
             is_internal: true,
             signer: signerNone(),
         })).body;
+    }
+
+    private async decodePayload(payload: string){
+        return await this.account.client.abi.decode_message_body({
+            body: payload,
+            abi: abiContract(PayloadAbi),
+            is_internal: true,
+        })
+            .then(decoded => Buffer.from(decoded.value.payload, "hex").toString())
+            .catch(err =>  null);
     }
 
     /**
@@ -199,12 +200,13 @@ export class TokenWallet {
         if(tokens > balance) throw new Error("Not enough balance!");
 
         const transfer = await this.account.run("transferWithNotify", {
+            _answer_id: 0,
             answer_addr: this.address,
             to,
             tokens: tokens * 100_000_000,
             evers: gas_limit * 1_000_000_000,
             return_ownership: 0,
-            payload: payload ? await this.getCommentPayload(payload) : ""
+            payload: payload ? await this.encodePayload(payload) : ""
         });
         
         return transfer.out_messages.length ? transfer.transaction.id : null

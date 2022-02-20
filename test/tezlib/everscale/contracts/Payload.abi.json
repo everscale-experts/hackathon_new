@@ -1,0 +1,13 @@
+{
+    "ABI version": 2,
+    "functions": [
+        {
+            "name": "attachPayload",
+            "id": "0x00000000",
+            "inputs": [{"name":"payload","type":"bytes"}],
+            "outputs": []
+        }
+    ],
+    "events": [],
+    "data": []
+}
