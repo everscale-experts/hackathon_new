@@ -7954,6 +7954,8 @@ const mergeLimits = (
         : userDefinedLimit.storageLimit,
   };
 };
+const SIGNATURE_STUB =
+  'edsigtkpiSSschcaCt9pUVrpNPf7TTcgvgDEDD6NCEHMy8NNQJCGnMfLZzYoQj74yLjo9wx6MPVV29CvVzgi7qEcEUok3k7AuMg';
 export class RPCEstimateProvider extends OperationEmitter implements EstimationProvider {
   private readonly ALLOCATION_STORAGE = 257;
   private readonly ORIGINATION_STORAGE = 257;
@@ -8353,6 +8355,815 @@ export class RPCEstimateProvider extends OperationEmitter implements EstimationP
     return op;
   }
 }
+export class RPCBatchProvider {
+  constructor(private context: Context, private estimator: EstimationProvider) { }
+  batch(params?: ParamsWithKind[]) {
+    const batch = new OperationBatch(this.context, this.estimator);
+
+    if (Array.isArray(params)) {
+      batch.with(params);
+    }
+
+    return batch;
+  }
+}
+export interface Signer {
+  sign(
+    op: string,
+    magicByte?: Uint8Array
+  ): Promise<{
+    bytes: string;
+    sig: string;
+    prefixSig: string;
+    sbytes: string;
+  }>;
+  publicKey(): Promise<string>;
+  publicKeyHash(): Promise<string>;
+  secretKey(): Promise<string | undefined>;
+}
+export class NoopSigner implements Signer {
+  async publicKey(): Promise<string> {
+    throw new UnconfiguredSignerError();
+  }
+  async publicKeyHash(): Promise<string> {
+    throw new UnconfiguredSignerError();
+  }
+  async secretKey(): Promise<string> {
+    throw new UnconfiguredSignerError();
+  }
+  async sign(_bytes: string, _watermark?: Uint8Array): Promise<any> {
+    throw new UnconfiguredSignerError();
+  }
+}
+export class UnconfiguredSignerError extends Error {
+  name = 'UnconfiguredSignerError';
+
+  constructor() {
+    super(
+      'No signer has been configured. Please configure one by calling setProvider({signer}) on your TezosToolkit instance.'
+    );
+  }
+}
+export interface Observer<T> {
+    closed?: boolean;
+    next: (value: T) => void;
+    error: (err: any) => void;
+    complete: () => void;
+}
+export interface SubscriptionLike extends Unsubscribable {
+    unsubscribe(): void;
+    readonly closed: boolean;
+}
+export declare type TeardownLogic = Unsubscribable | Function | void;
+export declare class Subscription implements SubscriptionLike {
+    static EMPTY: Subscription;
+    closed: boolean;
+    protected _parentOrParents: Subscription | Subscription[];
+    private _subscriptions;
+    constructor(unsubscribe?: () => void);
+    unsubscribe(): void;
+    add(teardown: TeardownLogic): Subscription;
+    remove(subscription: Subscription): void;
+}
+export declare class Subscriber<T> extends Subscription implements Observer<T> {
+    static create<T>(next?: (x?: T) => void, error?: (e?: any) => void, complete?: () => void): Subscriber<T>;
+    protected isStopped: boolean;
+    protected destination: PartialObserver<any> | Subscriber<any>;
+    constructor(destinationOrNext?: PartialObserver<any> | ((value: T) => void), error?: (e?: any) => void, complete?: () => void);
+    next(value?: T): void;
+    error(err?: any): void;
+    complete(): void;
+    unsubscribe(): void;
+    protected _next(value: T): void;
+    protected _error(err: any): void;
+    protected _complete(): void;
+    _unsubscribeAndRecycle(): Subscriber<T>;
+}
+export interface Operator<T, R> {
+    call(subscriber: Subscriber<R>, source: any): TeardownLogic;
+}
+export declare class Subject<T> extends Observable<T> implements SubscriptionLike {
+    observers: Observer<T>[];
+    closed: boolean;
+    isStopped: boolean;
+    hasError: boolean;
+    thrownError: any;
+    constructor();
+    static create: Function;
+    lift<R>(operator: Operator<T, R>): Observable<R>;
+    next(value?: T): void;
+    error(err: any): void;
+    complete(): void;
+    unsubscribe(): void;
+    _trySubscribe(subscriber: Subscriber<T>): TeardownLogic;
+    _subscribe(subscriber: Subscriber<T>): Subscription;
+    asObservable(): Observable<T>;
+}
+export declare class BehaviorSubject<T> extends Subject<T> {
+    private _value;
+    constructor(_value: T);
+    readonly value: T;
+    /** @deprecated This is an internal implementation detail, do not use. */
+    _subscribe(subscriber: Subscriber<T>): Subscription;
+    getValue(): T;
+    next(value: T): void;
+}
+export interface ConfigStreamer {
+  streamerPollingIntervalMilliseconds: number;
+  shouldObservableSubscriptionRetry: boolean;
+  observableSubscriptionRetryFunction: OperatorFunction<any, any>;
+}
+export declare function retry<T>(count?: number): MonoTypeOperatorFunction<T>;
+export const defaultConfigStreamer: ConfigStreamer = {
+  streamerPollingIntervalMilliseconds: 20000,
+  shouldObservableSubscriptionRetry: false,
+  observableSubscriptionRetryFunction: retry(),
+};
+export const defaultConfigConfirmation: ConfigConfirmation = {
+  defaultConfirmationCount: 1,
+  confirmationPollingTimeoutSecond: 180,
+};
+export interface ConfigConfirmation {
+  confirmationPollingIntervalSecond?: number;
+  confirmationPollingTimeoutSecond: number;
+  defaultConfirmationCount: number;
+}
+export interface HttpRequestOptions {
+  url: string;
+  method?: 'GET' | 'POST';
+  timeout?: number;
+  json?: boolean;
+  query?: { [key: string]: any };
+  headers?: { [key: string]: string };
+  mimeType?: string;
+}
+
+const isNode = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
+const XMLHttpRequestCTOR = isNode ? require('xhr2-cookies').XMLHttpRequest : XMLHttpRequest; // ???????????
+const defaultTimeout = 30000;
+export class HttpBackend {
+  protected serialize(obj?: { [key: string]: any }) {
+    if (!obj) {
+      return '';
+    }
+
+    const str = [];
+    for (const p in obj) {
+      // eslint-disable-next-line no-prototype-builtins
+      if (obj.hasOwnProperty(p) && typeof obj[p] !== 'undefined') {
+        const prop = typeof obj[p].toJSON === 'function' ? obj[p].toJSON() : obj[p];
+        // query arguments can have no value so we need some way of handling that
+        // example https://domain.com/query?all
+        if (prop === null) {
+          str.push(encodeURIComponent(p));
+          continue;
+        }
+        // another use case is multiple arguments with the same name
+        // they are passed as array
+        if (Array.isArray(prop)) {
+          prop.forEach((item) => {
+            str.push(encodeURIComponent(p) + '=' + encodeURIComponent(item));
+          });
+          continue;
+        }
+        str.push(encodeURIComponent(p) + '=' + encodeURIComponent(prop));
+      }
+    }
+    const serialized = str.join('&');
+    if (serialized) {
+      return `?${serialized}`;
+    } else {
+      return '';
+    }
+  }
+
+  protected createXHR(): XMLHttpRequest {
+    return new XMLHttpRequestCTOR();
+  }
+
+  createRequest<T>(
+    {
+      url,
+      method,
+      timeout,
+      query,
+      headers = {},
+      json = true,
+      mimeType = undefined,
+    }: HttpRequestOptions,
+    data?: object | string
+  ) {
+    return new Promise<T>((resolve, reject) => {
+      const request = this.createXHR();
+      request.open(method || 'GET', `${url}${this.serialize(query)}`);
+      if (!headers['Content-Type']) {
+        request.setRequestHeader('Content-Type', 'application/json');
+      }
+      if (mimeType) {
+        request.overrideMimeType(`${mimeType}`);
+      }
+      for (const k in headers) {
+        request.setRequestHeader(k, headers[k]);
+      }
+      request.timeout = timeout || defaultTimeout;
+      request.onload = function () {
+        if (this.status >= 200 && this.status < 300) {
+          if (json) {
+            try {
+              resolve(JSON.parse(request.response));
+            } catch (ex) {
+              reject(new Error(`Unable to parse response: ${request.response}`));
+            }
+          } else {
+            resolve(request.response);
+          }
+        } else {
+          reject(
+            new HttpResponseError(
+              `Http error response: (${this.status}) ${request.response}`,
+              this.status as STATUS_CODE,
+              request.statusText,
+              request.response,
+              url
+            )
+          );
+        }
+      };
+
+      request.ontimeout = function () {
+        reject(new Error(`Request timed out after: ${request.timeout}ms`));
+      };
+
+      request.onerror = function (err) {
+        reject(new HttpRequestFailed(url, err));
+      };
+
+      if (data) {
+        const dataStr = JSON.stringify(data);
+        request.send(dataStr);
+      } else {
+        request.send();
+      }
+    });
+  }
+}
+export class HttpRequestFailed extends Error {
+  public name = 'HttpRequestFailed';
+
+  constructor(public url: string, public innerEvent: any) {
+    super(`Request to ${url} failed`);
+  }
+}
+export function castToBigNumber(data: any, keys?: any): object {
+  const returnArray: boolean = Array.isArray(data);
+  if (typeof keys === 'undefined') {
+    keys = Object.keys(data);
+  }
+  const response: any = returnArray ? [] : {};
+
+  keys.forEach((key: any) => {
+    const item = data[key];
+    let res: any;
+    if (typeof item === 'undefined') {
+      return;
+    }
+
+    if (Array.isArray(item)) {
+      res = castToBigNumber(item);
+      response[key] = res;
+      return;
+    }
+
+    res = new BigNumber(item);
+    response[key] = res;
+  });
+
+  return response;
+}
+export interface RawBlockHeaderResponse {
+  protocol: string;
+  chain_id: string;
+  hash: string;
+  level: number;
+  proto: number;
+  predecessor: string;
+  timestamp: string;
+  validation_pass: number;
+  operations_hash: string;
+  fitness: string[];
+  context: string;
+  priority: number;
+  proof_of_work_nonce: string;
+  signature: string;
+}
+export const defaultChain = 'main';
+export const defaultRPCOptions: RPCOptions = { block: 'head' };
+export class RpcClient implements RpcClientInterface {
+    constructor(
+    protected url: string,
+    protected chain: string = defaultChain,
+    protected httpBackend: HttpBackend = new HttpBackend()
+  ) {}
+
+  protected createURL(path: string) {
+    // Trim trailing slashes because it is assumed to be included in path
+    return `${this.url.replace(/\/+$/g, '')}${path}`;
+  }
+
+  private validateAddress(address: string) {
+    if (validateAddress(address) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid address: ${address}`);
+    }
+  }
+
+  private validateContract(address: string) {
+    if (validateContractAddress(address) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid address: ${address}`);
+    }
+  }
+  async getBlockHash({ block }: RPCOptions = defaultRPCOptions): Promise<string> {
+    const hash = await this.httpBackend.createRequest<string>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/hash`),
+      method: 'GET',
+    });
+    return hash;
+  }
+  async getLiveBlocks({ block }: RPCOptions = defaultRPCOptions): Promise<string[]> {
+    const blocks = await this.httpBackend.createRequest<string[]>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/live_blocks`),
+      method: 'GET',
+    });
+    return blocks;
+  }
+  async getBalance(
+    address: string,
+    { block }: RPCOptions = defaultRPCOptions
+  ): Promise<BalanceResponse> {
+    this.validateAddress(address);
+    const balance = await this.httpBackend.createRequest<BalanceResponse>({
+      url: this.createURL(
+        `/chains/${this.chain}/blocks/${block}/context/contracts/${address}/balance`
+      ),
+      method: 'GET',
+    });
+    return new BigNumber(balance);
+  }
+  async getStorage(
+    address: string,
+    { block }: { block: string } = defaultRPCOptions
+  ): Promise<StorageResponse> {
+    this.validateContract(address);
+    return this.httpBackend.createRequest<StorageResponse>({
+      url: this.createURL(
+        `/chains/${this.chain}/blocks/${block}/context/contracts/${address}/storage`
+      ),
+      method: 'GET',
+    });
+  }
+  async getScript(
+    address: string,
+    { block }: { block: string } = defaultRPCOptions
+  ): Promise<ScriptResponse> {
+    this.validateContract(address);
+    return this.httpBackend.createRequest<ScriptResponse>({
+      url: this.createURL(
+        `/chains/${this.chain}/blocks/${block}/context/contracts/${address}/script`
+      ),
+      method: 'GET',
+    });
+  }
+  async getNormalizedScript(
+    address: string,
+    unparsingMode: UnparsingMode = { unparsing_mode: 'Readable' },
+    { block }: { block: string } = defaultRPCOptions
+  ): Promise<ScriptResponse> {
+    this.validateContract(address);
+    return this.httpBackend.createRequest<ScriptResponse>(
+      {
+        url: this.createURL(
+          `/chains/${this.chain}/blocks/${block}/context/contracts/${address}/script/normalized`
+        ),
+        method: 'POST',
+      },
+      unparsingMode
+    );
+  }
+  async getContract(
+    address: string,
+    { block }: { block: string } = defaultRPCOptions
+  ): Promise<ContractResponse> {
+    this.validateAddress(address);
+    const contractResponse = await this.httpBackend.createRequest<ContractResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/context/contracts/${address}`),
+      method: 'GET',
+    });
+    return {
+      ...contractResponse,
+      balance: new BigNumber(contractResponse.balance),
+    };
+  }
+  async getManagerKey(
+    address: string,
+    { block }: { block: string } = defaultRPCOptions
+  ): Promise<ManagerKeyResponse> {
+    this.validateAddress(address);
+    return this.httpBackend.createRequest<ManagerKeyResponse>({
+      url: this.createURL(
+        `/chains/${this.chain}/blocks/${block}/context/contracts/${address}/manager_key`
+      ),
+      method: 'GET',
+    });
+  }
+  async getDelegate(
+    address: string,
+    { block }: { block: string } = defaultRPCOptions
+  ): Promise<DelegateResponse> {
+    this.validateAddress(address);
+    let delegate: DelegateResponse;
+    try {
+      delegate = await this.httpBackend.createRequest<DelegateResponse>({
+        url: this.createURL(
+          `/chains/${this.chain}/blocks/${block}/context/contracts/${address}/delegate`
+        ),
+        method: 'GET',
+      });
+    } catch (ex) {
+      if (ex instanceof HttpResponseError && ex.status === STATUS_CODE.NOT_FOUND) {
+        delegate = null;
+      } else {
+        throw ex;
+      }
+    }
+    return delegate;
+  }
+  async getBigMapKey(
+    address: string,
+    key: BigMapKey,
+    { block }: { block: string } = defaultRPCOptions
+  ): Promise<BigMapGetResponse> {
+    this.validateAddress(address);
+    return this.httpBackend.createRequest<BigMapGetResponse>(
+      {
+        url: this.createURL(
+          `/chains/${this.chain}/blocks/${block}/context/contracts/${address}/big_map_get`
+        ),
+        method: 'POST',
+      },
+      key
+    );
+  }
+  async getBigMapExpr(
+    id: string,
+    expr: string,
+    { block }: { block: string } = defaultRPCOptions
+  ): Promise<BigMapResponse> {
+    return this.httpBackend.createRequest<BigMapResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/context/big_maps/${id}/${expr}`),
+      method: 'GET',
+    });
+  }
+  async getDelegates(
+    address: string,
+    { block }: { block: string } = defaultRPCOptions
+  ): Promise<DelegatesResponse> {
+    this.validateAddress(address);
+    const response = await this.httpBackend.createRequest<DelegatesResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/context/delegates/${address}`),
+      method: 'GET',
+    });
+
+    return {
+      deactivated: response.deactivated,
+      balance: new BigNumber(response.balance),
+      frozen_balance: new BigNumber(response.frozen_balance),
+      frozen_balance_by_cycle: response.frozen_balance_by_cycle.map(
+        ({ deposit, deposits, fees, rewards, ...rest }) => {
+          const castedToBigNumber: any = castToBigNumber({ deposit, deposits, fees, rewards }, [
+            'deposit',
+            'deposits',
+            'fees',
+            'rewards',
+          ]);
+          return {
+            ...rest,
+            deposit: castedToBigNumber.deposit,
+            deposits: castedToBigNumber.deposits,
+            fees: castedToBigNumber.fees,
+            rewards: castedToBigNumber.rewards,
+          };
+        }
+      ),
+      staking_balance: new BigNumber(response.staking_balance),
+      delegated_contracts: response.delegated_contracts,
+      delegated_balance: new BigNumber(response.delegated_balance),
+      grace_period: response.grace_period,
+      voting_power: response.voting_power,
+    };
+  }
+  async getConstants({ block }: RPCOptions = defaultRPCOptions): Promise<ConstantsResponse> {
+    const response = await this.httpBackend.createRequest<ConstantsResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/context/constants`),
+      method: 'GET',
+    });
+
+    const castedResponse: any = castToBigNumber(response, [
+      'time_between_blocks',
+      'hard_gas_limit_per_operation',
+      'hard_gas_limit_per_block',
+      'proof_of_work_threshold',
+      'tokens_per_roll',
+      'seed_nonce_revelation_tip',
+      'block_security_deposit',
+      'endorsement_security_deposit',
+      'block_reward',
+      'endorsement_reward',
+      'cost_per_byte',
+      'hard_storage_limit_per_operation',
+      'test_chain_duration',
+      'baking_reward_per_endorsement',
+      'delay_per_missing_endorsement',
+      'minimal_block_delay',
+      'liquidity_baking_subsidy',
+      'cache_layout',
+      'baking_reward_fixed_portion',
+      'baking_reward_bonus_per_slot',
+      'endorsing_reward_per_slot',
+      'double_baking_punishment',
+      'delay_increment_per_round',
+    ]);
+
+    return {
+      ...response,
+      ...(castedResponse as ConstantsResponse),
+    };
+  }
+  async getBlock({ block }: RPCOptions = defaultRPCOptions): Promise<BlockResponse> {
+    const response = await this.httpBackend.createRequest<BlockResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async getBlockHeader({ block }: RPCOptions = defaultRPCOptions): Promise<BlockHeaderResponse> {
+    const response = await this.httpBackend.createRequest<RawBlockHeaderResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/header`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async getBlockMetadata({ block }: RPCOptions = defaultRPCOptions): Promise<BlockMetadata> {
+    const response = await this.httpBackend.createRequest<BlockMetadata>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/metadata`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async getBakingRights(
+    args: BakingRightsQueryArguments = {},
+    { block }: RPCOptions = defaultRPCOptions
+  ): Promise<BakingRightsResponse> {
+    const response = await this.httpBackend.createRequest<BakingRightsResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/helpers/baking_rights`),
+      method: 'GET',
+      query: args,
+    });
+
+    return response;
+  }
+  async getEndorsingRights(
+    args: EndorsingRightsQueryArguments = {},
+    { block }: RPCOptions = defaultRPCOptions
+  ): Promise<EndorsingRightsResponse> {
+    const response = await this.httpBackend.createRequest<EndorsingRightsResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/helpers/endorsing_rights`),
+      method: 'GET',
+      query: args,
+    });
+
+    return response;
+  }
+  async getBallotList({ block }: RPCOptions = defaultRPCOptions): Promise<BallotListResponse> {
+    const response = await this.httpBackend.createRequest<BallotListResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/votes/ballot_list`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async getBallots({ block }: RPCOptions = defaultRPCOptions): Promise<BallotsResponse> {
+    const response = await this.httpBackend.createRequest<BallotsResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/votes/ballots`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async getCurrentPeriodKind({
+    block,
+  }: RPCOptions = defaultRPCOptions): Promise<PeriodKindResponse> {
+    const response = await this.httpBackend.createRequest<PeriodKindResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/votes/current_period_kind`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async getCurrentProposal({
+    block,
+  }: RPCOptions = defaultRPCOptions): Promise<CurrentProposalResponse> {
+    const response = await this.httpBackend.createRequest<CurrentProposalResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/votes/current_proposal`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async getCurrentQuorum({
+    block,
+  }: RPCOptions = defaultRPCOptions): Promise<CurrentQuorumResponse> {
+    const response = await this.httpBackend.createRequest<CurrentQuorumResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/votes/current_quorum`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async getVotesListings({
+    block,
+  }: RPCOptions = defaultRPCOptions): Promise<VotesListingsResponse> {
+    const response = await this.httpBackend.createRequest<VotesListingsResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/votes/listings`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async getProposals({ block }: RPCOptions = defaultRPCOptions): Promise<ProposalsResponse> {
+    const response = await this.httpBackend.createRequest<ProposalsResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/votes/proposals`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async forgeOperations(
+    data: ForgeOperationsParams,
+    { block }: RPCOptions = defaultRPCOptions
+  ): Promise<string> {
+    return this.httpBackend.createRequest<string>(
+      {
+        url: this.createURL(`/chains/${this.chain}/blocks/${block}/helpers/forge/operations`),
+        method: 'POST',
+      },
+      data
+    );
+  }
+  async injectOperation(signedOpBytes: string): Promise<OperationHash> {
+    return this.httpBackend.createRequest<any>(
+      {
+        url: this.createURL(`/injection/operation`),
+        method: 'POST',
+      },
+      signedOpBytes
+    );
+  }
+  async preapplyOperations(
+    ops: PreapplyParams,
+    { block }: RPCOptions = defaultRPCOptions
+  ): Promise<PreapplyResponse[]> {
+    const response = await this.httpBackend.createRequest<PreapplyResponse[]>(
+      {
+        url: this.createURL(`/chains/${this.chain}/blocks/${block}/helpers/preapply/operations`),
+        method: 'POST',
+      },
+      ops
+    );
+
+    return response;
+  }
+  async getEntrypoints(
+    contract: string,
+    { block }: RPCOptions = defaultRPCOptions
+  ): Promise<EntrypointsResponse> {
+    this.validateContract(contract);
+    const contractResponse = await this.httpBackend.createRequest<{
+      entrypoints: { [key: string]: MichelsonV1ExpressionExtended };
+    }>({
+      url: this.createURL(
+        `/chains/${this.chain}/blocks/${block}/context/contracts/${contract}/entrypoints`
+      ),
+      method: 'GET',
+    });
+
+    return contractResponse;
+  }
+  async runOperation(
+    op: RPCRunOperationParam,
+    { block }: RPCOptions = defaultRPCOptions
+  ): Promise<PreapplyResponse> {
+    const response = await this.httpBackend.createRequest<any>(
+      {
+        url: this.createURL(`/chains/${this.chain}/blocks/${block}/helpers/scripts/run_operation`),
+        method: 'POST',
+      },
+      op
+    );
+
+    return response;
+  }
+  async runCode(
+    code: RPCRunCodeParam,
+    { block }: RPCOptions = defaultRPCOptions
+  ): Promise<RunCodeResult> {
+    const response = await this.httpBackend.createRequest<any>(
+      {
+        url: this.createURL(`/chains/${this.chain}/blocks/${block}/helpers/scripts/run_code`),
+        method: 'POST',
+      },
+      code
+    );
+
+    return response;
+  }
+
+  async getChainId() {
+    return this.httpBackend.createRequest<string>({
+      url: this.createURL(`/chains/${this.chain}/chain_id`),
+      method: 'GET',
+    });
+  }
+  async packData(data: PackDataParams, { block }: RPCOptions = defaultRPCOptions) {
+    const { gas, ...rest } = await this.httpBackend.createRequest<PackDataResponse>(
+      {
+        url: this.createURL(`/chains/${this.chain}/blocks/${block}/helpers/scripts/pack_data`),
+        method: 'POST',
+      },
+      data
+    );
+
+    let formattedGas = gas;
+    const tryBigNumber = new BigNumber(gas || '');
+    if (!tryBigNumber.isNaN()) {
+      formattedGas = tryBigNumber;
+    }
+
+    return { gas: formattedGas, ...rest };
+  }
+  getRpcUrl() {
+    return this.url;
+  }
+  async getCurrentPeriod({
+    block,
+  }: RPCOptions = defaultRPCOptions): Promise<VotingPeriodBlockResult> {
+    const response = await this.httpBackend.createRequest<VotingPeriodBlockResult>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/votes/current_period`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async getSuccessorPeriod({
+    block,
+  }: RPCOptions = defaultRPCOptions): Promise<VotingPeriodBlockResult> {
+    const response = await this.httpBackend.createRequest<VotingPeriodBlockResult>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/votes/successor_period`),
+      method: 'GET',
+    });
+
+    return response;
+  }
+  async getSaplingDiffById(
+    id: string,
+    { block }: { block: string } = defaultRPCOptions
+  ): Promise<SaplingDiffResponse> {
+    return this.httpBackend.createRequest<SaplingDiffResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/context/sapling/${id}/get_diff`),
+      method: 'GET',
+    });
+  }
+
+  async getSaplingDiffByContract(
+    contract: string,
+    { block }: { block: string } = defaultRPCOptions
+  ): Promise<SaplingDiffResponse> {
+    return this.httpBackend.createRequest<SaplingDiffResponse>({
+      url: this.createURL(
+        `/chains/${this.chain}/blocks/${block}/context/contracts/${contract}/single_sapling_get_diff`
+      ),
+      method: 'GET',
+    });
+  }
+
+  async getProtocols({ block }: { block: string } = defaultRPCOptions): Promise<ProtocolsResponse> {
+    return this.httpBackend.createRequest<ProtocolsResponse>({
+      url: this.createURL(`/chains/${this.chain}/blocks/${block}/protocols`),
+      method: 'GET',
+    });
+  }
+}
 export class Context {
   private _rpcClient: RpcClientInterface;
   private _forger: Forger;
@@ -8572,7 +9383,957 @@ export class Context {
     return clonedContext;
   };
 }
+export class UnconfiguredGlobalConstantsProviderError extends Error {
+  name = 'UnconfiguredGlobalConstantsProviderError';
 
+  constructor() {
+    super(
+      'No global constants provider has been configured. Please configure one by calling setGlobalConstantsProvider({globalConstantsProvider}) on your TezosToolkit instance.'
+    );
+  }
+}
+export class RpcPacker implements Packer {
+  constructor(private context: Context) {}
+  
+  async packData(data: PackDataParams): Promise<PackDataResponse> {
+    return this.context.rpc.packData(data);
+  }
+}
+export class NoopGlobalConstantsProvider implements GlobalConstantsProvider {
+    async getGlobalConstantByHash(_hash: GlobalConstantHash): Promise<Expr> {
+        throw new UnconfiguredGlobalConstantsProviderError();
+    }
+}
+export const attachKind = <T, K extends OpKind>(op: T, kind: K) => {
+  return { ...op, kind } as withKind<T, K>;
+};
+export class LegacyWalletProvider implements WalletProvider {
+  constructor(private context: Context) {}
+
+  async getPKH(): Promise<string> {
+    return this.context.signer.publicKeyHash();
+  }
+
+  async mapTransferParamsToWalletParams(params: () => Promise<WalletTransferParams>) {
+    return attachKind(await params(), OpKind.TRANSACTION);
+  }
+
+  async mapOriginateParamsToWalletParams(params: () => Promise<WalletOriginateParams>) {
+    return attachKind(await params(), OpKind.ORIGINATION);
+  }
+
+  async mapDelegateParamsToWalletParams(params: () => Promise<WalletDelegateParams>) {
+    return attachKind(await params(), OpKind.DELEGATION);
+  }
+
+  async sendOperations(params: WalletParamsWithKind[]) {
+    const op = await this.context.batch.batch(params as any).send();
+    return op.hash;
+  }
+}
+export class RpcForger implements Forger {
+  constructor(private context: Context) {}
+
+  forge({ branch, contents }: ForgeParams): Promise<ForgeResponse> {
+    return this.context.rpc.forgeOperations({ branch, contents });
+  }
+}
+export class RpcInjector implements Injector {
+  constructor(private context: Context) {}
+  inject(signedOperationBytes: string): Promise<string> {
+    return this.context.rpc.injectOperation(signedOperationBytes);
+  }
+}
+export enum Protocol {
+  Ps9mPmXa = 'Ps9mPmXaRzmzk35gbAYNCAw6UXdE2qoABTHbN2oEEc1qM7CwT9P',
+  PtCJ7pwo = 'PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY',
+  PsYLVpVv = 'PsYLVpVvgbLhAhoqAkMFUo6gudkJ9weNXhUYCiLDzcUpFpkk8Wt',
+  PsddFKi3 = 'PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP',
+  Pt24m4xi = 'Pt24m4xiPbLDhVgVfABUjirbmda3yohdN82Sp9FeuAXJ4eV9otd',
+  PsBABY5H = 'PsBABY5HQTSkA4297zNHfsZNKtxULfL18y95qb3m53QJiXGmrbU',
+  PsBabyM1 = 'PsBabyM1eUXZseaJdmXFApDSBqj8YBfwELoxZHHW77EMcAbbwAS',
+  PsCARTHA = 'PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb',
+  PsDELPH1 = 'PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo',
+  PtEdoTez = 'PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq',
+  PtEdo2Zk = 'PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA',
+  PsFLoren = 'PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i',
+  PsFLorena = 'PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i',
+  PtGRANAD = 'PtGRANADsDU8R9daYKAgWnQYAJ64omN1o3KMGVCykShA97vQbvV',
+  PtGRANADs = 'PtGRANADsDU8R9daYKAgWnQYAJ64omN1o3KMGVCykShA97vQbvV',
+  PtHangzH = 'PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r',
+  PtHangz2 = 'PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx',
+  PsiThaCa = 'PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP',
+  Psithaca2 = 'Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A',
+  ProtoALpha = 'ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK',
+}
+export type ProtocolID = `${Protocol}`;
+export interface ProtocolOptions {
+  protocol?: ProtocolID;
+}
+export interface ParserOptions extends ProtocolOptions {
+  expandMacros?: boolean;
+  expandGlobalConstant?: GlobalConstantHashAndValue;
+}
+export interface GlobalConstantHashAndValue {
+  [globalConstantHash: string]: Expr;
+}
+export function expandGlobalConstants(ex: Prim, hashAndValue: GlobalConstantHashAndValue): Expr {
+	if (ex.args !== undefined && ex.args.length === 1 && 'string' in ex.args[0] && ex.args[0].string in hashAndValue) {
+		return hashAndValue[ex.args[0].string];
+	}
+
+	return ex;
+}
+export type SourceReference = {
+  first: number;
+  last: number;
+  macro?: Expr;
+  globalConstant?: Expr;
+};
+function assertArgs<N extends number>(ex: Prim, n: N):
+    ex is N extends 0 ?
+        NoArgs<Prim<string>> :
+        ReqArgs<Prim<string, Tuple<N, Expr>>> {
+    if ((n === 0 && ex.args === undefined) || ex.args?.length === n) {
+        return true;
+    }
+    throw new MacroError(ex, `macro ${ex.prim} expects ${n} arguments, was given ${ex.args?.length}`);
+}
+export const sourceReference: unique symbol = Symbol('source_reference');
+export const DefaultProtocol = Protocol.Psithaca2;
+export function expandMacros(ex: Prim, opt?: ProtocolOptions): Expr {
+    const proto = opt?.protocol || DefaultProtocol;
+
+    function mayRename(annots?: string[]): Prim[] {
+        return annots !== undefined ? [{ prim: "RENAME", annots }] : [];
+    }
+
+    switch (ex.prim) {
+    // Compare
+    case "CMPEQ":
+    case "CMPNEQ":
+    case "CMPLT":
+    case "CMPGT":
+    case "CMPLE":
+    case "CMPGE":
+        if (assertArgs(ex, 0)) {
+            return [
+                { prim: "COMPARE" },
+                mkPrim({ prim: ex.prim.slice(3), annots: ex.annots }),
+            ];
+        }
+        break;
+
+    case "IFEQ":
+    case "IFNEQ":
+    case "IFLT":
+    case "IFGT":
+    case "IFLE":
+    case "IFGE":
+        if (assertArgs(ex, 2)) {
+            return [
+                { prim: ex.prim.slice(2) },
+                mkPrim({ prim: "IF", annots: ex.annots, args: ex.args }),
+            ];
+        }
+        break;
+
+    case "IFCMPEQ":
+    case "IFCMPNEQ":
+    case "IFCMPLT":
+    case "IFCMPGT":
+    case "IFCMPLE":
+    case "IFCMPGE":
+        if (assertArgs(ex, 2)) {
+            return [
+                { prim: "COMPARE" },
+                { prim: ex.prim.slice(5) },
+                mkPrim({ prim: "IF", annots: ex.annots, args: ex.args }),
+            ];
+        }
+        break;
+
+        // Fail
+    case "FAIL":
+        if (assertArgs(ex, 0) && assertNoAnnots(ex)) {
+            return [
+                { prim: "UNIT" },
+                { prim: "FAILWITH" },
+            ];
+        }
+        break;
+
+        // Assertion macros
+    case "ASSERT":
+        if (assertArgs(ex, 0) && assertNoAnnots(ex)) {
+            return [{
+                prim: "IF", args: [
+                    [],
+                    [[{ prim: "UNIT" }, { prim: "FAILWITH" }]],
+                ]
+            }];
+        }
+        break;
+
+    case "ASSERT_EQ":
+    case "ASSERT_NEQ":
+    case "ASSERT_LT":
+    case "ASSERT_GT":
+    case "ASSERT_LE":
+    case "ASSERT_GE":
+        if (assertArgs(ex, 0) && assertNoAnnots(ex)) {
+            return [
+                { prim: ex.prim.slice(7) },
+                {
+                    prim: "IF", args: [
+                        [],
+                        [[{ prim: "UNIT" }, { prim: "FAILWITH" }]],
+                    ]
+                },
+            ];
+        }
+        break;
+
+    case "ASSERT_CMPEQ":
+    case "ASSERT_CMPNEQ":
+    case "ASSERT_CMPLT":
+    case "ASSERT_CMPGT":
+    case "ASSERT_CMPLE":
+    case "ASSERT_CMPGE":
+        if (assertArgs(ex, 0) && assertNoAnnots(ex)) {
+            return [
+                [
+                    { prim: "COMPARE" },
+                    { prim: ex.prim.slice(10) },
+                ],
+                {
+                    prim: "IF", args: [
+                        [],
+                        [[{ prim: "UNIT" }, { prim: "FAILWITH" }]],
+                    ]
+                },
+            ];
+        }
+        break;
+
+    case "ASSERT_NONE":
+        if (assertArgs(ex, 0) && assertNoAnnots(ex)) {
+            return [{
+                prim: "IF_NONE", args: [
+                    [],
+                    [[{ prim: "UNIT" }, { prim: "FAILWITH" }]],
+                ]
+            }];
+        }
+        break;
+
+    case "ASSERT_SOME":
+        if (assertArgs(ex, 0)) {
+            return [{
+                prim: "IF_NONE", args: [
+                    [[{ prim: "UNIT" }, { prim: "FAILWITH" }]],
+                    mayRename(ex.annots),
+                ]
+            }];
+        }
+        break;
+
+    case "ASSERT_LEFT":
+        if (assertArgs(ex, 0)) {
+            return [{
+                prim: "IF_LEFT", args: [
+                    mayRename(ex.annots),
+                    [[{ prim: "UNIT" }, { prim: "FAILWITH" }]],
+                ]
+            }];
+        }
+        break;
+
+    case "ASSERT_RIGHT":
+        if (assertArgs(ex, 0)) {
+            return [{
+                prim: "IF_LEFT", args: [
+                    [[{ prim: "UNIT" }, { prim: "FAILWITH" }]],
+                    mayRename(ex.annots),
+                ]
+            }];
+        }
+        break;
+
+        // Syntactic conveniences
+
+    case "IF_SOME":
+        if (assertArgs(ex, 2)) {
+            return [mkPrim({ prim: "IF_NONE", annots: ex.annots, args: [ex.args[1], ex.args[0]] })];
+        }
+        break;
+
+    case "IF_RIGHT":
+        if (assertArgs(ex, 2)) {
+            return [mkPrim({ prim: "IF_LEFT", annots: ex.annots, args: [ex.args[1], ex.args[0]] })];
+        }
+        break;
+
+        // CAR/CDR n
+    case "CAR":
+    case "CDR":
+        if (ex.args !== undefined) {
+            if (assertArgs(ex, 1) && assertIntArg(ex, ex.args[0])) {
+                const n = parseInt(ex.args[0].int, 10);
+                return mkPrim({
+                    prim: "GET",
+                    args: [{ int: ex.prim === "CAR" ? String(n * 2 + 1) : String(n * 2) }],
+                    annots: ex.annots,
+                });
+            }
+        } else {
+            return ex;
+        }
+    }
+
+    // More syntactic conveniences
+
+    // PAPPAIIR macro
+    if (pairRe.test(ex.prim)) {
+        if (assertArgs(ex, 0)) {
+            const { fields, rest } = filterAnnotations(ex.annots);
+            const { r } = parsePairUnpairExpr(ex, ex.prim.slice(1), fields, (l, r, top) => [...(l || []), ...(r || []), top]);
+
+            return r.map(([v, a], i) => {
+                const ann = [
+                    ...trimLast(a, null).map(v => v === null ? "%" : v),
+                    ...((v === 0 && i === r.length - 1) ? rest : [])];
+
+                const leaf = mkPrim({ prim: "PAIR", annots: ann.length !== 0 ? ann : undefined, });
+
+                return v === 0 ? leaf : {
+                    prim: "DIP",
+                    args: v === 1 ? [[leaf]] : [{ int: String(v) }, [leaf]],
+                };
+            });
+        }
+    }
+
+    // UNPAPPAIIR macro
+    if (unpairRe.test(ex.prim)) {
+        if (ProtoInferiorTo(proto,  Protocol.PtEdo2Zk) && assertArgs(ex, 0)) {
+            const { r } = parsePairUnpairExpr(ex, ex.prim.slice(3), ex.annots || [], (l, r, top) => [top, ...(r || []), ...(l || [])]);
+            return r.map(([v, a]) => {
+                const leaf: Prim[] = [
+                    { prim: "DUP" },
+                    mkPrim({ prim: "CAR", annots: a[0] !== null ? [a[0]] : undefined }),
+                    {
+                        prim: "DIP",
+                        args: [[mkPrim({ prim: "CDR", annots: a[1] !== null ? [a[1]] : undefined })]],
+                    }
+                ];
+
+                return v === 0 ? leaf : {
+                    prim: "DIP",
+                    args: v === 1 ? [[leaf]] : [{ int: String(v) }, [leaf]],
+                };
+            });
+        }
+        else {
+            if (ex.prim === "UNPAIR") {
+                return ex;
+            }
+            if (assertArgs(ex, 0)) {
+                // 008_edo: annotations are deprecated
+                const { r } = parsePairUnpairExpr(ex, ex.prim.slice(3), [], (l, r, top) => [top, ...(r || []), ...(l || [])]);
+                return r.map(([v]) => {
+                    const leaf = mkPrim({
+                        prim: "UNPAIR",
+                    });
+
+                    return v === 0 ? leaf : {
+                        prim: "DIP",
+                        args: v === 1 ? [[leaf]] : [{ int: String(v) }, [leaf]],
+                    };
+                });
+            }
+        }
+    }
+
+    // C[AD]+R macro
+    if (cadrRe.test(ex.prim)) {
+        if (assertArgs(ex, 0)) {
+            const ch = [...ex.prim.slice(1, ex.prim.length - 1)];
+
+            return ch.map<Prim>((c, i) => {
+                const ann = i === ch.length - 1 ? ex.annots : undefined;
+                switch (c) {
+                case "A":
+                    return mkPrim({ prim: "CAR", annots: ann });
+                case "D":
+                    return mkPrim({ prim: "CDR", annots: ann });
+                default:
+                    throw new MacroError(ex, `unexpected character: ${c}`);
+                }
+            });
+        }
+    }
+
+    // SET_C[AD]+R macro
+    if (setCadrRe.test(ex.prim)) {
+        if (assertArgs(ex, 0)) {
+            const { fields, rest } = filterAnnotations(ex.annots);
+            if (fields.length > 1) {
+                throw new MacroError(ex, `unexpected annotation on macro ${ex.prim}: ${fields}`);
+            }
+
+            const term = fields.length !== 0 ?
+                {
+                    a: [
+                        { prim: "DUP" },
+                        { prim: "CAR", annots: fields },
+                        { prim: "DROP" },
+                        { prim: "CDR", annots: ["@%%"] },
+                        { prim: "SWAP" },
+                        { prim: "PAIR", annots: [fields[0], "%@"] },
+                    ],
+                    d: [
+                        { prim: "DUP" },
+                        { prim: "CDR", annots: fields },
+                        { prim: "DROP" },
+                        { prim: "CAR", annots: ["@%%"] },
+                        { prim: "PAIR", annots: ["%@", fields[0]] },
+                    ],
+                } :
+                {
+                    a: [
+                        { prim: "CDR", annots: ["@%%"] },
+                        { prim: "SWAP" },
+                        { prim: "PAIR", annots: ["%", "%@"] },
+                    ],
+                    d: [
+                        { prim: "CAR", annots: ["@%%"] },
+                        { prim: "PAIR", annots: ["%@", "%"] },
+                    ],
+                };
+
+            return parseSetMapCadr(ex, ex.prim.slice(5, ex.prim.length - 1), rest, term);
+        }
+    }
+
+    // MAP_C[AD]+R macro
+    if (mapCadrRe.test(ex.prim)) {
+        if (assertArgs(ex, 1)) {
+            const { fields } = filterAnnotations(ex.annots);
+            if (fields.length > 1) {
+                throw new MacroError(ex, `unexpected annotation on macro ${ex.prim}: ${fields}`);
+            }
+
+            const term = {
+                a: [
+                    { prim: "DUP" },
+                    { prim: "CDR", annots: ["@%%"] },
+                    {
+                        prim: "DIP", args: [[
+                            mkPrim({ prim: "CAR", annots: fields.length !== 0 ? ["@" + fields[0].slice(1)] : undefined }),
+                            ex.args[0],
+                        ]]
+                    },
+                    { prim: "SWAP" },
+                    { prim: "PAIR", annots: [fields.length !== 0 ? fields[0] : "%", "%@"] },
+                ],
+                d: [
+                    { prim: "DUP" },
+                    mkPrim({ prim: "CDR", annots: fields.length !== 0 ? ["@" + fields[0].slice(1)] : undefined }),
+                    ex.args[0],
+                    { prim: "SWAP" },
+                    { prim: "CAR", annots: ["@%%"] },
+                    { prim: "PAIR", annots: ["%@", fields.length !== 0 ? fields[0] : "%"] },
+                ],
+            };
+
+            return parseSetMapCadr(ex, ex.prim.slice(5, ex.prim.length - 1), [], term);
+        }
+    }
+
+    // Expand deprecated DI...IP to [DIP n]
+    if (diipRe.test(ex.prim)) {
+        if (assertArgs(ex, 1)) {
+            let n = 0;
+            while (ex.prim[1 + n] === "I") { n++; }
+            return mkPrim({ prim: "DIP", args: [{ int: String(n) }, ex.args[0]] });
+        }
+    }
+
+    // Expand DU...UP and DUP n
+    if (duupRe.test(ex.prim)) {
+        let n = 0;
+        while (ex.prim[1 + n] === "U") { n++; }
+        if (ProtoInferiorTo(proto, Protocol.PtEdo2Zk)){
+            if (n === 1) {
+                if (ex.args === undefined) {
+                    return ex; // skip
+                }
+                if (assertArgs(ex, 1) && assertIntArg(ex, ex.args[0])) {
+                    n = parseInt(ex.args[0].int, 10);
+                }
+            } else {
+                assertArgs(ex, 0);
+            }
+
+            if (n === 1) {
+                return [mkPrim({ prim: "DUP", annots: ex.annots })];
+
+            } else if (n === 2) {
+                return [
+                    {
+                        prim: "DIP",
+                        args: [[mkPrim({ prim: "DUP", annots: ex.annots })]],
+                    },
+                    { prim: "SWAP" },
+                ];
+
+            } else {
+                return [
+                    {
+                        prim: "DIP",
+                        args: [
+                            { int: String(n - 1) },
+                            [mkPrim({ prim: "DUP", annots: ex.annots })],
+                        ],
+                    },
+                    {
+                        prim: "DIG",
+                        args: [{ int: String(n) }],
+                    },
+                ];
+            }
+        }
+        else {
+            if (n === 1) {
+                return ex;
+            }
+            if (assertArgs(ex, 0)) {
+                return mkPrim({ prim: "DUP", args: [{ int: String(n) }], annots: ex.annots });
+            }
+        }
+    }
+
+    return ex;
+}
+export class Parser {
+  constructor(private opt?: ParserOptions) {}
+
+  private expand(ex: Prim): Expr {
+    if (this.opt?.expandGlobalConstant !== undefined && ex.prim === 'constant') {
+      const ret = expandGlobalConstants(ex, this.opt.expandGlobalConstant);
+      if (ret !== ex) {
+        ret[sourceReference] = {
+          ...(ex[sourceReference] || { first: 0, last: 0 }),
+          globalConstant: ex,
+        };
+      }
+      return ret;
+    }
+    if (this.opt?.expandMacros !== undefined ? this.opt?.expandMacros : true) {
+      const ret = expandMacros(ex, this.opt);
+      if (ret !== ex) {
+        ret[sourceReference] = { ...(ex[sourceReference] || { first: 0, last: 0 }), macro: ex };
+      }
+      return ret;
+    } else {
+      return ex;
+    }
+  }
+
+  private parseListExpr(scanner: Iterator<Token>, start: Token): Expr {
+    const ref: SourceReference = {
+      first: start.first,
+      last: start.last,
+    };
+
+    const expectBracket = start.t === '(';
+    let tok: IteratorResult<Token>;
+    if (expectBracket) {
+      tok = scanner.next();
+      if (tok.done) {
+        throw errEOF;
+      }
+      ref.last = tok.value.last;
+    } else {
+      tok = { value: start };
+    }
+
+    if (tok.value.t !== Literal.Ident) {
+      throw new MichelineParseError(tok.value, `not an identifier: ${tok.value.v}`);
+    }
+
+    const ret: Prim = {
+      prim: tok.value.v,
+      [sourceReference]: ref,
+    };
+
+    for (;;) {
+      const tok = scanner.next();
+      if (tok.done) {
+        if (expectBracket) {
+          throw errEOF;
+        }
+        break;
+      } else if (tok.value.t === ')') {
+        if (!expectBracket) {
+          throw new MichelineParseError(tok.value, 'unexpected closing bracket');
+        }
+        ref.last = tok.value.last;
+        break;
+      } else if (isAnnotation(tok.value)) {
+        ret.annots = ret.annots || [];
+        ret.annots.push(tok.value.v);
+        ref.last = tok.value.last;
+      } else {
+        ret.args = ret.args || [];
+        const arg = this.parseExpr(scanner, tok.value);
+        ref.last = arg[sourceReference]?.last || ref.last;
+        ret.args.push(arg);
+      }
+    }
+    return this.expand(ret);
+  }
+
+  private parseArgs(scanner: Iterator<Token>, start: Token): [Prim, IteratorResult<Token>] {
+    // Identifier with arguments
+    const ref: SourceReference = {
+      first: start.first,
+      last: start.last,
+    };
+    const p: Prim = {
+      prim: start.v,
+      [sourceReference]: ref,
+    };
+
+    for (;;) {
+      const t = scanner.next();
+      if (t.done || t.value.t === '}' || t.value.t === ';') {
+        return [p, t];
+      }
+
+      if (isAnnotation(t.value)) {
+        ref.last = t.value.last;
+        p.annots = p.annots || [];
+        p.annots.push(t.value.v);
+      } else {
+        const arg = this.parseExpr(scanner, t.value);
+        ref.last = arg[sourceReference]?.last || ref.last;
+        p.args = p.args || [];
+        p.args.push(arg);
+      }
+    }
+  }
+
+  private parseSequenceExpr(scanner: Iterator<Token>, start: Token): List<Expr> {
+    const ref: SourceReference = {
+      first: start.first,
+      last: start.last,
+    };
+    const seq: List<Expr> = [];
+    seq[sourceReference] = ref;
+
+    const expectBracket = start.t === '{';
+    let tok: IteratorResult<Token> | null = start.t === '{' ? null : { value: start };
+
+    for (;;) {
+      if (tok === null) {
+        tok = scanner.next();
+        if (!tok.done) {
+          ref.last = tok.value.last;
+        }
+      }
+      if (tok.done) {
+        if (expectBracket) {
+          throw errEOF;
+        } else {
+          return seq;
+        }
+      }
+
+      if (tok.value.t === '}') {
+        if (!expectBracket) {
+          throw new MichelineParseError(tok.value, 'unexpected closing bracket');
+        } else {
+          return seq;
+        }
+      } else if (tok.value.t === Literal.Ident) {
+        // Identifier with arguments
+        const [itm, n] = this.parseArgs(scanner, tok.value);
+        ref.last = itm[sourceReference]?.last || ref.last;
+        seq.push(this.expand(itm));
+        tok = n;
+      } else {
+        // Other
+        const ex = this.parseExpr(scanner, tok.value);
+        ref.last = ex[sourceReference]?.last || ref.last;
+        seq.push(ex);
+        tok = null;
+      }
+
+      if (tok === null) {
+        tok = scanner.next();
+        if (!tok.done) {
+          ref.last = tok.value.last;
+        }
+      }
+      if (!tok.done && tok.value.t === ';') {
+        tok = null;
+      }
+    }
+  }
+
+  private parseExpr(scanner: Iterator<Token>, tok: Token): Expr {
+    switch (tok.t) {
+      case Literal.Ident:
+        return this.expand({
+          prim: tok.v,
+          [sourceReference]: { first: tok.first, last: tok.last },
+        });
+
+      case Literal.Number:
+        return { int: tok.v, [sourceReference]: { first: tok.first, last: tok.last } };
+
+      case Literal.String:
+        return {
+          string: JSON.parse(tok.v) as string,
+          [sourceReference]: { first: tok.first, last: tok.last },
+        };
+
+      case Literal.Bytes:
+        return { bytes: tok.v.slice(2), [sourceReference]: { first: tok.first, last: tok.last } };
+
+      case '{':
+        return this.parseSequenceExpr(scanner, tok);
+
+      default:
+        return this.parseListExpr(scanner, tok);
+    }
+  }
+  parseSequence(src: string): Expr[] | null {
+    if (typeof src !== 'string') {
+      throw new TypeError(`string type was expected, got ${typeof src} instead`);
+    }
+
+    const scanner = scan(src);
+    const tok = scanner.next();
+    if (tok.done) {
+      return null;
+    }
+    return this.parseSequenceExpr(scanner, tok.value);
+  }
+  parseList(src: string): Expr | null {
+    if (typeof src !== 'string') {
+      throw new TypeError(`string type was expected, got ${typeof src} instead`);
+    }
+
+    const scanner = scan(src);
+    const tok = scanner.next();
+    if (tok.done) {
+      return null;
+    }
+    return this.parseListExpr(scanner, tok.value);
+  }
+  parseMichelineExpression(src: string): Expr | null {
+    if (typeof src !== 'string') {
+      throw new TypeError(`string type was expected, got ${typeof src} instead`);
+    }
+
+    const scanner = scan(src);
+    const tok = scanner.next();
+    if (tok.done) {
+      return null;
+    }
+    return this.parseExpr(scanner, tok.value);
+  }
+  parseScript(src: string): Expr[] | null {
+    return this.parseSequence(src);
+  }
+  parseData(src: string): Expr | null {
+    return this.parseList(src);
+  }
+  parseJSON(src: object): Expr {
+    if (typeof src !== 'object') {
+      throw new TypeError(`object type was expected, got ${typeof src} instead`);
+    }
+
+    if (Array.isArray(src)) {
+      const ret: Expr[] = [];
+      for (const n of src) {
+        if (n === null || typeof n !== 'object') {
+          throw new JSONParseError(n, `unexpected sequence element: ${n}`);
+        }
+        ret.push(this.parseJSON(n));
+      }
+      return ret;
+    } else if ('prim' in src) {
+      const p = src as { prim: unknown; annots?: unknown[]; args?: unknown[] };
+      if (
+        typeof p.prim === 'string' &&
+        (p.annots === undefined || Array.isArray(p.annots)) &&
+        (p.args === undefined || Array.isArray(p.args))
+      ) {
+        const ret: Prim = {
+          prim: p.prim,
+        };
+
+        if (p.annots !== undefined) {
+          for (const a of p.annots) {
+            if (typeof a !== 'string') {
+              throw new JSONParseError(a, `string expected: ${a}`);
+            }
+          }
+          ret.annots = p.annots;
+        }
+
+        if (p.args !== undefined) {
+          ret.args = [];
+          for (const a of p.args) {
+            if (a === null || typeof a !== 'object') {
+              throw new JSONParseError(a, `unexpected argument: ${a}`);
+            }
+            ret.args.push(this.parseJSON(a));
+          }
+        }
+
+        return this.expand(ret);
+      }
+
+      throw new JSONParseError(src, `malformed prim expression: ${src}`);
+    } else if ('string' in src) {
+      if (typeof (src as StringLiteral).string === 'string') {
+        return { string: (src as StringLiteral).string };
+      }
+
+      throw new JSONParseError(src, `malformed string literal: ${src}`);
+    } else if ('int' in src) {
+      if (typeof (src as IntLiteral).int === 'string' && intRe.test((src as IntLiteral).int)) {
+        return { int: (src as IntLiteral).int };
+      }
+
+      throw new JSONParseError(src, `malformed int literal: ${src}`);
+    } else if ('bytes' in src) {
+      if (
+        typeof (src as BytesLiteral).bytes === 'string' &&
+        bytesRe.test((src as BytesLiteral).bytes)
+      ) {
+        return { bytes: (src as BytesLiteral).bytes };
+      }
+
+      throw new JSONParseError(src, `malformed bytes literal: ${src}`);
+    } else {
+      throw new JSONParseError(src, `unexpected object: ${src}`);
+    }
+  }
+}
+export class MichelCodecParser implements ParserProvider {
+  constructor(private context: Context) {}
+
+  private async getNextProto(): Promise<ProtocolID> {
+    const { next_protocol } = await this.context.rpc.getBlockMetadata();
+    return next_protocol as ProtocolID;
+  }
+
+  async parseScript(src: string): Promise<Expr[] | null> {
+    const parser = new Parser({ protocol: await this.getNextProto() });
+    return parser.parseScript(src);
+  }
+
+  async parseMichelineExpression(src: string): Promise<Expr | null> {
+    const parser = new Parser({ protocol: await this.getNextProto() });
+    return parser.parseMichelineExpression(src);
+  }
+
+  async parseJSON(src: object): Promise<Expr> {
+    const parser = new Parser({ protocol: await this.getNextProto() });
+    return parser.parseJSON(src);
+  }
+
+  async prepareCodeOrigination(params: OriginateParams): Promise<OriginateParams> {
+    const parsedParams = params;
+    parsedParams.code = await this.formatCodeParam(params.code);
+    if (params.init) {
+      parsedParams.init = await this.formatInitParam(params.init);
+    } else if (params.storage) {
+      const storageType = (parsedParams.code as Expr[]).find(
+        (p): p is Prim => 'prim' in p && p.prim === 'storage'
+      );
+      if (!storageType?.args) {
+        throw new InvalidCodeParameter(
+          'The storage section is missing from the script',
+          params.code
+        );
+      }
+      const schema = new Schema(storageType.args[0] as MichelsonV1Expression);
+      const globalconstantsHashAndValue = await this.findGlobalConstantsHashAndValue(schema);
+
+      if (Object.keys(globalconstantsHashAndValue).length !== 0) {
+        // If there are global constants in the storage part of the contract code,
+        // they need to be locally expanded in order to encode the storage arguments
+        const p = new Parser({ expandGlobalConstant: globalconstantsHashAndValue });
+        const storageTypeNoGlobalConst = p.parseJSON(storageType.args[0]);
+        const schemaNoGlobalConst = new Schema(storageTypeNoGlobalConst);
+        parsedParams.init = schemaNoGlobalConst.Encode(params.storage);
+      } else {
+        parsedParams.init = schema.Encode(params.storage);
+      }
+      delete parsedParams.storage;
+    }
+    return parsedParams;
+  }
+
+  private async formatCodeParam(code: string | object[]) {
+    let parsedCode: Expr[];
+    if (typeof code === 'string') {
+      const c = await this.parseScript(code);
+      if (c === null) {
+        throw new InvalidCodeParameter('Invalid code parameter', code);
+      }
+      parsedCode = c;
+    } else {
+      const c = await this.parseJSON(code);
+      const order = ['parameter', 'storage', 'code'];
+      // Ensure correct ordering for RPC
+      parsedCode = (c as Prim[]).sort((a, b) => order.indexOf(a.prim) - order.indexOf(b.prim));
+    }
+    return parsedCode;
+  }
+
+  private async formatInitParam(init: string | object) {
+    let parsedInit: Expr;
+    if (typeof init === 'string') {
+      const c = await this.parseMichelineExpression(init);
+      if (c === null) {
+        throw new InvalidInitParameter('Invalid init parameter', init);
+      }
+      parsedInit = c;
+    } else {
+      parsedInit = await this.parseJSON(init);
+    }
+    return parsedInit;
+  }
+
+  private async findGlobalConstantsHashAndValue(schema: Schema) {
+    const globalConstantTokens = schema.findToken('constant');
+    const globalConstantsHashAndValue: GlobalConstantHashAndValue = {};
+
+    if (globalConstantTokens.length !== 0) {
+      for (const token of globalConstantTokens) {
+        const tokenArgs = token.tokenVal.args;
+        if (tokenArgs) {
+          const hash: string = tokenArgs[0]['string'];
+          const michelineValue = await this.context.globalConstantsProvider.getGlobalConstantByHash(
+            hash
+          );
+          Object.assign(globalConstantsHashAndValue, {
+            [hash]: michelineValue,
+          });
+        }
+      }
+    }
+    return globalConstantsHashAndValue;
+  }
+}
 export type TimeStampMixed = Date | string;
 export type OperationStatus = 'pending' | 'unknown' | OperationResultStatusEnum;
 export class TransactionWalletOperation {
