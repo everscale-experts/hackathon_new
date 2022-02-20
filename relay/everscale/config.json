@@ -7,11 +7,11 @@
   },
   "tokens": [
     {
-      "symvol": "",
+      "symbol": "",
       "name": "",
-      "decimals": "",
-      "root": "",
-      "wallet": "",
+      "decimals": "9",
+      "root": "0:abcdecc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd7047d5d",
+      "wallet": "0:12307cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd7047d5d",
       "seed": "",
       "pubkey": "",
       "privkey": ""

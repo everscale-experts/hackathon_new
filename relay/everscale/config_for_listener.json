@@ -4,43 +4,43 @@
   },
   "tokens": [
     {
-      "symvol": "TEST-0001",
+      "symbol": "TEST-0001",
       "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd7040001"
     },
     {
-      "symvol": "TEST-0002",
+      "symbol": "TEST-0002",
       "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd7040002"
     },
     {
-      "symvol": "TEST-0003",
+      "symbol": "TEST-0003",
       "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd7040003"
     },
 
 
     {
-      "symvol": "TEST-0009",
+      "symbol": "TEST-0009",
       "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd7040009"
     },
     {
-      "symvol": "TEST-0010",
+      "symbol": "TEST-0010",
       "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd704000a"
     },
     {
-      "symvol": "TEST-0011",
+      "symbol": "TEST-0011",
       "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd704000b"
     },
     {
-      "symvol": "TEST-0012",
+      "symbol": "TEST-0012",
       "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd704000c"
     },
 
 
     {
-      "symvol": "TEST-1999",
+      "symbol": "TEST-1999",
       "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd70407CF"
     },
     {
-      "symvol": "TEST-2000",
+      "symbol": "TEST-2000",
       "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd70407D0"
     }
   ]
