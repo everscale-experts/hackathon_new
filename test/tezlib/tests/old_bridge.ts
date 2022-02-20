@@ -1,6 +1,6 @@
 import { TonClient } from "@tonclient/core"
 import { libNode } from "@tonclient/lib-node";
-import { Wallet } from "../everscale/everlib";
+import { Wallet } from "../everscale";
 import { Tezos } from "../tezos"
 
 const accountCredentials1 = require("./everscale/accounts/account1.json")

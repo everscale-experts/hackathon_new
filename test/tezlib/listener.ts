@@ -1,7 +1,7 @@
 import { TezosToolkit } from "@taquito/taquito";
 import { TonClient, abiContract } from "@tonclient/core";
 import { libNode } from "@tonclient/lib-node";
-import { TokenWallet } from "./everscale/everlib";
+import { TokenWallet } from "./everscale";
 import config from "./listener.config.json";
 
 const RPC = "https://rpc.hangzhounet.teztnets.xyz";
