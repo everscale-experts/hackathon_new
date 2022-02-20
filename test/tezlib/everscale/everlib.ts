@@ -146,6 +146,7 @@ export class TokenWallet {
 
     private messageHandler(data: {boc: string, id: string, src: string}, callback: (data: ITokenRecievedNotification) => void){
         this.account.decodeMessage(data.boc).then(decoded => {
+            console.log(decoded);
             if(decoded.name === "internalTransfer"){
                 callback({
                     message_id: data.id,
@@ -169,25 +170,41 @@ export class TokenWallet {
         }
     }
 
+    private async getCommentPayload(text: string){
+        return (await this.account.client.abi.encode_message_body({
+            abi: abiContract(transferCommentAbi),
+            call_set: {
+                function_name: "transfer",
+                input: {
+                    comment: Buffer.from(text).toString("hex"),
+                },
+            },
+            is_internal: true,
+            signer: signerNone(),
+        })).body;
+    }
+
     /**
      * Совершает перевод с привязанного адреса на указанный.
      * @param to Адрес получателя
      * @param tokens Сумма в токенах
      * @param gas_limit Лимит газа в эверах на выполнение перевода
+     * @param payload Дополнительное поле
      * @returns ID транзакции
      */
-    public async transfer (to: string, tokens: number, gas_limit: number = 3){
+    public async transfer (to: string, tokens: number, payload?: string, gas_limit: number = 3){
         if(!this.keys) throw new Error("Keys not provided!");
 
         const {tokens: balance} = await this.getBalance();
         if(tokens > balance) throw new Error("Not enough balance!");
 
-        const transfer = await this.account.run("transfer", {
+        const transfer = await this.account.run("transferWithNotify", {
             answer_addr: this.address,
             to,
             tokens: tokens * 100_000_000,
             evers: gas_limit * 1_000_000_000,
             return_ownership: 0,
+            payload: payload ? await this.getCommentPayload(payload) : ""
         });
         
         return transfer.out_messages.length ? transfer.transaction.id : null

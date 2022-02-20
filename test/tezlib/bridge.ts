@@ -9,7 +9,7 @@ const RPC = "https://rpc.hangzhounet.teztnets.xyz";
 TonClient.useBinaryLibrary(libNode);
 
 const client = new TonClient({ 
-    network: { 
+    network: {
         endpoints: ['net.ton.dev']
     }
 });

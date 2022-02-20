@@ -23,7 +23,7 @@ async function main() {
     console.log("[!] Reciever balance: ", await reciever.getBalance());
 
     console.log(`[!] Sending ${config.everscale_token_sender.amount} tokens to ${reciever.address}`)
-    const transactionID = await sender.transfer(reciever.address, config.everscale_token_sender.amount);
+    const transactionID = await sender.transfer(reciever.address, config.everscale_token_sender.amount, "address123");
     console.log("[!] TXID:", transactionID)
 
     console.log("[!] Sender balance:", await sender.getBalance());
