@@ -1,0 +1,22 @@
+{
+  "coin": {
+    "address": "",
+    "seed": "",
+    "pubkey": "",
+    "privkey": ""
+  },
+  "tokens": [
+    {
+      "symvol": "",
+      "name": "",
+      "decimals": "",
+      "root": "",
+      "wallet": "",
+      "seed": "",
+      "pubkey": "",
+      "privkey": ""
+    },
+    {
+    }
+  ]
+}
