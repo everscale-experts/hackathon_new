@@ -21,3 +21,7 @@ yarn
 ```bash
 yarn
 ```
+
+# Useful links
+## Get keys from seed phrase
+https://github.com/tonlabs/sdk-samples/blob/master/appkit-examples/signing-box/index.js

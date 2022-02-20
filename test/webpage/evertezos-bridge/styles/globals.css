@@ -19,15 +19,17 @@ a {
 }
 input {
   width: 416px;
-height: 83px;
+  height: 83px;
   background: #292929;
-border: 1px solid rgba(0, 0, 0, 0.15);
-box-sizing: border-box;
-box-shadow: inset -5px -5px 15px rgba(255, 255, 255, 0.06), inset 5px 5px 15px rgba(0, 0, 0, 0.29);
-border-radius: 34px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  box-shadow: inset -5px -5px 15px rgba(255, 255, 255, 0.06), inset 5px 5px 15px rgba(0, 0, 0, 0.29);
+  border-radius: 34px;
   display: block;
   margin:auto;
   margin-top: 36px;
+  color:#FFF;
+  padding-left: 15px;
 }
 label,
 section > label {
@@ -64,25 +66,25 @@ p {
   background: linear-gradient(90.73deg, rgba(255, 122, 0, 0.8) 5.05%, rgba(239, 5, 243, 0.8) 113.7%);
   text-align:center;
   -webkit-background-clip: text;
- -webkit-text-fill-color: transparent;
- display: flex;
+  -webkit-text-fill-color: transparent;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
 form{
   width: 476px;
-height: 431px;
+  height: 531px;
   background: #2A2A2A;
-border: 1px solid rgba(0, 0, 0, 0.2);
-box-sizing: border-box;
-box-shadow: -10px -10px 20px rgba(255, 255, 255, 0.05), 10px 10px 30px rgba(0, 0, 0, 0.35), inset 10px 10px 50px rgba(0, 0, 0, 0.06);
-border-radius: 20px;
-margin-top: 36px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  box-shadow: -10px -10px 20px rgba(255, 255, 255, 0.05), 10px 10px 30px rgba(0, 0, 0, 0.35), inset 10px 10px 50px rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
+  margin-top: 36px;
 
 }
 h1
 {
   color: rgba(255, 255, 255, 0.8);
-
+  font-size: 18px;
 
 }
