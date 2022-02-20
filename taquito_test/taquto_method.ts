@@ -27,7 +27,7 @@ import {
   timeoutWith,
 } from 'rxjs/operators';
 import BigNumber from 'bignumber.js';
-import Bs58check from 'bs58check-ts';
+// import Bs58check from 'bs58check-ts';
 
 export interface WalletTransferParams {
     to: string;
@@ -1393,15 +1393,15 @@ function validatePrefixedValue(value: any, prefixes: Prefix[]) {
   }
 
   // decodeUnsafe return undefined if decoding fail
-  let decoded = Bs58check.decodeUnsafe(value);
-  if (!decoded) {
-    return ValidationResult.INVALID_CHECKSUM;
-  }
+  // let decoded = Bs58check.decodeUnsafe(value);
+  // if (!decoded) {
+  //   return ValidationResult.INVALID_CHECKSUM;
+  // }
 
-  decoded = decoded.slice(prefix[prefixKey].length);
-  if (decoded.length !== prefixLength[prefixKey]) {
-    return ValidationResult.INVALID_LENGTH;
-  }
+  // decoded = decoded.slice(prefix[prefixKey].length);
+  // if (decoded.length !== prefixLength[prefixKey]) {
+  //   return ValidationResult.INVALID_LENGTH;
+  // }
 
   return ValidationResult.VALID;
 }
@@ -1962,9 +1962,9 @@ export abstract class Token {
 
   public abstract Execute(val: any, semantics?: Semantic): any;
 
-  public abstract Encode(_args: any[]): any;
+  // public abstract Encode(_args: any[]): any;
 
-  public abstract EncodeObject(args: any): any;
+  // public abstract EncodeObject(args: any): any;
 
   public ExtractSignature() {
     return [[this.ExtractSchema()]];
@@ -1979,10 +1979,10 @@ export interface Semantic {
 const schemaTypeSymbol = Symbol.for('taquito-schema-type-symbol');
 
 export abstract class ComparableToken extends Token {
-  abstract ToBigMapKey(val: BigMapKeyType): {
-    key: { [key: string]: string | object[] };
-    type: { prim: string; args?: object[] };
-  };
+  // abstract ToBigMapKey(val: BigMapKeyType): {
+  //   key: { [key: string]: string | object[] };
+  //   type: { prim: string; args?: object[] };
+  // };
 
   abstract ToKey(val: string): any;
 
@@ -2243,41 +2243,41 @@ export class BigMapToken extends Token {
     return new BigMapValidationError(value, this, 'Value must be a MichelsonMap');
   }
 
-  public Encode(args: any[]): any {
-    const val: MichelsonMap<any, any> = args.pop();
+  // public Encode(args: any[]): any {
+  //   const val: MichelsonMap<any, any> = args.pop();
 
-    const err = this.isValid(val);
-    if (err) {
-      throw err;
-    }
+  //   const err = this.isValid(val);
+  //   if (err) {
+  //     throw err;
+  //   }
 
-    return Array.from(val.keys())
-      .sort((a: any, b: any) => this.KeySchema.compare(a, b))
-      .map((key) => {
-        return {
-          prim: 'Elt',
-          args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
-        };
-      });
-  }
+  //   return Array.from(val.keys())
+  //     .sort((a: any, b: any) => this.KeySchema.compare(a, b))
+  //     .map((key) => {
+  //       return {
+  //         prim: 'Elt',
+  //         args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
+  //       };
+  //     });
+  // }
 
-  public EncodeObject(args: any): any {
-    const val: MichelsonMap<any, any> = args;
+  // public EncodeObject(args: any): any {
+  //   const val: MichelsonMap<any, any> = args;
 
-    const err = this.isValid(val);
-    if (err) {
-      throw err;
-    }
+  //   const err = this.isValid(val);
+  //   if (err) {
+  //     throw err;
+  //   }
 
-    return Array.from(val.keys())
-      .sort((a: any, b: any) => this.KeySchema.compare(a, b))
-      .map((key) => {
-        return {
-          prim: 'Elt',
-          args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
-        };
-      });
-  }
+  //   return Array.from(val.keys())
+  //     .sort((a: any, b: any) => this.KeySchema.compare(a, b))
+  //     .map((key) => {
+  //       return {
+  //         prim: 'Elt',
+  //         args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
+  //       };
+  //     });
+  // }
 
   public Execute(val: any[] | { int: string }, semantic?: Semantic) {
     if (semantic && semantic[BigMapToken.prim]) {
@@ -2327,40 +2327,40 @@ export class OrToken extends ComparableToken {
     super(val, idx, fac);
   }
 
-  public Encode(args: any[]): any {
-    const label = args[args.length - 1];
+  // public Encode(args: any[]): any {
+  //   const label = args[args.length - 1];
 
-    const leftToken = this.createToken(this.val.args[0], this.idx);
-    let keyCount = 1;
-    if (leftToken instanceof OrToken) {
-      keyCount = Object.keys(leftToken.ExtractSchema()).length;
-    }
+  //   const leftToken = this.createToken(this.val.args[0], this.idx);
+  //   let keyCount = 1;
+  //   if (leftToken instanceof OrToken) {
+  //     keyCount = Object.keys(leftToken.ExtractSchema()).length;
+  //   }
 
-    const rightToken = this.createToken(this.val.args[1], this.idx + keyCount);
+  //   const rightToken = this.createToken(this.val.args[1], this.idx + keyCount);
 
-    if (String(leftToken.annot()) === String(label) && !(leftToken instanceof OrToken)) {
-      args.pop();
-      return { prim: 'Left', args: [leftToken.Encode(args)] };
-    } else if (String(rightToken.annot()) === String(label) && !(rightToken instanceof OrToken)) {
-      args.pop();
-      return { prim: 'Right', args: [rightToken.Encode(args)] };
-    } else {
-      if (leftToken instanceof OrToken) {
-        const val = leftToken.Encode(args);
-        if (val) {
-          return { prim: 'Left', args: [val] };
-        }
-      }
+  //   if (String(leftToken.annot()) === String(label) && !(leftToken instanceof OrToken)) {
+  //     args.pop();
+  //     return { prim: 'Left', args: [leftToken.Encode(args)] };
+  //   } else if (String(rightToken.annot()) === String(label) && !(rightToken instanceof OrToken)) {
+  //     args.pop();
+  //     return { prim: 'Right', args: [rightToken.Encode(args)] };
+  //   } else {
+  //     if (leftToken instanceof OrToken) {
+  //       const val = leftToken.Encode(args);
+  //       if (val) {
+  //         return { prim: 'Left', args: [val] };
+  //       }
+  //     }
 
-      if (rightToken instanceof OrToken) {
-        const val = rightToken.Encode(args);
-        if (val) {
-          return { prim: 'Right', args: [val] };
-        }
-      }
-      return null;
-    }
-  }
+  //     if (rightToken instanceof OrToken) {
+  //       const val = rightToken.Encode(args);
+  //       if (val) {
+  //         return { prim: 'Right', args: [val] };
+  //       }
+  //     }
+  //     return null;
+  //   }
+  // }
 
   public ExtractSignature(): any {
     const leftToken = this.createToken(this.val.args[0], this.idx);
@@ -2392,38 +2392,38 @@ export class OrToken extends ComparableToken {
     return newSig;
   }
 
-  public EncodeObject(args: any): any {
-    const label = Object.keys(args)[0];
+  // public EncodeObject(args: any): any {
+  //   const label = Object.keys(args)[0];
 
-    const leftToken = this.createToken(this.val.args[0], this.idx);
-    let keyCount = 1;
-    if (leftToken instanceof OrToken) {
-      keyCount = Object.keys(leftToken.ExtractSchema()).length;
-    }
+  //   const leftToken = this.createToken(this.val.args[0], this.idx);
+  //   let keyCount = 1;
+  //   if (leftToken instanceof OrToken) {
+  //     keyCount = Object.keys(leftToken.ExtractSchema()).length;
+  //   }
 
-    const rightToken = this.createToken(this.val.args[1], this.idx + keyCount);
+  //   const rightToken = this.createToken(this.val.args[1], this.idx + keyCount);
 
-    if (String(leftToken.annot()) === String(label) && !(leftToken instanceof OrToken)) {
-      return { prim: 'Left', args: [leftToken.EncodeObject(args[label])] };
-    } else if (String(rightToken.annot()) === String(label) && !(rightToken instanceof OrToken)) {
-      return { prim: 'Right', args: [rightToken.EncodeObject(args[label])] };
-    } else {
-      if (leftToken instanceof OrToken) {
-        const val = leftToken.EncodeObject(args);
-        if (val) {
-          return { prim: 'Left', args: [val] };
-        }
-      }
+  //   if (String(leftToken.annot()) === String(label) && !(leftToken instanceof OrToken)) {
+  //     return { prim: 'Left', args: [leftToken.EncodeObject(args[label])] };
+  //   } else if (String(rightToken.annot()) === String(label) && !(rightToken instanceof OrToken)) {
+  //     return { prim: 'Right', args: [rightToken.EncodeObject(args[label])] };
+  //   } else {
+  //     if (leftToken instanceof OrToken) {
+  //       const val = leftToken.EncodeObject(args);
+  //       if (val) {
+  //         return { prim: 'Left', args: [val] };
+  //       }
+  //     }
 
-      if (rightToken instanceof OrToken) {
-        const val = rightToken.EncodeObject(args);
-        if (val) {
-          return { prim: 'Right', args: [val] };
-        }
-      }
-      return null;
-    }
-  }
+  //     if (rightToken instanceof OrToken) {
+  //       const val = rightToken.EncodeObject(args);
+  //       if (val) {
+  //         return { prim: 'Right', args: [val] };
+  //       }
+  //     }
+  //     return null;
+  //   }
+  // }
 
   public Execute(val: any, semantics?: Semantic): any {
     const leftToken = this.createToken(this.val.args[0], this.idx);
@@ -2665,12 +2665,12 @@ export class PairToken extends ComparableToken {
     }) as [Token, Token];
   }
 
-  public Encode(args: any[]): any {
-    return {
-      prim: 'Pair',
-      args: this.tokens().map((t) => t.Encode(args)),
-    };
-  }
+  // public Encode(args: any[]): any {
+  //   return {
+  //     prim: 'Pair',
+  //     args: this.tokens().map((t) => t.Encode(args)),
+  //   };
+  // }
 
   public ExtractSignature(): any {
     const args = this.args();
@@ -2704,28 +2704,28 @@ export class PairToken extends ComparableToken {
     return this.Execute(val);
   }
 
-  public EncodeObject(args: any): any {
-    const [leftToken, rightToken] = this.tokens();
+  // public EncodeObject(args: any): any {
+  //   const [leftToken, rightToken] = this.tokens();
 
-    let leftValue;
-    if (leftToken instanceof PairToken && !leftToken.hasAnnotations()) {
-      leftValue = args;
-    } else {
-      leftValue = args[leftToken.annot()];
-    }
+  //   let leftValue;
+  //   if (leftToken instanceof PairToken && !leftToken.hasAnnotations()) {
+  //     leftValue = args;
+  //   } else {
+  //     leftValue = args[leftToken.annot()];
+  //   }
 
-    let rightValue;
-    if (rightToken instanceof PairToken && !rightToken.hasAnnotations()) {
-      rightValue = args;
-    } else {
-      rightValue = args[rightToken.annot()];
-    }
+  //   let rightValue;
+  //   if (rightToken instanceof PairToken && !rightToken.hasAnnotations()) {
+  //     rightValue = args;
+  //   } else {
+  //     rightValue = args[rightToken.annot()];
+  //   }
 
-    return {
-      prim: 'Pair',
-      args: [leftToken.EncodeObject(leftValue), rightToken.EncodeObject(rightValue)],
-    };
-  }
+  //   return {
+  //     prim: 'Pair',
+  //     args: [leftToken.EncodeObject(leftValue), rightToken.EncodeObject(rightValue)],
+  //   };
+  // }
 
   private traversal(getLeftValue: (token: Token) => any, getRightValue: (token: Token) => any) {
     const args = this.args();
@@ -2987,24 +2987,139 @@ export class StringToken extends ComparableToken {
     return tokens;
   }
 }
-export function b58decode(payload: string) {
-  const buf: Buffer = Bs58check.decode(payload);
+// export class Buffer {
+//   length: number;
+//   write(string: string, offset?: number, length?: number, encoding?: string): number;
+//   toString(encoding?: string, start?: number, end?: number): string;
+//   toJSON(): { type: 'Buffer', data: any[] };
+//   equals(otherBuffer: Buffer): boolean;
+//   compare(otherBuffer: Uint8Array, targetStart?: number, targetEnd?: number, sourceStart?: number, sourceEnd?: number): number;
+//   copy(targetBuffer: Buffer, targetStart?: number, sourceStart?: number, sourceEnd?: number): number;
+//   slice(start?: number, end?: number): Buffer;
+//   writeUIntLE(value: number, offset: number, byteLength: number, noAssert?: boolean): number;
+//   writeUIntBE(value: number, offset: number, byteLength: number, noAssert?: boolean): number;
+//   writeIntLE(value: number, offset: number, byteLength: number, noAssert?: boolean): number;
+//   writeIntBE(value: number, offset: number, byteLength: number, noAssert?: boolean): number;
+//   readUIntLE(offset: number, byteLength: number, noAssert?: boolean): number;
+//   readUIntBE(offset: number, byteLength: number, noAssert?: boolean): number;
+//   readIntLE(offset: number, byteLength: number, noAssert?: boolean): number;
+//   readIntBE(offset: number, byteLength: number, noAssert?: boolean): number;
+//   readUInt8(offset: number, noAssert?: boolean): number;
+//   readUInt16LE(offset: number, noAssert?: boolean): number;
+//   readUInt16BE(offset: number, noAssert?: boolean): number;
+//   readUInt32LE(offset: number, noAssert?: boolean): number;
+//   readUInt32BE(offset: number, noAssert?: boolean): number;
+//   readBigUInt64LE(offset: number): BigInt;
+//   readBigUInt64BE(offset: number): BigInt;
+//   readInt8(offset: number, noAssert?: boolean): number;
+//   readInt16LE(offset: number, noAssert?: boolean): number;
+//   readInt16BE(offset: number, noAssert?: boolean): number;
+//   readInt32LE(offset: number, noAssert?: boolean): number;
+//   readInt32BE(offset: number, noAssert?: boolean): number;
+//   readBigInt64LE(offset: number): BigInt;
+//   readBigInt64BE(offset: number): BigInt;
+//   readFloatLE(offset: number, noAssert?: boolean): number;
+//   readFloatBE(offset: number, noAssert?: boolean): number;
+//   readDoubleLE(offset: number, noAssert?: boolean): number;
+//   readDoubleBE(offset: number, noAssert?: boolean): number;
+//   reverse(): this;
+//   swap16(): Buffer;
+//   swap32(): Buffer;
+//   swap64(): Buffer;
+//   writeUInt8(value: number, offset: number, noAssert?: boolean): number;
+//   writeUInt16LE(value: number, offset: number, noAssert?: boolean): number;
+//   writeUInt16BE(value: number, offset: number, noAssert?: boolean): number;
+//   writeUInt32LE(value: number, offset: number, noAssert?: boolean): number;
+//   writeUInt32BE(value: number, offset: number, noAssert?: boolean): number;
+//   writeBigUInt64LE(value: number, offset: number): BigInt;
+//   writeBigUInt64BE(value: number, offset: number): BigInt;
+//   writeInt8(value: number, offset: number, noAssert?: boolean): number;
+//   writeInt16LE(value: number, offset: number, noAssert?: boolean): number;
+//   writeInt16BE(value: number, offset: number, noAssert?: boolean): number;
+//   writeInt32LE(value: number, offset: number, noAssert?: boolean): number;
+//   writeInt32BE(value: number, offset: number, noAssert?: boolean): number;
+//   writeBigInt64LE(value: number, offset: number): BigInt;
+//   writeBigInt64BE(value: number, offset: number): BigInt;
+//   writeFloatLE(value: number, offset: number, noAssert?: boolean): number;
+//   writeFloatBE(value: number, offset: number, noAssert?: boolean): number;
+//   writeDoubleLE(value: number, offset: number, noAssert?: boolean): number;
+//   writeDoubleBE(value: number, offset: number, noAssert?: boolean): number;
+//   fill(value: any, offset?: number, end?: number): this;
+//   indexOf(value: string | number | Buffer, byteOffset?: number, encoding?: string): number;
+//   lastIndexOf(value: string | number | Buffer, byteOffset?: number, encoding?: string): number;
+//   includes(value: string | number | Buffer, byteOffset?: number, encoding?: string): boolean;
+//   constructor (str: string, encoding?: string);
+//   constructor (size: number);
+//   constructor (array: Uint8Array);
+//   constructor (arrayBuffer: ArrayBuffer);
+//   constructor (array: any[]);
+//   constructor (buffer: Buffer);
+//   prototype: Buffer;
+//   static from(array: any[]): Buffer;
+//   static from(arrayBuffer: ArrayBuffer, byteOffset?: number, length?: number): Buffer;
+//   static from(buffer: Buffer | Uint8Array): Buffer;
+//   static from(str: string, encoding?: string): Buffer;
+//   static isBuffer(obj: any): obj is Buffer;
+//   static isEncoding(encoding: string): boolean;
+//   static byteLength(string: string, encoding?: string): number;
+//   static concat(list: Uint8Array[], totalLength?: number): Buffer;
+//   static compare(buf1: Uint8Array, buf2: Uint8Array): number;
+//   static alloc(size: number, fill?: string | Buffer | number, encoding?: string): Buffer;
+//   static allocUnsafe(size: number): Buffer;
+//   static allocUnsafeSlow(size: number): Buffer;
+// }
+// export const buf2hex = (buffer: Buffer): string => {
+//   const byteArray = new Uint8Array(buffer);
+//   const hexParts: string[] = [];
+//   byteArray.forEach((byte: any) => {
+//     const hex = byte.toString(16);
+//     const paddedHex = `00${hex}`.slice(-2);
+//     hexParts.push(paddedHex);
+//   });
+//   return hexParts.join('');
+// };
+// export function b58decode(payload: string) {
+//   // const buf: Buffer = Bs58check.decode(payload);
 
-  const prefixMap = {
-    [prefix.tz1.toString()]: '0000',
-    [prefix.tz2.toString()]: '0001',
-    [prefix.tz3.toString()]: '0002',
-  };
+//   const prefixMap = {
+//     [prefix.tz1.toString()]: '0000',
+//     [prefix.tz2.toString()]: '0001',
+//     [prefix.tz3.toString()]: '0002',
+//   };
 
-  const pref = prefixMap[new Uint8Array(buf.slice(0, 3)).toString()];
-  if (pref) {
-    // tz addresses
-    const hex = buf2hex(buf.slice(3));
-    return pref + hex;
-  } else {
-    // other (kt addresses)
-    return '01' + buf2hex(buf.slice(3, 42)) + '00';
+//   const pref = prefixMap[new Uint8Array(buf.slice(0, 3)).toString()];
+//   if (pref) {
+//     // tz addresses
+//     const hex = buf2hex(buf.slice(3));
+//     return pref + hex;
+//   } else {
+//     // other (kt addresses)
+//     return '01' + buf2hex(buf.slice(3, 42)) + '00';
+//   }
+// }
+export class AddressValidationError extends TokenValidationError {
+  name = 'AddressValidationError';
+  constructor(public value: any, public token: AddressToken, message: string) {
+    super(value, token, message);
   }
+}
+const implicitPrefix = [Prefix.TZ1, Prefix.TZ2, Prefix.TZ3];
+const contractPrefix = [Prefix.KT1];
+export function validateAddress(value: any): ValidationResult {
+  return validatePrefixedValue(value, [...implicitPrefix, ...contractPrefix]);
+}
+export function encodePubKey(value: string) {
+  if (value.substring(0, 2) === '00') {
+    const pref: { [key: string]: Uint8Array } = {
+      '0000': prefix.tz1,
+      '0001': prefix.tz2,
+      '0002': prefix.tz3,
+    };
+
+    return b58cencode(value.substring(4), pref[value.substring(0, 4)]);
+  }
+
+  return b58cencode(value.substring(2, 42), prefix.KT);
 }
 
 export class AddressToken extends ComparableToken {
@@ -3018,13 +3133,13 @@ export class AddressToken extends ComparableToken {
     super(val, idx, fac);
   }
 
-  public ToBigMapKey(val: any) {
-    const decoded = b58decode(val);
-    return {
-      key: { bytes: decoded },
-      type: { prim: 'bytes' },
-    };
-  }
+  // public ToBigMapKey(val: any) {
+  //   const decoded = b58decode(val);
+  //   return {
+  //     key: { bytes: decoded },
+  //     type: { prim: 'bytes' },
+  //   };
+  // }
 
   private isValid(value: any): AddressValidationError | null {
     if (validateAddress(value) !== ValidationResult.VALID) {
@@ -3108,6 +3223,12 @@ export class AddressToken extends ComparableToken {
     return tokens;
   }
 }
+export class MapValidationError extends TokenValidationError {
+  name = 'MapValidationError';
+  constructor(public value: any, public token: MapToken, message: string) {
+    super(value, token, message);
+  }
+}
 
 export class MapToken extends Token {
   static prim: 'map' = 'map';
@@ -3148,41 +3269,41 @@ export class MapToken extends Token {
     return map;
   }
 
-  public Encode(args: any[]): any {
-    const val: MichelsonMap<any, any> = args.pop();
+  // public Encode(args: any[]): any {
+  //   const val: MichelsonMap<any, any> = args.pop();
 
-    const err = this.isValid(val);
-    if (err) {
-      throw err;
-    }
+  //   const err = this.isValid(val);
+  //   if (err) {
+  //     throw err;
+  //   }
 
-    return Array.from(val.keys())
-      .sort((a: any, b: any) => this.KeySchema.compare(a, b))
-      .map((key) => {
-        return {
-          prim: 'Elt',
-          args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
-        };
-      });
-  }
+  //   return Array.from(val.keys())
+  //     .sort((a: any, b: any) => this.KeySchema.compare(a, b))
+  //     .map((key) => {
+  //       return {
+  //         prim: 'Elt',
+  //         args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
+  //       };
+  //     });
+  // }
 
-  public EncodeObject(args: any): any {
-    const val: MichelsonMap<any, any> = args;
+  // public EncodeObject(args: any): any {
+  //   const val: MichelsonMap<any, any> = args;
 
-    const err = this.isValid(val);
-    if (err) {
-      throw err;
-    }
+  //   const err = this.isValid(val);
+  //   if (err) {
+  //     throw err;
+  //   }
 
-    return Array.from(val.keys())
-      .sort((a: any, b: any) => this.KeySchema.compare(a, b))
-      .map((key) => {
-        return {
-          prim: 'Elt',
-          args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
-        };
-      });
-  }
+  //   return Array.from(val.keys())
+  //     .sort((a: any, b: any) => this.KeySchema.compare(a, b))
+  //     .map((key) => {
+  //       return {
+  //         prim: 'Elt',
+  //         args: [this.KeySchema.EncodeObject(key), this.ValueSchema.EncodeObject(val.get(key))],
+  //       };
+  //     });
+  // }
 
   /**
    * @deprecated ExtractSchema has been deprecated in favor of generateSchema
@@ -3284,6 +3405,536 @@ export class BoolToken extends ComparableToken {
     return tokens;
   }
 }
+export class ContractValidationError extends TokenValidationError {
+  name = 'ContractValidationError';
+  constructor(public value: any, public token: ContractToken, message: string) {
+    super(value, token, message);
+  }
+}
+
+export class ContractToken extends Token {
+  static prim: 'contract' = 'contract';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  private isValid(value: any): ContractValidationError | null {
+    // tz1,tz2 and tz3 seems to be valid contract values (for Unit contract)
+    if (validateAddress(value) !== ValidationResult.VALID) {
+      return new ContractValidationError(value, this, 'Contract address is not valid');
+    }
+
+    return null;
+  }
+
+  public Execute(val: { bytes: string; string: string }) {
+    if (val.string) {
+      return val.string;
+    }
+
+    return encodePubKey(val.bytes);
+  }
+
+  public Encode(args: any[]): any {
+    const val = args.pop();
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+    return { string: val };
+  }
+
+  public EncodeObject(val: any): any {
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+    return { string: val };
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return ContractToken.prim;
+  }
+
+  generateSchema(): ContractTokenSchema {
+    const valueSchema = this.createToken(this.val.args[0], 0);
+    return {
+      __michelsonType: ContractToken.prim,
+      schema: {
+        parameter: valueSchema.generateSchema(),
+      },
+    };
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (ContractToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    return tokens;
+  }
+}
+export class ListValidationError extends TokenValidationError {
+  name = 'ListValidationError';
+  constructor(public value: any, public token: ListToken, message: string) {
+    super(value, token, message);
+  }
+}
+export class ListToken extends Token {
+  static prim: 'list' = 'list';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  get valueSchema() {
+    return this.createToken(this.val.args[0], this.idx);
+  }
+
+  private isValid(value: any): ListValidationError | null {
+    if (Array.isArray(value)) {
+      return null;
+    }
+
+    return new ListValidationError(value, this, 'Value must be an array');
+  }
+
+  // public Encode(args: any[]): any {
+  //   const val = args.pop();
+
+  //   const err = this.isValid(val);
+  //   if (err) {
+  //     throw err;
+  //   }
+
+  //   const schema = this.createToken(this.val.args[0], 0);
+  //   return val.reduce((prev: any, current: any) => {
+  //     return [...prev, schema.EncodeObject(current)];
+  //   }, []);
+  // }
+
+  public Execute(val: any, semantics?: Semantic) {
+    const schema = this.createToken(this.val.args[0], 0);
+
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+
+    return val.reduce((prev: any, current: any) => {
+      return [...prev, schema.Execute(current, semantics)];
+    }, []);
+  }
+
+  public EncodeObject(args: any): any {
+    const schema = this.createToken(this.val.args[0], 0);
+
+    const err = this.isValid(args);
+    if (err) {
+      throw err;
+    }
+
+    return args.reduce((prev: any, current: any) => {
+      return [...prev, schema.EncodeObject(current)];
+    }, []);
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return {
+      [ListToken.prim]: this.valueSchema.ExtractSchema(),
+    };
+  }
+
+  generateSchema(): ListTokenSchema {
+    return {
+      __michelsonType: ListToken.prim,
+      schema: this.valueSchema.generateSchema(),
+    };
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (ListToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    this.createToken(this.val.args[0], this.idx).findAndReturnTokens(tokenToFind, tokens);
+    return tokens;
+  }
+}
+export class MutezValidationError extends TokenValidationError {
+  name = 'MutezValidationError';
+  constructor(public value: any, public token: MutezToken, message: string) {
+    super(value, token, message);
+  }
+}
+
+export class MutezToken extends ComparableToken {
+  static prim: 'mutez' = 'mutez';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  public Execute(val: any) {
+    return new BigNumber(val[Object.keys(val)[0]]);
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return MutezToken.prim;
+  }
+
+  generateSchema(): BaseTokenSchema {
+    return {
+      __michelsonType: MutezToken.prim,
+      schema: MutezToken.prim,
+    };
+  }
+
+  private isValid(val: any): MutezValidationError | null {
+    const bigNumber = new BigNumber(val);
+    if (bigNumber.isNaN()) {
+      return new MutezValidationError(val, this, `Value is not a number: ${val}`);
+    } else {
+      return null;
+    }
+  }
+
+  public Encode(args: any[]): any {
+    const val = args.pop();
+
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+
+    return { int: String(val).toString() };
+  }
+
+  public EncodeObject(val: any): any {
+    const err = this.isValid(val);
+    if (err) {
+      throw err;
+    }
+
+    return { int: String(val).toString() };
+  }
+
+  public ToBigMapKey(val: string | number) {
+    return {
+      key: { int: String(val) },
+      type: { prim: MutezToken.prim },
+    };
+  }
+
+  public ToKey({ int }: any) {
+    return int;
+  }
+
+  compare(mutez1: string | number, mutez2: string | number) {
+    const o1 = Number(mutez1);
+    const o2 = Number(mutez2);
+    if (o1 === o2) {
+      return 0;
+    }
+
+    return o1 < o2 ? -1 : 1;
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (MutezToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    return tokens;
+  }
+}
+export class BytesValidationError extends TokenValidationError {
+  name = 'BytesValidationError';
+  constructor(public value: any, public token: BytesToken, message: string) {
+    super(value, token, message);
+  }
+}
+
+export class BytesToken extends Token {
+  static prim: 'bytes' = 'bytes';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  public ToBigMapKey(val: string) {
+    return {
+      key: { bytes: val },
+      type: { prim: BytesToken.prim },
+    };
+  }
+
+  private isValid(val: any): BytesValidationError | null {
+    if (typeof val === 'string' && /^[0-9a-fA-F]*$/.test(val) && val.length % 2 === 0) {
+      return null;
+    } else {
+      return new BytesValidationError(val, this, `Invalid bytes: ${val}`);
+    }
+  }
+
+  // private convertUint8ArrayToHexString(val: any) {
+  //   return val.constructor === Uint8Array ? Buffer.from(val).toString('hex') : val;
+  // }
+
+  // public Encode(args: any[]): any {
+  //   let val = args.pop();
+
+  //   val = this.convertUint8ArrayToHexString(val);
+  //   const err = this.isValid(val);
+  //   if (err) {
+  //     throw err;
+  //   }
+
+  //   return { bytes: String(val).toString() };
+  // }
+
+  // public EncodeObject(val: string | Uint8Array) {
+  //   val = this.convertUint8ArrayToHexString(val);
+  //   const err = this.isValid(val);
+  //   if (err) {
+  //     throw err;
+  //   }
+
+  //   return { bytes: String(val).toString() };
+  // }
+
+  public Execute(val: any): string {
+    return val.bytes;
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return BytesToken.prim;
+  }
+
+  generateSchema(): BaseTokenSchema {
+    return {
+      __michelsonType: BytesToken.prim,
+      schema: BytesToken.prim,
+    };
+  }
+
+  public ToKey({ bytes, string }: any) {
+    if (string) {
+      return string;
+    }
+
+    return bytes;
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (BytesToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    return tokens;
+  }
+}
+export class OptionToken extends ComparableToken {
+  static prim: 'option' = 'option';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  public subToken(): Token {
+    return this.createToken(this.val.args[0], this.idx);
+  }
+
+  schema(): Token {
+    return this.createToken(this.val.args[0], 0);
+  }
+
+  annot(): string {
+    return Array.isArray(this.val.annots)
+      ? super.annot()
+      : this.createToken(this.val.args[0], this.idx).annot();
+  }
+
+  // public Encode(args: any): any {
+  //   const value = args;
+  //   if (value === undefined || value === null) {
+  //     return { prim: 'None' };
+  //   } else if (
+  //     Array.isArray(value) &&
+  //     (value[value.length - 1] === undefined || value[value.length - 1] === null)
+  //   ) {
+  //     value.pop();
+  //     return { prim: 'None' };
+  //   }
+
+  //   return { prim: 'Some', args: [this.schema().Encode(args)] };
+  // }
+
+  public EncodeObject(args: any): any {
+    const value = args;
+
+    if (value === undefined || value === null) {
+      return { prim: 'None' };
+    }
+
+    return { prim: 'Some', args: [this.schema().EncodeObject(value)] };
+  }
+
+  public Execute(val: any, semantics?: Semantic) {
+    if (val.prim === 'None') {
+      return null;
+    }
+
+    return this.schema().Execute(val.args[0], semantics);
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return this.schema().ExtractSchema();
+  }
+
+  generateSchema(): OptionTokenSchema {
+    return {
+      __michelsonType: OptionToken.prim,
+      schema: this.schema().generateSchema(),
+    };
+  }
+
+  public ExtractSignature() {
+    return [...this.schema().ExtractSignature(), []];
+  }
+
+  get KeySchema(): ComparableToken {
+    return this.schema() as any;
+  }
+
+  compare(val1: any, val2: any) {
+    if (!val1) {
+      return -1;
+    } else if (!val2) {
+      return 1;
+    }
+    return this.KeySchema.compare(val1, val2);
+  }
+
+  public ToKey(val: any) {
+    return this.Execute(val);
+  }
+
+  public ToBigMapKey(val: any) {
+    return {
+      key: this.EncodeObject(val),
+      type: this.typeWithoutAnnotations(),
+    };
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (OptionToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    this.subToken().findAndReturnTokens(tokenToFind, tokens);
+    return tokens;
+  }
+}
+export class TimestampToken extends ComparableToken {
+  static prim: 'timestamp' = 'timestamp';
+
+  constructor(
+    protected val: { prim: string; args: any[]; annots: any[] },
+    protected idx: number,
+    protected fac: TokenFactory
+  ) {
+    super(val, idx, fac);
+  }
+
+  public Execute(val: { string?: string; int?: string }) {
+    if (val.string && /^\d+$/.test(val.string)) {
+      return new Date(Number(val.string) * 1000).toISOString();
+    } else if (val.string) {
+      return new Date(val.string).toISOString();
+    } else if (val.int) {
+      return new Date(Number(val.int) * 1000).toISOString();
+    }
+  }
+
+  public Encode(args: any[]): any {
+    const val = args.pop();
+    return { string: val };
+  }
+
+  public EncodeObject(val: any): any {
+    return { string: val };
+  }
+
+  /**
+   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
+   *
+   */
+  public ExtractSchema() {
+    return TimestampToken.prim;
+  }
+
+  generateSchema(): BaseTokenSchema {
+    return {
+      __michelsonType: TimestampToken.prim,
+      schema: TimestampToken.prim,
+    };
+  }
+
+  public ToKey({ string }: any) {
+    return string;
+  }
+
+  public ToBigMapKey(val: string) {
+    return {
+      key: { string: val },
+      type: { prim: TimestampToken.prim },
+    };
+  }
+
+  findAndReturnTokens(tokenToFind: string, tokens: Token[]) {
+    if (TimestampToken.prim === tokenToFind) {
+      tokens.push(this);
+    }
+    return tokens;
+  }
+}
 
 export const tokens = [
   PairToken,
@@ -3300,25 +3951,25 @@ export const tokens = [
   BytesToken,
   OptionToken,
   TimestampToken,
-  IntToken,
-  UnitToken,
-  KeyToken,
-  KeyHashToken,
-  SignatureToken,
-  LambdaToken,
-  OperationToken,
-  SetToken,
-  ChainIDToken,
-  TicketToken,
-  NeverToken,
-  SaplingStateToken,
-  SaplingTransactionToken,
-  Bls12381frToken,
-  Bls12381g1Token,
-  Bls12381g2Token,
-  ChestToken,
-  ChestKeyToken,
-  GlobalConstantToken
+  // IntToken,
+  // UnitToken,
+  // KeyToken,
+  // KeyHashToken,
+  // SignatureToken,
+  // LambdaToken,
+  // OperationToken,
+  // SetToken,
+  // ChainIDToken,
+  // TicketToken,
+  // NeverToken,
+  // SaplingStateToken,
+  // SaplingTransactionToken,
+  // Bls12381frToken,
+  // Bls12381g1Token,
+  // Bls12381g2Token,
+  // ChestToken,
+  // ChestKeyToken,
+  // GlobalConstantToken
 ];
 
 export class InvalidTokenError extends Error {
@@ -3337,6 +3988,284 @@ export function createToken(val: any, idx: number): Token {
     throw new InvalidTokenError('Malformed data expected a value with a valid prim property', val);
   }
   return new t(val, idx, createToken);
+}
+
+export type ContractSchema = Schema | unknown;
+
+export interface StorageProvider {
+  getStorage<T>(contract: string, schema?: ContractSchema): Promise<T>;
+  getBigMapKey<T>(contract: string, key: string, schema?: ContractSchema): Promise<T>;
+  getBigMapKeyByID<T>(id: string, keyToEncode: BigMapKeyType, schema: Schema, block?: number): Promise<T>;
+  getBigMapKeysByID<T>(id: string, keysToEncode: Array<BigMapKeyType>, schema: Schema, block?: number, batchSize?: number): Promise<MichelsonMap<MichelsonMapKey, T | undefined>>;
+  getSaplingDiffByID(id: string, block?: number): Promise<SaplingDiffResponse>;
+}
+export class OriginationOperation<TContract extends DefaultContractType = DefaultContractType> 
+  extends Operation
+  implements GasConsumingOperation, StorageConsumingOperation, FeeConsumingOperation {
+  /**
+   * @description Contract address of the newly originated contract
+   */
+  public readonly contractAddress?: string;
+
+  constructor(
+    hash: string,
+    private readonly params: RPCOriginationOperation,
+    raw: ForgedBytes,
+    results: OperationContentsAndResult[],
+    context: Context,
+    private contractProvider: RpcContractProvider
+  ) {
+    super(hash, raw, results, context);
+
+    const originatedContracts = this.operationResults && this.operationResults.originated_contracts;
+    if (Array.isArray(originatedContracts)) {
+      this.contractAddress = originatedContracts[0];
+    }
+  }
+
+  get status() {
+    const operationResults = this.operationResults;
+    if (operationResults) {
+      return operationResults.status;
+    } else {
+      return 'unknown';
+    }
+  }
+
+  get operationResults() {
+    const originationOp =
+      Array.isArray(this.results) &&
+      (this.results.find((op) => op.kind === 'origination') as
+        | OperationContentsAndResultOrigination
+        | undefined);
+
+    const result =
+      originationOp &&
+      hasMetadataWithResult(originationOp) &&
+      originationOp.metadata.operation_result;
+    return result ? result : undefined;
+  }
+
+  get fee() {
+    return this.params.fee;
+  }
+
+  get gasLimit() {
+    return this.params.gas_limit;
+  }
+
+  get storageLimit() {
+    return this.params.storage_limit;
+  }
+
+  get consumedGas() {
+    const consumedGas = this.operationResults && this.operationResults.consumed_gas;
+    return consumedGas ? consumedGas : undefined;
+  }
+
+  get storageDiff() {
+    const storageDiff = this.operationResults && this.operationResults.paid_storage_size_diff;
+    return storageDiff ? storageDiff : undefined;
+  }
+
+  get storageSize() {
+    const storageSize = this.operationResults && this.operationResults.storage_size;
+    return storageSize ? storageSize : undefined;
+  }
+
+  get errors() {
+    return this.operationResults && this.operationResults.errors;
+  }
+
+  /**
+   * @description Provide the contract abstract of the newly originated contract
+   */
+  async contract(confirmations?: number, interval?: number, timeout?: number) {
+    if (!this.contractAddress) {
+      throw new Error('No contract was originated in this operation');
+    }
+
+    await this.confirmation(confirmations, interval, timeout);
+    return this.contractProvider.at<TContract>(this.contractAddress);
+  }
+}
+
+export class Wallet {
+  constructor(private context: Context) {}
+
+  private get walletProvider() {
+    return this.context.walletProvider;
+  }
+
+  private _pkh?: string;
+
+  /**
+   * @description Retrieve the PKH of the account that is currently in use by the wallet
+   *
+   * @param option Option to use while fetching the PKH.
+   * If forceRefetch is specified the wallet provider implementation will refetch the PKH from the wallet
+   */
+  async pkh({ forceRefetch }: PKHOption = {}) {
+    if (!this._pkh || forceRefetch) {
+      this._pkh = await this.walletProvider.getPKH();
+    }
+
+    return this._pkh;
+  }
+
+  private walletCommand = <T>(send: () => Promise<T>) => {
+    return {
+      send,
+    };
+  };
+
+  /**
+   *
+   * @description Originate a new contract according to the script in parameters.
+   *
+   * @returns An operation handle with the result from the rpc node
+   *
+   * @param originateParams Originate operation parameter
+   */
+  originate<TWallet extends DefaultWalletType = DefaultWalletType>(
+    params: WalletOriginateParams<ContractStorageType<TWallet>>
+  ): { send: () => Promise<OriginationWalletOperation<TWallet>> } {
+    return this.walletCommand(async () => {
+      const mappedParams = await this.walletProvider.mapOriginateParamsToWalletParams(() =>
+        this.context.parser.prepareCodeOrigination({
+          ...params as WalletOriginateParams,
+        })
+      );
+      const opHash = await this.walletProvider.sendOperations([mappedParams]);
+      if (!this.context.proto) {
+        this.context.proto = (await this.context.rpc.getBlock()).protocol as Protocols;
+      }
+      return this.context.operationFactory.createOriginationOperation(opHash) as Promise<OriginationWalletOperation<TWallet>>;
+    });
+  }
+
+  /**
+   *
+   * @description Set the delegate for a contract.
+   *
+   * @returns An operation handle with the result from the rpc node
+   *
+   * @param delegateParams operation parameter
+   */
+  setDelegate(params: WalletDelegateParams) {
+    if (params.delegate && validateAddress(params.delegate) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid address error: ${params.delegate}`);
+    }
+    return this.walletCommand(async () => {
+      const mappedParams = await this.walletProvider.mapDelegateParamsToWalletParams(
+        async () => params
+      );
+      const opHash = await this.walletProvider.sendOperations([mappedParams]);
+      return this.context.operationFactory.createDelegationOperation(opHash);
+    });
+  }
+
+  /**
+   *
+   * @description Register the current address as delegate.
+   *
+   * @returns An operation handle with the result from the rpc node
+   *
+   */
+  registerDelegate() {
+    return this.walletCommand(async () => {
+      const mappedParams = await this.walletProvider.mapDelegateParamsToWalletParams(async () => {
+        const delegate = await this.pkh();
+        return { delegate };
+      });
+      const opHash = await this.walletProvider.sendOperations([mappedParams]);
+      return this.context.operationFactory.createDelegationOperation(opHash);
+    });
+  }
+
+  /**
+   *
+   * @description Transfer tezos tokens from current address to a specific address or call a smart contract.
+   *
+   * @returns A wallet command from which we can send the operation to the wallet
+   *
+   * @param params operation parameter
+   */
+  transfer(params: WalletTransferParams) {
+    if (validateAddress(params.to) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid 'to' address: ${params.to}`);
+    }
+    return this.walletCommand(async () => {
+      const mappedParams = await this.walletProvider.mapTransferParamsToWalletParams(
+        async () => params
+      );
+      const opHash = await this.walletProvider.sendOperations([mappedParams]);
+      return this.context.operationFactory.createTransactionOperation(opHash);
+    });
+  }
+
+  /**
+   *
+   * @description Create a batch of operation
+   *
+   * @returns A batch object from which we can add more operation or send a command to the wallet to execute the batch
+   *
+   * @param params List of operation to initialize the batch with
+   */
+  batch(params?: Parameters<WalletOperationBatch['with']>[0]) {
+    const batch = new WalletOperationBatch(this.walletProvider, this.context);
+
+    if (Array.isArray(params)) {
+      batch.with(params);
+    }
+
+    return batch;
+  }
+
+  /**
+   *
+   * @description Create an smart contract abstraction for the address specified. Calling entrypoints with the returned
+   * smart contract abstraction will leverage the wallet provider to make smart contract calls
+   *
+   * @param address Smart contract address
+   */
+  async at<T extends ContractAbstraction<Wallet>>(
+    address: string,
+    contractAbstractionComposer: (abs: ContractAbstraction<Wallet>, context: Context) => T = (x) =>
+      x as any
+  ): Promise<T> {
+    if (validateContractAddress(address) !== ValidationResult.VALID) {
+      throw new InvalidContractAddressError(`Invalid contract address: ${address}`);
+    }
+    const rpc = this.context.withExtensions().rpc;
+    const script = await rpc.getNormalizedScript(address);
+    const entrypoints = await rpc.getEntrypoints(address);
+    const blockHeader = await this.context.rpc.getBlockHeader();
+    const chainId = blockHeader.chain_id;
+    const abs = new ContractAbstraction(
+      address,
+      script,
+      this,
+      this.context.contract,
+      entrypoints,
+      chainId,
+      rpc
+    );
+    return contractAbstractionComposer(abs, this.context);
+  }
+}
+
+export type DefaultContractType = ContractAbstraction<ContractProvider>;
+export type ContractStorageType<T extends ContractAbstraction<ContractProvider|Wallet>> = PromiseReturnType<T['storage']>;
+export interface ContractProvider extends StorageProvider {
+  originate<TContract extends DefaultContractType = DefaultContractType>(contract: OriginateParams<ContractStorageType<TContract>>): Promise<OriginationOperation<TContract>>;
+  setDelegate(params: DelegateParams): Promise<DelegateOperation>;
+  registerDelegate(params: RegisterDelegateParams): Promise<DelegateOperation>;
+  transfer(params: TransferParams): Promise<TransactionOperation>;
+  reveal(params: RevealParams): Promise<RevealOperation>;
+  at<T extends ContractAbstraction<ContractProvider>>(address: string, contractAbstractionComposer?: (abs: ContractAbstraction<ContractProvider>, context: Context) => T): Promise<T>;
+  batch(params?: ParamsWithKind[]): OperationBatch ;
+  registerGlobalConstant(params: RegisterGlobalConstantParams): Promise<RegisterGlobalConstantOperation>;
 }
 export class Schema {
   private root: Token;
@@ -3458,10 +4387,6 @@ export class Schema {
     }
   }
 
-  /**
-   * @deprecated ExtractSchema has been deprecated in favor of generateSchema
-   *
-   */
   ExtractSchema() {
     return this.removeTopLevelAnnotation(this.root.ExtractSchema());
   }
@@ -3487,7 +4412,6 @@ export class Schema {
       [this.bigMap.annot()]: bigMap,
     };
   }
-
   FindFirstInTopLevelPair<T extends MichelsonV1Expression>(storage: any, valueType: any) {
     return this.findValue(this.root['val'], storage, valueType) as T | undefined;
   }
@@ -3508,34 +4432,11 @@ export class Schema {
       );
     }
   }
-
   findToken(tokenToFind: string): Array<Token> {
     const tokens: Array<Token> = [];
     return this.root.findAndReturnTokens(tokenToFind, tokens);
   }
 }
-
-export type ContractSchema = Schema | unknown;
-
-export interface StorageProvider {
-  getStorage<T>(contract: string, schema?: ContractSchema): Promise<T>;
-  getBigMapKey<T>(contract: string, key: string, schema?: ContractSchema): Promise<T>;
-  getBigMapKeyByID<T>(id: string, keyToEncode: BigMapKeyType, schema: Schema, block?: number): Promise<T>;
-  getBigMapKeysByID<T>(id: string, keysToEncode: Array<BigMapKeyType>, schema: Schema, block?: number, batchSize?: number): Promise<MichelsonMap<MichelsonMapKey, T | undefined>>;
-  getSaplingDiffByID(id: string, block?: number): Promise<SaplingDiffResponse>;
-}
-
-export interface ContractProvider extends StorageProvider {
-  originate<TContract extends DefaultContractType = DefaultContractType>(contract: OriginateParams<ContractStorageType<TContract>>): Promise<OriginationOperation<TContract>>;
-  setDelegate(params: DelegateParams): Promise<DelegateOperation>;
-  registerDelegate(params: RegisterDelegateParams): Promise<DelegateOperation>;
-  transfer(params: TransferParams): Promise<TransactionOperation>;
-  reveal(params: RevealParams): Promise<RevealOperation>;
-  at<T extends ContractAbstraction<ContractProvider>>(address: string, contractAbstractionComposer?: (abs: ContractAbstraction<ContractProvider>, context: Context) => T): Promise<T>;
-  batch(params?: ParamsWithKind[]): OperationBatch ;
-  registerGlobalConstant(params: RegisterGlobalConstantParams): Promise<RegisterGlobalConstantOperation>;
-}
-
 export class ContractAbstraction<T extends ContractProvider | Wallet,
   TMethods extends DefaultMethods<T> = DefaultMethods<T>,
   TMethodsObject extends DefaultMethodsObject<T> = DefaultMethodsObject<T>,
