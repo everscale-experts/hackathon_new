@@ -3999,6 +3999,2287 @@ export interface StorageProvider {
   getBigMapKeysByID<T>(id: string, keysToEncode: Array<BigMapKeyType>, schema: Schema, block?: number, batchSize?: number): Promise<MichelsonMap<MichelsonMapKey, T | undefined>>;
   getSaplingDiffByID(id: string, block?: number): Promise<SaplingDiffResponse>;
 }
+interface PollingConfig {
+  timeout: number;
+  interval: number;
+}
+export declare function mapTo<T, R>(value: R): OperatorFunction<T, R>;
+export interface OperatorFunction<T, R> extends UnaryFunction<Observable<T>, Observable<R>> {};
+export interface UnaryFunction<T, R> {
+    (source: T): R;
+}
+export interface ForgedBytes {
+  opbytes: string;
+  opOb: OperationObject;
+  counter: number;
+}
+export declare function switchMapTo<R>(observable: ObservableInput<R>): OperatorFunction<any, R>;
+export declare const EMPTY: Observable<never>;
+export class Operation {
+  private _pollingConfig$ = new ReplaySubject<PollingConfig>(1);
+
+  private _currentHeadPromise: Promise<BlockResponse> | undefined = undefined;
+
+  // Caching the current head for one second
+  private currentHead$ = defer(() => {
+    if (!this._currentHeadPromise) {
+      this._currentHeadPromise = this.context.rpc.getBlock();
+      timer(1000)
+        .pipe(first())
+        .subscribe(() => {
+          this._currentHeadPromise = undefined;
+        });
+    }
+    return from(this._currentHeadPromise);
+  });
+
+  // Polling observable that emit until timeout is reached
+  private polling$ = defer(() =>
+    this._pollingConfig$.pipe(
+      tap(({ timeout, interval }) => {
+        if (timeout <= 0) {
+          throw new Error('Timeout must be more than 0');
+        }
+
+        if (interval <= 0) {
+          throw new Error('Interval must be more than 0');
+        }
+      }),
+      map((config) => ({
+        ...config,
+        timeoutAt: Math.ceil(config.timeout / config.interval) + 1,
+        count: 0,
+      })),
+      switchMap((config) => timer(0, config.interval * 1000).pipe(mapTo(config))),
+      tap((config) => {
+        config.count++;
+        if (config.count > config.timeoutAt) {
+          throw new Error(`Confirmation polling timed out`);
+        }
+      })
+    )
+  );
+
+  // Observable that emit once operation is seen in a block
+  private confirmed$ = this.polling$.pipe(
+    switchMapTo(this.currentHead$),
+    map((head) => {
+      for (let i = 3; i >= 0; i--) {
+        head.operations[i].forEach((op) => {
+          if (op.hash === this.hash) {
+            this._foundAt = head.header.level;
+          }
+        });
+      }
+
+      if (head.header.level - this._foundAt >= 0) {
+        return this._foundAt;
+      }
+    }),
+    filter((x) => x !== undefined),
+    first(),
+    shareReplay()
+  );
+
+  protected _foundAt = Number.POSITIVE_INFINITY;
+  get includedInBlock() {
+    return this._foundAt;
+  }
+  /**
+   *
+   * @param hash Operation hash
+   * @param raw Raw operation that was injected
+   * @param context Taquito context allowing access to rpc and signer
+   */
+  constructor(
+    public readonly hash: string,
+    public readonly raw: ForgedBytes,
+    public readonly results: OperationContentsAndResult[],
+    protected readonly context: Context
+  ) {
+    if (validateOperation(this.hash) !== ValidationResult.VALID) {
+      throw new InvalidOperationHashError(`Invalid Operation Hash: ${this.hash}`);
+    }
+
+    this.confirmed$.pipe(first(),
+      catchError(() => {
+        return of(EMPTY)
+      })
+    ).subscribe();
+  }
+
+  get revealOperation() {
+    return (
+      Array.isArray(this.results) &&
+      (this.results.find((op) => op.kind === 'reveal') as
+        | OperationContentsAndResultReveal
+        | undefined)
+    );
+  }
+
+  public get revealStatus() {
+    if (this.revealOperation) {
+      return this.revealOperation.metadata.operation_result.status;
+    } else {
+      return 'unknown';
+    }
+  }
+
+  public get status() {
+    return (
+      this.results.map((result) => {
+        if (hasMetadataWithResult(result)) {
+          return result.metadata.operation_result.status;
+        } else {
+          return 'unknown';
+        }
+      })[0] || 'unknown'
+    );
+  }
+
+  /**
+   *
+   * @param confirmations [0] Number of confirmation to wait for
+   * @param interval [10] Polling interval
+   * @param timeout [180] Timeout
+   */
+  async confirmation(confirmations?: number, interval?: number, timeout?: number) {
+    if (typeof confirmations !== 'undefined' && confirmations < 1) {
+      throw new Error('Confirmation count must be at least 1');
+    }
+
+    const confirmationPollingIntervalSecond =
+      this.context.config.confirmationPollingIntervalSecond !== undefined
+        ? this.context.config.confirmationPollingIntervalSecond
+        : await this.context.getConfirmationPollingInterval();
+
+    const { defaultConfirmationCount, confirmationPollingTimeoutSecond } = this.context.config;
+    this._pollingConfig$.next({
+      interval: interval || confirmationPollingIntervalSecond,
+      timeout: timeout || confirmationPollingTimeoutSecond,
+    } as Required<PollingConfig>);
+
+    const conf = confirmations !== undefined ? confirmations : defaultConfirmationCount;
+
+    return new Promise<number>((resolve, reject) => {
+      this.confirmed$
+        .pipe(
+          switchMap(() => this.polling$),
+          switchMap(() => this.currentHead$),
+          filter((head) => head.header.level - this._foundAt >= conf - 1),
+          first()
+        )
+        .subscribe((_) => {
+          resolve(this._foundAt + (conf - 1));
+        }, reject);
+    });
+  }
+}
+export interface GasConsumingOperation {
+  consumedGas?: string;
+  gasLimit: number;
+}
+export interface StorageConsumingOperation {
+  storageDiff?: string;
+  storageSize?: string;
+  storageLimit: number;
+}
+export interface FeeConsumingOperation {
+  fee: number;
+}
+export interface RPCOriginationOperation {
+  kind: OpKind.ORIGINATION;
+  fee: number;
+  gas_limit: number;
+  storage_limit: number;
+  balance: string;
+  delegate?: string;
+  source?: string;
+  script: {
+    code: any;
+    storage: any;
+  };
+}
+export type withKind<T, K extends OpKind> = T & { kind: K };
+export interface ActivationParams {
+  pkh: string;
+  secret: string;
+}
+export interface TransferParams {
+  to: string;
+  source?: string;
+  amount: number;
+  fee?: number;
+  parameter?: TransactionOperationParameter;
+  gasLimit?: number;
+  storageLimit?: number;
+  mutez?: boolean;
+}
+export interface RegisterGlobalConstantParams {
+  value: MichelsonV1Expression;
+  source?: string;
+  fee?: number;
+  gasLimit?: number;
+  storageLimit?: number;
+}
+export interface RPCTransferOperation {
+  kind: OpKind.TRANSACTION;
+  fee: number;
+  gas_limit: number;
+  storage_limit: number;
+  amount: string;
+  source?: string;
+  destination: string;
+  parameters?: TransactionOperationParameter;
+}
+export interface RPCDelegateOperation {
+  kind: OpKind.DELEGATION;
+  source?: string;
+  fee: number;
+  gas_limit: number;
+  storage_limit: number;
+  delegate?: string;
+}
+export interface RPCRevealOperation {
+  kind: OpKind.REVEAL;
+  fee: number;
+  public_key: string;
+  source?: string;
+  gas_limit: number;
+  storage_limit: number;
+}
+export interface RPCActivateOperation {
+  kind: OpKind.ACTIVATION;
+  pkh: string;
+  secret: string;
+}
+export interface RPCRegisterGlobalConstantOperation {
+ kind: OpKind.REGISTER_GLOBAL_CONSTANT;
+ fee: number;
+ gas_limit: number;
+ storage_limit: number;
+ source: string;
+ value: MichelsonV1Expression;
+}
+export enum Protocols {
+  Pt24m4xi = 'Pt24m4xiPbLDhVgVfABUjirbmda3yohdN82Sp9FeuAXJ4eV9otd',
+  PsBABY5H = 'PsBABY5HQTSkA4297zNHfsZNKtxULfL18y95qb3m53QJiXGmrbU',
+  PsBabyM1 = 'PsBabyM1eUXZseaJdmXFApDSBqj8YBfwELoxZHHW77EMcAbbwAS',
+  PsCARTHA = 'PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb',
+  PsDELPH1 = 'PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo',
+  PtEdo2Zk = 'PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA',
+  PsFLorena = 'PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i',
+  PtGRANADs = 'PtGRANADsDU8R9daYKAgWnQYAJ64omN1o3KMGVCykShA97vQbvV',
+  PtHangz2 = 'PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx',
+  PsiThaCa = 'PsiThaCaT47Zboaw71QWScM8sXeMM7bbQFncK9FLqYc6EKdpjVP',
+  Psithaca2 = 'Psithaca2MLRFYargivpo7YvUr7wUDqyxrdhC5CQq78mRvimz6A',
+  ProtoALpha = 'ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK', // temporary protocol hash
+}
+export type ParamsWithKind =
+  | withKind<OriginateParams, OpKind.ORIGINATION>
+  | withKind<DelegateParams, OpKind.DELEGATION>
+  | withKind<TransferParams, OpKind.TRANSACTION>
+  | withKind<ActivationParams, OpKind.ACTIVATION>
+  | withKind<RegisterGlobalConstantParams, OpKind.REGISTER_GLOBAL_CONSTANT>;
+export type RPCOperation =
+  | RPCOriginationOperation
+  | RPCTransferOperation
+  | RPCDelegateOperation
+  | RPCRevealOperation
+  | RPCActivateOperation
+  | RPCRegisterGlobalConstantOperation;
+export const isOpRequireReveal = <T extends { kind: OpKind }>(
+  op: T
+): op is withKind<T, Exclude<InternalOperationResultKindEnum, OpKind.REVEAL>> => {
+  return ['transaction', 'delegation', 'origination', 'register_global_constant'].indexOf(op.kind) !== -1;
+};
+export interface PreparedOperation {
+  opOb: {
+    branch: string;
+    contents: OperationContents[];
+    protocol: string;
+  };
+  counter: number;
+}
+export type PrepareOperationParams = {
+  operation: RPCOperation | RPCOperation[];
+  source?: string;
+};
+const MINIMAL_FEE_MUTEZ = 100;
+const GAS_BUFFER = 100;
+const MINIMAL_FEE_PER_GAS_MUTEZ = 0.1;
+const MINIMAL_FEE_PER_BYTE_MUTEZ = 1;
+export interface EstimateProperties {
+  milligasLimit: number,
+  storageLimit: number,
+  opSize: number,
+  minimalFeePerStorageByteMutez: number,
+  baseFeeMutez?: number
+}
+export class Estimate {
+  constructor(
+    private readonly _milligasLimit: number | string,
+    private readonly _storageLimit: number | string,
+    public readonly opSize: number | string,
+    private readonly minimalFeePerStorageByteMutez: number | string,
+    /**
+     * @description Base fee in mutez (1 mutez = 1e10−6 tez)
+     */
+    private readonly baseFeeMutez: number | string = MINIMAL_FEE_MUTEZ
+  ) {}
+
+  /**
+   * @description The number of Mutez that will be burned for the storage of the [operation](https://tezos.gitlab.io/user/glossary.html#operations). (Storage + Allocation fees)
+   */
+  get burnFeeMutez() {
+    return this.roundUp(Number(this.storageLimit) * Number(this.minimalFeePerStorageByteMutez));
+  }
+
+  /**
+   * @description  The limit on the amount of storage an [operation](https://tezos.gitlab.io/user/glossary.html#operations) can use.
+   */
+  get storageLimit() {
+    const limit = Math.max(Number(this._storageLimit), 0);
+    return limit > 0 ? limit : 0;
+  }
+
+  /**
+   * @description The limit on the amount of [gas](https://tezos.gitlab.io/user/glossary.html#gas) a given operation can consume.
+   */
+  get gasLimit() {
+    return this.roundUp(Number(this._milligasLimit)/1000 + GAS_BUFFER);
+  }
+
+  private get operationFeeMutez() {
+    return (
+      (Number(this._milligasLimit)/1000 + GAS_BUFFER) * MINIMAL_FEE_PER_GAS_MUTEZ + Number(this.opSize) * MINIMAL_FEE_PER_BYTE_MUTEZ
+      );
+  }
+
+  private roundUp(nanotez: number) {
+    return Math.ceil(Number(nanotez));
+  }
+
+  /**
+   * @description Minimum fees for the [operation](https://tezos.gitlab.io/user/glossary.html#operations) according to [baker](https://tezos.gitlab.io/user/glossary.html#baker) defaults.
+   */
+  get minimalFeeMutez() {
+    return this.roundUp(MINIMAL_FEE_MUTEZ + this.operationFeeMutez);
+  }
+
+  /**
+   * @description The suggested fee for the operation which includes minimal fees and a small buffer.
+   */
+  get suggestedFeeMutez() {
+    return this.roundUp(this.operationFeeMutez + MINIMAL_FEE_MUTEZ * 2);
+  }
+
+  /**
+   * @description Fees according to your specified base fee will ensure that at least minimum fees are used.
+   */
+  get usingBaseFeeMutez() {
+    return (
+      Math.max(Number(this.baseFeeMutez), MINIMAL_FEE_MUTEZ) + this.roundUp(this.operationFeeMutez)
+    );
+  }
+
+  /**
+   * @description The sum of `minimalFeeMutez` + `burnFeeMutez`.
+   */
+  get totalCost() {
+    return this.minimalFeeMutez + this.burnFeeMutez;
+  }
+
+  /**
+   * @description Since Delphinet, consumed gas is provided in milligas for more precision. 
+   * This function returns an estimation of the gas that operation will consume in milligas. 
+   */
+  get consumedMilligas() {
+    return Number(this._milligasLimit);
+  }
+
+  static createEstimateInstanceFromProperties(estimateProperties: EstimateProperties[]) {
+    let milligasLimit = 0;
+    let storageLimit = 0;
+    let opSize = 0;
+    let minimalFeePerStorageByteMutez = 0;
+    let baseFeeMutez: number | undefined;
+
+    estimateProperties.forEach(estimate => {
+      milligasLimit += estimate.milligasLimit;
+      storageLimit += estimate.storageLimit;
+      opSize += estimate.opSize;
+      minimalFeePerStorageByteMutez = Math.max(estimate.minimalFeePerStorageByteMutez, minimalFeePerStorageByteMutez);
+      if (estimate.baseFeeMutez) {
+        baseFeeMutez = baseFeeMutez ? baseFeeMutez + estimate.baseFeeMutez : estimate.baseFeeMutez;
+      }
+    })
+    return new Estimate(milligasLimit, storageLimit, opSize, minimalFeePerStorageByteMutez, baseFeeMutez);
+  }
+
+  static createArrayEstimateInstancesFromProperties(estimateProperties: EstimateProperties[]) {
+    return estimateProperties.map(x => new Estimate(x.milligasLimit, x.storageLimit, x.opSize, x.minimalFeePerStorageByteMutez, x.baseFeeMutez))
+  }
+}
+export class TezosPreapplyFailureError extends Error {
+  name = 'TezosPreapplyFailureError';
+
+  constructor(public result: any) {
+    super('Preapply returned an unexpected result');
+  }
+}
+export type RPCOpWithFee =
+  | RPCTransferOperation
+  | RPCOriginationOperation
+  | RPCDelegateOperation
+  | RPCRevealOperation
+  | RPCRegisterGlobalConstantOperation;
+export type RPCOpWithSource =
+  | RPCTransferOperation
+  | RPCOriginationOperation
+  | RPCDelegateOperation
+  | RPCRevealOperation
+  | RPCRegisterGlobalConstantOperation;
+export abstract class OperationEmitter {
+  get rpc(): RpcClientInterface {
+    return this.context.rpc;
+  }
+
+  get signer() {
+    return this.context.signer;
+  }
+
+  constructor(protected context: Context) {}
+
+  protected async isRevealOpNeeded(op: RPCOperation[] | ParamsWithKind[], pkh: string) {
+    return !(await this.isAccountRevealRequired(pkh)) || !this.isRevealRequiredForOpType(op)
+      ? false
+      : true;
+  }
+
+  protected async isAccountRevealRequired(publicKeyHash: string) {
+    const manager = await this.rpc.getManagerKey(publicKeyHash);
+    const haveManager = manager && typeof manager === 'object' ? !!manager.key : !!manager;
+    return !haveManager;
+  }
+
+  protected isRevealRequiredForOpType(op: RPCOperation[] | ParamsWithKind[]) {
+    let opRequireReveal = false;
+    for (const operation of op) {
+      if (isOpRequireReveal(operation)) {
+        opRequireReveal = true;
+      }
+    }
+    return opRequireReveal;
+  }
+
+  // Originally from sotez (Copyright (c) 2018 Andrew Kishino)
+  protected async prepareOperation({
+    operation,
+    source,
+  }: PrepareOperationParams): Promise<PreparedOperation> {
+    const counters: { [key: string]: number } = {};
+    let ops: RPCOperation[] = [];
+
+    const blockHeaderPromise = this.rpc.getBlockHeader({ block: 'head~2' });
+    const blockMetaPromise = this.rpc.getBlockMetadata();
+
+    if (Array.isArray(operation)) {
+      ops = [...operation];
+    } else {
+      ops = [operation];
+    }
+
+    // Implicit account who emit the operation
+    const publicKeyHash = await this.signer.publicKeyHash();
+    let counterPromise: Promise<string | undefined> = Promise.resolve(undefined);
+
+    for (let i = 0; i < ops.length; i++) {
+      if (isOpRequireReveal(ops[i]) || ops[i].kind === 'reveal') {
+        const { counter } = await this.rpc.getContract(publicKeyHash);
+        counterPromise = Promise.resolve(counter);
+        break;
+      }
+    }
+
+    const [header, metadata, headCounter] = await Promise.all([
+      blockHeaderPromise,
+      blockMetaPromise,
+      counterPromise,
+    ]);
+
+    if (!header) {
+      throw new Error('Unable to fetch latest block header');
+    }
+
+    if (!metadata) {
+      throw new Error('Unable to fetch latest metadata');
+    }
+
+    const head = header;
+
+    const counter = parseInt(headCounter || '0', 10);
+    if (!counters[publicKeyHash] || counters[publicKeyHash] < counter) {
+      counters[publicKeyHash] = counter;
+    }
+
+    const getFee = (op: RPCOpWithFee) => {
+      const opCounter = ++counters[publicKeyHash];
+      return {
+        counter: `${opCounter}`,
+        fee: typeof op.fee === 'undefined' ? '0' : `${op.fee}`,
+        gas_limit: typeof op.gas_limit === 'undefined' ? '0' : `${op.gas_limit}`,
+        storage_limit: typeof op.storage_limit === 'undefined' ? '0' : `${op.storage_limit}`,
+      };
+    };
+
+    const getSource = (op: RPCOpWithSource) => {
+      return {
+        source: typeof op.source === 'undefined' ? source || publicKeyHash : op.source,
+      };
+    };
+
+    const constructOps = (cOps: RPCOperation[]): OperationContents[] =>
+      cOps.map((op: RPCOperation) => {
+        switch (op.kind) {
+          case OpKind.ACTIVATION:
+            return {
+              ...op,
+            };
+          case OpKind.REVEAL:
+            return {
+              ...op,
+              ...getSource(op),
+              ...getFee(op),
+            };
+          case OpKind.ORIGINATION:
+            return {
+              ...op,
+              balance: typeof op.balance !== 'undefined' ? `${op.balance}` : '0',
+              ...getSource(op),
+              ...getFee(op),
+            };
+          case OpKind.TRANSACTION: {
+            const cops = {
+              ...op,
+              amount: typeof op.amount !== 'undefined' ? `${op.amount}` : '0',
+              ...getSource(op),
+              ...getFee(op),
+            };
+            if (cops.source.toLowerCase().startsWith('kt1')) {
+              throw new Error(
+                `KT1 addresses are not supported as source since ${Protocols.PsBabyM1}`
+              );
+            }
+            return cops;
+          }
+          case OpKind.DELEGATION:
+            return {
+              ...op,
+              ...getSource(op),
+              ...getFee(op),
+            };
+          case OpKind.REGISTER_GLOBAL_CONSTANT:
+            return {
+              ...op,
+              ...getSource(op),
+              ...getFee(op),
+            };
+          default:
+            throw new Error('Unsupported operation');
+        }
+      });
+
+    const branch = head.hash;
+    const contents = constructOps(ops);
+    const protocol = metadata.next_protocol;
+
+    return {
+      opOb: {
+        branch,
+        contents,
+        protocol,
+      },
+      counter,
+    };
+  }
+
+  protected async forge({ opOb: { branch, contents, protocol }, counter }: PreparedOperation) {
+    const forgedBytes = await this.context.forger.forge({ branch, contents });
+
+    return {
+      opbytes: forgedBytes,
+      opOb: {
+        branch,
+        contents,
+        protocol,
+      },
+      counter,
+    };
+  }
+
+  protected async simulate(op: RPCRunOperationParam) {
+    return {
+      opResponse: await this.rpc.runOperation(op),
+      op,
+      context: this.context.clone(),
+    };
+  }
+
+  protected async estimate<T extends { fee?: number; gasLimit?: number; storageLimit?: number }>(
+    { fee, gasLimit, storageLimit, ...rest }: T,
+    estimator: (param: T) => Promise<Estimate>
+  ) {
+    let calculatedFee = fee;
+    let calculatedGas = gasLimit;
+    let calculatedStorage = storageLimit;
+
+    if (fee === undefined || gasLimit === undefined || storageLimit === undefined) {
+      const estimation = await estimator({ fee, gasLimit, storageLimit, ...(rest as any) });
+
+      if (calculatedFee === undefined) {
+        calculatedFee = estimation.suggestedFeeMutez;
+      }
+
+      if (calculatedGas === undefined) {
+        calculatedGas = estimation.gasLimit;
+      }
+
+      if (calculatedStorage === undefined) {
+        calculatedStorage = estimation.storageLimit;
+      }
+    }
+
+    return {
+      fee: calculatedFee,
+      gasLimit: calculatedGas,
+      storageLimit: calculatedStorage,
+    };
+  }
+
+  protected async signAndInject(forgedBytes: ForgedBytes) {
+    const signed = await this.signer.sign(forgedBytes.opbytes, new Uint8Array([3]));
+    forgedBytes.opbytes = signed.sbytes;
+    forgedBytes.opOb.signature = signed.prefixSig;
+
+    const opResponse: OperationContentsAndResult[] = [];
+    const results = await this.rpc.preapplyOperations([forgedBytes.opOb]);
+
+    if (!Array.isArray(results)) {
+      throw new TezosPreapplyFailureError(results);
+    }
+
+    for (let i = 0; i < results.length; i++) {
+      for (let j = 0; j < results[i].contents.length; j++) {
+        opResponse.push(results[i].contents[j]);
+      }
+    }
+
+    const errors = flattenErrors(results);
+
+    if (errors.length) {
+      throw new TezosOperationError(errors);
+    }
+
+    return {
+      hash: await this.context.injector.inject(forgedBytes.opbytes),
+      forgedBytes,
+      opResponse,
+      context: this.context.clone(),
+    };
+  }
+}
+const isErrorWithMessage = (error: any): error is TezosOperationErrorWithMessage => {
+  return 'with' in error;
+};
+export interface TezosOperationErrorWithMessage extends TezosGenericOperationError {
+  with: MichelsonV1ExpressionBase;
+}
+export class TezosOperationError extends Error {
+  name = 'TezosOperationError';
+  id: string;
+  kind: string;
+
+  constructor(public errors: TezosGenericOperationError[]) {
+    super();
+    // Last error is 'often' the one with more detail
+    const lastError = errors[errors.length - 1];
+
+    this.id = lastError.id;
+    this.kind = lastError.kind;
+
+    this.message = `(${this.kind}) ${this.id}`;
+
+    if (isErrorWithMessage(lastError) && lastError.with.string) {
+      this.message = lastError.with.string;
+    }
+  }
+}
+export const hasMetadataWithInternalOperationResult = <T extends { kind: OpKind }, K>(
+  op: T
+): op is T & {
+  metadata: {
+    internal_operation_results?: K;
+  };
+} => {
+  return hasMetadata<T, any>(op) && 'internal_operation_results' in op.metadata;
+};
+export const flattenErrors = (
+  response: PreapplyResponse | PreapplyResponse[],
+  status = 'failed'
+) => {
+  const results = Array.isArray(response) ? response : [response];
+
+  let errors: TezosGenericOperationError[] = [];
+  // Transaction that do not fail will be backtracked in case one failure occur
+  for (let i = 0; i < results.length; i++) {
+    for (let j = 0; j < results[i].contents.length; j++) {
+      const content = results[i].contents[j];
+      if (hasMetadata(content)) {
+        if (hasMetadataWithResult(content) && content.metadata.operation_result.status === status) {
+          errors = errors.concat(content.metadata.operation_result.errors || []);
+        }
+        if (
+          hasMetadataWithInternalOperationResult(content) &&
+          Array.isArray(content.metadata.internal_operation_results)
+        ) {
+          for (const internalResult of content.metadata.internal_operation_results) {
+            if ('result' in internalResult && internalResult.result.status === status) {
+              errors = errors.concat(internalResult.result.errors || []);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return errors;
+};
+export interface EstimationProvider {
+  originate(params: OriginateParams): Promise<Estimate>;
+  transfer({ fee, storageLimit, gasLimit, ...rest }: TransferParams): Promise<Estimate>;
+  setDelegate(params: DelegateParams): Promise<Estimate>;
+  registerDelegate(params?: RegisterDelegateParams): Promise<Estimate>;
+  reveal(params?: RevealParams): Promise<Estimate | undefined> ;
+  batch(params: ParamsWithKind[]): Promise<Estimate[]>;
+  registerGlobalConstant(params: RegisterGlobalConstantParams): Promise<Estimate>;
+}
+export interface RevealParams {
+  fee?: number;
+  gasLimit?: number;
+  storageLimit?: number;
+}
+export interface RegisterDelegateParams {
+  fee?: number;
+  gasLimit?: number;
+  storageLimit?: number;
+}
+export function validateContractAddress(value: any): ValidationResult {
+  return validatePrefixedValue(value, contractPrefix);
+}
+export class InvalidContractAddressError extends Error {
+  public name = 'InvalidContractAddressError';
+  constructor(public message: string) {
+    super(message)
+  }
+}
+export class HttpResponseError extends Error {
+  public name = 'HttpResponse';
+
+  constructor(
+    public message: string,
+    public status: STATUS_CODE,
+    public statusText: string,
+    public body: string,
+    public url: string
+  ) {
+    super(message);
+  }
+}
+export enum STATUS_CODE {
+  CONTINUE = 100,
+  SWITCHING_PROTOCOLS = 101,
+  PROCESSING = 102,
+  OK = 200,
+  CREATED = 201,
+  ACCEPTED = 202,
+  NON_AUTHORITATIVE_INFORMATION = 203,
+  NO_CONTENT = 204,
+  RESET_CONTENT = 205,
+  PARTIAL_CONTENT = 206,
+  MULTI_STATUS = 207,
+  ALREADY_REPORTED = 208,
+  IM_USED = 226,
+  MULTIPLE_CHOICES = 300,
+  MOVED_PERMANENTLY = 301,
+  FOUND = 302,
+  SEE_OTHER = 303,
+  NOT_MODIFIED = 304,
+  USE_PROXY = 305,
+  SWITCH_PROXY = 306,
+  TEMPORARY_REDIRECT = 307,
+  PERMANENT_REDIRECT = 308,
+  BAD_REQUEST = 400,
+  UNAUTHORIZED = 401,
+  PAYMENT_REQUIRED = 402,
+  FORBIDDEN = 403,
+  NOT_FOUND = 404,
+  METHOD_NOT_ALLOWED = 405,
+  NOT_ACCEPTABLE = 406,
+  PROXY_AUTHENTICATION_REQUIRED = 407,
+  REQUEST_TIMEOUT = 408,
+  CONFLICT = 409,
+  GONE = 410,
+  LENGTH_REQUIRED = 411,
+  PRECONDITION_FAILED = 412,
+  PAYLOAD_TOO_LARGE = 413,
+  URI_TOO_LONG = 414,
+  UNSUPPORTED_MEDIA_TYPE = 415,
+  RANGE_NOT_SATISFIABLE = 416,
+  EXPECTATION_FAILED = 417,
+  I_AM_A_TEAPOT = 418,
+  MISDIRECTED_REQUEST = 421,
+  UNPROCESSABLE_ENTITY = 422,
+  LOCKED = 423,
+  FAILED_DEPENDENCY = 424,
+  UPGRADE_REQUIRED = 426,
+  PRECONDITION_REQUIRED = 428,
+  TOO_MANY_REQUESTS = 429,
+  REQUEST_HEADER_FIELDS_TOO_LARGE = 431,
+  UNAVAILABLE_FOR_LEGAL_REASONS = 451,
+  INTERNAL_SERVER_ERROR = 500,
+  NOT_IMPLEMENTED = 501,
+  BAD_GATEWAY = 502,
+  SERVICE_UNAVAILABLE = 503,
+  GATEWAY_TIMEOUT = 504,
+  HTTP_VERSION_NOT_SUPPORTED = 505,
+  VARIANT_ALSO_NEGOTIATES = 506,
+  INSUFFICIENT_STORAGE = 507,
+  LOOP_DETECTED = 508,
+  NOT_EXTENDED = 510,
+  NETWORK_AUTHENTICATION_REQUIRED = 511,
+}
+export class BigMapAbstraction {
+  constructor(private id: BigNumber, private schema: Schema, private provider: ContractProvider) {}
+  async get<T>(keyToEncode: BigMapKeyType, block?: number) {
+    try {
+      const id = await this.provider.getBigMapKeyByID<T>(
+        this.id.toString(),
+        keyToEncode,
+        this.schema,
+        block
+      );
+      return id;
+    } catch (e) {
+      if (e instanceof HttpResponseError && e.status === STATUS_CODE.NOT_FOUND) {
+        return undefined;
+      } else {
+        throw e;
+      }
+    }
+  }
+  async getMultipleValues<T>(keysToEncode: Array<BigMapKeyType>, block?: number, batchSize = 5) {
+    return this.provider.getBigMapKeysByID<T>(
+      this.id.toString(),
+      keysToEncode,
+      this.schema,
+      block,
+      batchSize
+    );
+  }
+
+  toJSON() {
+    return this.id.toString();
+  }
+
+  toString() {
+    return this.id.toString();
+  }
+}
+export const smartContractAbstractionSemantic: (p: ContractProvider) => Semantic = (
+  provider: ContractProvider
+) => ({
+  big_map: (val: MichelsonV1Expression, code: MichelsonV1Expression) => {
+    if (!val || !('int' in val) || val.int === undefined) {
+      return {};
+    } else {
+      const schema = new Schema(code);
+      return new BigMapAbstraction(new BigNumber(val.int), schema, provider);
+    }
+  },
+  sapling_state: (val: MichelsonV1Expression) => {
+    if (!val || !('int' in val) || val.int === undefined) {
+      return {};
+    } else {
+      return new SaplingStateAbstraction(new BigNumber(val.int), provider);
+    }
+  }
+});
+export class SaplingStateAbstraction {
+    constructor(private id: BigNumber, private provider: ContractProvider) { }
+    async getSaplingDiff(block?: number) {
+        return this.provider.getSaplingDiffByID(this.id.toString(), block);
+    }
+
+    getId() {
+        return this.id.toString();
+    }
+}
+export const hex2buf = (hex: string): Uint8Array => {
+  const match = hex.match(/[\da-f]{2}/gi);
+  if (match) {
+    return new Uint8Array(match.map((h) => parseInt(h, 16)));
+  } else {
+    throw new Error(`Unable to convert ${hex} to a Uint8Array`);
+  }
+};
+import blake from 'blakejs';
+export function encodeExpr(value: string) {
+  const blakeHash = blake.blake2b(hex2buf(value), undefined, 32);
+  return b58cencode(blakeHash, prefix['expr']);
+}
+export enum DEFAULT_FEE {
+  DELEGATION = 1257,
+  ORIGINATION = 10000,
+  TRANSFER = 10000,
+  REVEAL = 374,
+}
+export enum DEFAULT_GAS_LIMIT {
+  DELEGATION = 10600,
+  ORIGINATION = 10600,
+  TRANSFER = 10600,
+  REVEAL = 1100,
+}
+export enum DEFAULT_STORAGE_LIMIT {
+  DELEGATION = 0,
+  ORIGINATION = 257,
+  TRANSFER = 257,
+  REVEAL = 0,
+}
+export const createRevealOperation = async (
+  {
+    fee = DEFAULT_FEE.REVEAL,
+    gasLimit = DEFAULT_GAS_LIMIT.REVEAL,
+    storageLimit = DEFAULT_STORAGE_LIMIT.REVEAL,
+  }: RevealParams,
+  source: string,
+  publicKey: string
+) => {
+  return {
+    kind: OpKind.REVEAL,
+    fee,
+    public_key: publicKey,
+    source,
+    gas_limit: gasLimit,
+    storage_limit: storageLimit,
+  } as RPCRevealOperation;
+};
+export class InvalidCodeParameter extends Error {
+  public name = 'InvalidCodeParameter';
+  constructor(public message: string, public readonly data: any) {
+    super(message);
+  }
+}
+export interface Prim<PT extends string = string, AT extends Expr[] = Expr[]> extends Node {
+  prim: PT;
+  args?: AT;
+  annots?: string[];
+}
+export interface StringLiteral extends Node {
+  string: string;
+}
+export interface IntLiteral<T extends string = string> extends Node {
+  int: T;
+}
+export interface BytesLiteral extends Node {
+  bytes: string;
+}
+interface ExprList extends List<Expr> {}
+export type List<T extends Expr> = T[] & Node;
+export class InvalidInitParameter extends Error {
+  public name = 'InvalidInitParameter';
+  constructor(public message: string, public readonly data: any) {
+    super(message);
+  }
+}
+export type Expr = Prim | StringLiteral | IntLiteral | BytesLiteral | ExprList;
+export function format(
+  from: Format = 'mutez',
+  to: Format = 'mutez',
+  amount: number | string | BigNumber
+) {
+  const bigNum = new BigNumber(amount);
+  if (bigNum.isNaN()) {
+    return amount;
+  }
+
+  return bigNum
+    .multipliedBy(Math.pow(10, getDecimal(from)))
+    .dividedBy(Math.pow(10, getDecimal(to)));
+}
+const TZ_DECIMALS = 6;
+const MTZ_DECIMALS = 3;
+function getDecimal(format: Format) {
+  switch (format) {
+    case 'tz':
+      return TZ_DECIMALS;
+    case 'mtz':
+      return MTZ_DECIMALS;
+    case 'mutez':
+    default:
+      return 0;
+  }
+}
+type Format = 'tz' | 'mtz' | 'mutez';
+export const createOriginationOperation = async ({
+  code,
+  init,
+  balance = '0',
+  delegate,
+  storage,
+  fee = DEFAULT_FEE.ORIGINATION,
+  gasLimit = DEFAULT_GAS_LIMIT.ORIGINATION,
+  storageLimit = DEFAULT_STORAGE_LIMIT.ORIGINATION,
+  mutez = false,
+}: OriginateParams) => {
+  if (storage !== undefined && init !== undefined) {
+    throw new Error(
+      'Storage and Init cannot be set a the same time. Please either use storage or init but not both.'
+    );
+  }
+
+  if (!Array.isArray(code)) {
+    throw new InvalidCodeParameter('Wrong code parameter type, expected an array', code);
+  }
+
+  let contractStorage: Expr | undefined;
+  if (storage !== undefined) {
+    const storageType = (code as Expr[]).find(
+      (p): p is Prim => 'prim' in p && p.prim === 'storage'
+    );
+    if (storageType?.args === undefined) {
+      throw new InvalidCodeParameter('The storage section is missing from the script', code);
+    }
+    const schema = new Schema(storageType.args[0] as MichelsonV1Expression); // TODO
+    contractStorage = schema.Encode(storage);
+  } else if (init !== undefined && typeof init === 'object') {
+    contractStorage = init as Expr;
+  } else {
+    throw new InvalidInitParameter('Wrong init parameter type, expected JSON Michelson', init);
+  }
+
+  const script = {
+    code,
+    storage: contractStorage,
+  };
+
+  const operation: RPCOriginationOperation = {
+    kind: OpKind.ORIGINATION,
+    fee,
+    gas_limit: gasLimit,
+    storage_limit: storageLimit,
+    balance: mutez ? balance.toString() : format('tz', 'mutez', balance).toString(),
+    script,
+  };
+
+  if (delegate) {
+    operation.delegate = delegate;
+  }
+  return operation;
+};
+export class InvalidAddressError extends Error {
+  public name = 'InvalidAddressError';
+  constructor(public message: string) {
+    super(message)
+  }
+}
+export class InvalidDelegationSource extends Error {
+  name = 'Invalid delegation source error';
+
+  constructor(public source: string) {
+    super(
+      `Since Babylon delegation source can no longer be a contract address ${source}. Please use the smart contract abstraction to set your delegate.`
+    );
+  }
+}
+export const createSetDelegateOperation = async ({
+  delegate,
+  source,
+  fee = DEFAULT_FEE.DELEGATION,
+  gasLimit = DEFAULT_GAS_LIMIT.DELEGATION,
+  storageLimit = DEFAULT_STORAGE_LIMIT.DELEGATION,
+}: DelegateParams) => {
+  const operation: RPCDelegateOperation = {
+    kind: OpKind.DELEGATION,
+    source,
+    fee,
+    gas_limit: gasLimit,
+    storage_limit: storageLimit,
+    delegate,
+  };
+  return operation;
+};
+export class DelegateOperation extends Operation
+  implements GasConsumingOperation, StorageConsumingOperation, FeeConsumingOperation {
+  constructor(
+    hash: string,
+    private readonly params: RPCDelegateOperation,
+    public readonly source: string,
+    raw: ForgedBytes,
+    results: OperationContentsAndResult[],
+    context: Context
+  ) {
+    super(hash, raw, results, context);
+  }
+
+  get operationResults() {
+    const delegationOp =
+      Array.isArray(this.results) &&
+      (this.results.find(op => op.kind === 'delegation') as OperationContentsAndResultDelegation);
+    const result = delegationOp && delegationOp.metadata && delegationOp.metadata.operation_result;
+    return result ? result : undefined;
+  }
+
+  get status() {
+    const operationResults = this.operationResults;
+    if (operationResults) {
+      return operationResults.status;
+    } else {
+      return 'unknown';
+    }
+  }
+
+  get delegate(): string {
+    return this.delegate;
+  }
+
+  get isRegisterOperation(): boolean {
+    return this.delegate === this.source;
+  }
+
+  get fee() {
+    return this.params.fee;
+  }
+
+  get gasLimit() {
+    return this.params.gas_limit;
+  }
+
+  get storageLimit() {
+    return this.params.storage_limit;
+  }
+
+  get consumedGas() {
+    const consumedGas = this.operationResults && this.operationResults.consumed_gas;
+    return consumedGas ? consumedGas : undefined;
+  }
+
+  get errors() {
+    return this.operationResults && this.operationResults.errors;
+  }
+}
+export const createRegisterDelegateOperation = async (
+  {
+    fee = DEFAULT_FEE.DELEGATION,
+    gasLimit = DEFAULT_GAS_LIMIT.DELEGATION,
+    storageLimit = DEFAULT_STORAGE_LIMIT.DELEGATION,
+  }: RegisterDelegateParams,
+  source: string
+) => {
+  return {
+    kind: OpKind.DELEGATION,
+    fee,
+    gas_limit: gasLimit,
+    storage_limit: storageLimit,
+    delegate: source,
+  } as RPCDelegateOperation;
+};
+export const createTransferOperation = async ({
+  to,
+  amount,
+  parameter,
+  fee = DEFAULT_FEE.TRANSFER,
+  gasLimit = DEFAULT_GAS_LIMIT.TRANSFER,
+  storageLimit = DEFAULT_STORAGE_LIMIT.TRANSFER,
+  mutez = false,
+}: TransferParams) => {
+  const operation: RPCTransferOperation = {
+    kind: OpKind.TRANSACTION,
+    fee,
+    gas_limit: gasLimit,
+    storage_limit: storageLimit,
+    amount: mutez ? amount.toString() : format('tz', 'mutez', amount).toString(),
+    destination: to,
+    parameters: parameter,
+  };
+  return operation;
+};
+export class TransactionOperation extends Operation
+  implements GasConsumingOperation, StorageConsumingOperation, FeeConsumingOperation {
+  constructor(
+    hash: string,
+    private readonly params: RPCTransferOperation,
+    public readonly source: string,
+    raw: ForgedBytes,
+    results: OperationContentsAndResult[],
+    context: Context
+  ) {
+    super(hash, raw, results, context);
+  }
+
+  get operationResults() {
+    const transactionOp =
+      Array.isArray(this.results) &&
+      (this.results.find(op => op.kind === 'transaction') as OperationContentsAndResultTransaction);
+    return transactionOp ? [transactionOp] : [];
+  }
+
+  get status() {
+    const operationResults = this.operationResults;
+    const txResult = operationResults[0];
+    if (txResult) {
+      return txResult.metadata.operation_result.status;
+    } else {
+      return 'unknown';
+    }
+  }
+
+  get amount() {
+    return new BigNumber(this.params.amount);
+  }
+
+  get destination() {
+    return this.params.destination;
+  }
+
+  get fee() {
+    return this.params.fee;
+  }
+
+  get gasLimit() {
+    return this.params.gas_limit;
+  }
+
+  get storageLimit() {
+    return this.params.storage_limit;
+  }
+
+  private sumProp(arr: any[], prop: string) {
+    return arr.reduce((prev, current) => {
+      return prop in current ? Number(current[prop]) + prev : prev;
+    }, 0);
+  }
+
+  get consumedGas() {
+    return String(
+      this.sumProp(flattenOperationResult({ contents: this.operationResults }), 'consumed_gas')
+    );
+  }
+
+  get storageDiff() {
+    return String(
+      this.sumProp(
+        flattenOperationResult({ contents: this.operationResults }),
+        'paid_storage_size_diff'
+      )
+    );
+  }
+
+  get storageSize() {
+    return String(
+      this.sumProp(flattenOperationResult({ contents: this.operationResults }), 'storage_size')
+    );
+  }
+
+  get errors() {
+    return flattenErrors({ contents: this.operationResults });
+  }
+}
+export class RevealOperation extends Operation
+  implements GasConsumingOperation, StorageConsumingOperation, FeeConsumingOperation {
+  constructor(
+    hash: string,
+    private readonly params: RPCRevealOperation,
+    public readonly source: string,
+    raw: ForgedBytes,
+    results: OperationContentsAndResult[],
+    context: Context
+  ) {
+    super(hash, raw, results, context);
+  }
+
+  get operationResults() {
+    const revealOp =
+      Array.isArray(this.results) &&
+      (this.results.find(op => op.kind === 'reveal') as OperationContentsAndResultReveal);
+    return revealOp ? [revealOp] : [];
+  }
+
+  get status() {
+    const operationResults = this.operationResults;
+    const txResult = operationResults[0];
+    if (txResult) {
+      return txResult.metadata.operation_result.status;
+    } else {
+      return 'unknown';
+    }
+  }
+
+  get fee() {
+    return this.params.fee;
+  }
+
+  get gasLimit() {
+    return this.params.gas_limit;
+  }
+
+  get storageLimit() {
+    return this.params.storage_limit;
+  }
+
+  get publicKey() {
+    return this.params.public_key;
+  }
+
+  private sumProp(arr: any[], prop: string) {
+    return arr.reduce((prev, current) => {
+      return prop in current ? Number(current[prop]) + prev : prev;
+    }, 0);
+  }
+
+  get consumedGas() {
+    return String(
+      this.sumProp(flattenOperationResult({ contents: this.operationResults }), 'consumed_gas')
+    );
+  }
+
+  get storageDiff() {
+    return String(
+      this.sumProp(
+        flattenOperationResult({ contents: this.operationResults }),
+        'paid_storage_size_diff'
+      )
+    );
+  }
+
+  get storageSize() {
+    return String(
+      this.sumProp(flattenOperationResult({ contents: this.operationResults }), 'storage_size')
+    );
+  }
+
+  get errors() {
+    return flattenErrors({ contents: this.operationResults });
+  }
+}
+export const createRegisterGlobalConstantOperation = async ({
+  value,
+  source,
+  fee,
+  gasLimit,
+  storageLimit,
+}: RegisterGlobalConstantParams) => {
+  return {
+    kind: OpKind.REGISTER_GLOBAL_CONSTANT,
+    value,
+    fee,
+    gas_limit: gasLimit,
+    storage_limit: storageLimit,
+    source,
+  } as RPCRegisterGlobalConstantOperation;
+};
+export class RegisterGlobalConstantOperation extends Operation
+    implements GasConsumingOperation, StorageConsumingOperation, FeeConsumingOperation {
+
+    /**
+     * @description Hash (index) of the newly registered constant
+     */
+    public readonly globalConstantHash?: string;
+    constructor(
+        hash: string,
+        private readonly params: RPCRegisterGlobalConstantOperation,
+        public readonly source: string,
+        raw: ForgedBytes,
+        results: OperationContentsAndResult[],
+        context: Context
+    ) {
+        super(hash, raw, results, context);
+
+        this.globalConstantHash = this.operationResults && this.operationResults.global_address;
+    }
+
+    get operationResults() {
+        const registerGlobalConstantOp =
+            Array.isArray(this.results) &&
+            (this.results.find(op => op.kind === 'register_global_constant') as OperationContentsAndResultRegisterGlobalConstant);
+        const result = registerGlobalConstantOp && registerGlobalConstantOp.metadata && registerGlobalConstantOp.metadata.operation_result;
+        return result ? result : undefined;
+    }
+
+    get status() {
+        const operationResults = this.operationResults;
+        if (operationResults) {
+            return operationResults.status;
+        } else {
+            return 'unknown';
+        }
+    }
+
+    get registeredExpression() {
+        return this.params.value;
+    }
+
+    get fee() {
+        return this.params.fee;
+    }
+
+    get gasLimit() {
+        return this.params.gas_limit;
+    }
+
+    get storageLimit() {
+        return this.params.storage_limit;
+    }
+
+    get errors() {
+        return this.operationResults && this.operationResults.errors;
+    }
+}
+export class RpcContractProvider extends OperationEmitter implements ContractProvider, StorageProvider {
+  constructor(context: Context, private estimator: EstimationProvider) {
+    super(context);
+  }
+  contractProviderTypeSymbol = Symbol.for('taquito--provider-type-symbol');
+
+  async getStorage<T>(contract: string, schema?: ContractSchema): Promise<T> {
+    if (validateContractAddress(contract) !== ValidationResult.VALID) {
+      throw new InvalidContractAddressError(`Invalid contract address: ${contract}`);
+    }
+    if (!schema) {
+      schema = await this.rpc.getNormalizedScript(contract);
+    }
+
+    let contractSchema: Schema;
+    if (Schema.isSchema(schema)) {
+      contractSchema = schema;
+    } else {
+      contractSchema = Schema.fromRPCResponse({ script: schema as ScriptResponse });
+    }
+
+    const storage = await this.rpc.getStorage(contract);
+
+    return contractSchema.Execute(storage, smartContractAbstractionSemantic(this)) as T; // Cast into T because only the caller can know the true type of the storage
+  }
+
+  async getBigMapKey<T>(contract: string, key: string, schema?: ContractSchema): Promise<T> {
+    if (validateContractAddress(contract) !== ValidationResult.VALID) {
+      throw new InvalidContractAddressError(`Invalid contract address: ${contract}`);
+    }
+    if (!schema) {
+      schema = await this.rpc.getNormalizedScript(contract);
+    }
+
+    let contractSchema: Schema;
+    if (Schema.isSchema(schema)) {
+      contractSchema = schema;
+    } else {
+      contractSchema = Schema.fromRPCResponse({ script: schema as ScriptResponse });
+    }
+
+    const encodedKey = contractSchema.EncodeBigMapKey(key);
+
+    const val = await this.rpc.getBigMapKey(contract, encodedKey);
+
+    return contractSchema.ExecuteOnBigMapValue(val) as T; // Cast into T because only the caller can know the true type of the storage
+  }
+
+  async getBigMapKeyByID<T>(
+    id: string,
+    keyToEncode: BigMapKeyType,
+    schema: Schema,
+    block?: number
+  ): Promise<T> {
+    const { key, type } = schema.EncodeBigMapKey(keyToEncode);
+    const { packed } = await this.context.packer.packData({ data: key, type });
+
+    const encodedExpr = encodeExpr(packed);
+
+    const bigMapValue = block
+      ? await this.context.rpc.getBigMapExpr(id.toString(), encodedExpr, { block: String(block) })
+      : await this.context.rpc.getBigMapExpr(id.toString(), encodedExpr);
+
+    return schema.ExecuteOnBigMapValue(bigMapValue, smartContractAbstractionSemantic(this)) as T;
+  }
+
+  async getBigMapKeysByID<T>(
+    id: string,
+    keys: Array<BigMapKeyType>,
+    schema: Schema,
+    block?: number,
+    batchSize = 5
+  ): Promise<MichelsonMap<MichelsonMapKey, T | undefined>> {
+    const level = await this.getBlockForRequest(keys, block);
+    const bigMapValues = new MichelsonMap<MichelsonMapKey, T | undefined>();
+
+    // Execute batch of promises in series
+    let position = 0;
+    let results: Array<T | undefined> = [];
+
+    while (position < keys.length) {
+      const keysBatch = keys.slice(position, position + batchSize);
+      const batch = keysBatch.map((keyToEncode) =>
+        this.getBigMapValueOrUndefined<T>(keyToEncode, id, schema, level)
+      );
+      results = [...results, ...(await Promise.all(batch))];
+      position += batchSize;
+    }
+
+    for (let i = 0; i < results.length; i++) {
+      bigMapValues.set(keys[i], results[i]);
+    }
+
+    return bigMapValues;
+  }
+
+  private async getBlockForRequest(keys: Array<BigMapKeyType>, block?: number) {
+    return keys.length === 1 || typeof block !== 'undefined'
+      ? block
+      : (await this.rpc.getBlock())?.header.level;
+  }
+
+  private async getBigMapValueOrUndefined<T>(
+    keyToEncode: BigMapKeyType,
+    id: string,
+    schema: Schema,
+    level?: number
+  ) {
+    try {
+      return await this.getBigMapKeyByID<T>(id, keyToEncode, schema, level);
+    } catch (ex) {
+      if (ex instanceof HttpResponseError && ex.status === STATUS_CODE.NOT_FOUND) {
+        return;
+      } else {
+        throw ex;
+      }
+    }
+  }
+
+  async getSaplingDiffByID(id: string, block?: number) {
+    const saplingState = block
+      ? await this.context.rpc.getSaplingDiffById(id.toString(), { block: String(block) })
+      : await this.context.rpc.getSaplingDiffById(id.toString());
+    return saplingState;
+  }
+
+  private async addRevealOperationIfNeeded(operation: RPCOperation, publicKeyHash: string) {
+    if (isOpRequireReveal(operation)) {
+      const ops: RPCOperation[] = [operation];
+      const publicKey = await this.signer.publicKey();
+      const estimateReveal = await this.estimator.reveal();
+      if (estimateReveal) {
+        const reveal: withKind<RevealParams, OpKind.REVEAL> = { kind: OpKind.REVEAL };
+        const estimatedReveal = await this.estimate(reveal, async () => estimateReveal);
+        ops.unshift(await createRevealOperation({ ...estimatedReveal }, publicKeyHash, publicKey));
+        return ops;
+      }
+    }
+    return operation;
+  }
+
+  async originate<TContract extends DefaultContractType = DefaultContractType>(params: OriginateParams<ContractStorageType<TContract>>) {
+    const estimate = await this.estimate(params, this.estimator.originate.bind(this.estimator));
+
+    const publicKeyHash = await this.signer.publicKeyHash();
+    const operation = await createOriginationOperation(
+      await this.context.parser.prepareCodeOrigination({
+        ...params,
+        ...estimate,
+      })
+    );
+    const ops = await this.addRevealOperationIfNeeded(operation, publicKeyHash);
+    const preparedOrigination = await this.prepareOperation({
+      operation: ops,
+      source: publicKeyHash,
+    });
+    const forgedOrigination = await this.forge(preparedOrigination);
+    const { hash, context, forgedBytes, opResponse } = await this.signAndInject(forgedOrigination);
+    return new OriginationOperation<TContract>(hash, operation, forgedBytes, opResponse, context, this);
+  }
+
+  async setDelegate(params: DelegateParams) {
+    if ( params.source && validateAddress(params.source) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid source Address: ${params.source}`);
+    }
+    if (params.delegate && validateAddress(params.delegate) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid delegate Address: ${params.delegate}`);
+    }
+
+    if (/kt1/i.test(params.source)) {
+      throw new InvalidDelegationSource(params.source);
+    }
+
+    const estimate = await this.estimate(params, this.estimator.setDelegate.bind(this.estimator));
+    const publicKeyHash = await this.signer.publicKeyHash();
+    const operation = await createSetDelegateOperation({ ...params, ...estimate });
+    const sourceOrDefault = params.source || publicKeyHash;
+    const ops = await this.addRevealOperationIfNeeded(operation, publicKeyHash);
+    const prepared = await this.prepareOperation({
+      operation: ops,
+      source: sourceOrDefault,
+    });
+    const opBytes = await this.forge(prepared);
+    const { hash, context, forgedBytes, opResponse } = await this.signAndInject(opBytes);
+    return new DelegateOperation(
+      hash,
+      operation,
+      sourceOrDefault,
+      forgedBytes,
+      opResponse,
+      context
+    );
+  }
+
+  async registerDelegate(params: RegisterDelegateParams) {
+    const estimate = await this.estimate(
+      params,
+      this.estimator.registerDelegate.bind(this.estimator)
+    );
+    const source = await this.signer.publicKeyHash();
+    const operation = await createRegisterDelegateOperation({ ...params, ...estimate }, source);
+    const ops = await this.addRevealOperationIfNeeded(operation, source);
+    const prepared = await this.prepareOperation({ operation: ops });
+    const opBytes = await this.forge(prepared);
+    const { hash, context, forgedBytes, opResponse } = await this.signAndInject(opBytes);
+    return new DelegateOperation(hash, operation, source, forgedBytes, opResponse, context);
+  }
+
+  async transfer(params: TransferParams) {
+    if (validateAddress(params.to) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid address passed in 'to' parameter: ${params.to}`);
+    }
+    if (params.source && validateAddress(params.source) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid address passed in 'source' parameter: ${params.source}`);
+    }
+
+    const publickKeyHash = await this.signer.publicKeyHash();
+    const estimate = await this.estimate(params, this.estimator.transfer.bind(this.estimator));
+    const operation = await createTransferOperation({
+      ...params,
+      ...estimate,
+    });
+    const source = params.source || publickKeyHash;
+    const ops = await this.addRevealOperationIfNeeded(operation, publickKeyHash);
+    const prepared = await this.prepareOperation({ operation: ops, source: params.source });
+    const opBytes = await this.forge(prepared);
+    const { hash, context, forgedBytes, opResponse } = await this.signAndInject(opBytes);
+    return new TransactionOperation(hash, operation, source, forgedBytes, opResponse, context);
+  }
+
+  async reveal(params: RevealParams) {
+    const publicKeyHash = await this.signer.publicKeyHash();
+    const estimateReveal = await this.estimator.reveal(params);
+    if (estimateReveal) {
+      const estimated = await this.estimate(params, async () => estimateReveal);
+      const operation = await createRevealOperation(
+        {
+          ...estimated,
+        },
+        publicKeyHash,
+        await this.signer.publicKey()
+      );
+      const prepared = await this.prepareOperation({ operation, source: publicKeyHash });
+      const opBytes = await this.forge(prepared);
+      const { hash, context, forgedBytes, opResponse } = await this.signAndInject(opBytes);
+      return new RevealOperation(hash, operation, publicKeyHash, forgedBytes, opResponse, context);
+    } else {
+      throw new Error('The current address is already revealed.');
+    }
+  }
+
+  async registerGlobalConstant(params: RegisterGlobalConstantParams) {
+    const publickKeyHash = await this.signer.publicKeyHash();
+    const estimate = await this.estimate(
+      params,
+      this.estimator.registerGlobalConstant.bind(this.estimator)
+    );
+    const operation = await createRegisterGlobalConstantOperation({
+      ...params,
+      ...estimate,
+    });
+    const ops = await this.addRevealOperationIfNeeded(operation, publickKeyHash);
+    const prepared = await this.prepareOperation({ operation: ops, source: publickKeyHash });
+    const opBytes = await this.forge(prepared);
+    const { hash, context, forgedBytes, opResponse } = await this.signAndInject(opBytes);
+    return new RegisterGlobalConstantOperation(
+      hash,
+      operation,
+      publickKeyHash,
+      forgedBytes,
+      opResponse,
+      context
+    );
+  }
+
+  async at<T extends DefaultContractType = DefaultContractType>(
+    address: string,
+    contractAbstractionComposer: ContractAbstractionComposer<T> = (x) => x as any
+  ): Promise<T> {
+    if (validateContractAddress(address) !== ValidationResult.VALID) {
+      throw new InvalidContractAddressError(`Invalid contract address: ${address}`);
+    }
+    const rpc = this.context.withExtensions().rpc;
+    const script = await rpc.getNormalizedScript(address);
+    const entrypoints = await rpc.getEntrypoints(address);
+    const blockHeader = await this.rpc.getBlockHeader();
+    const chainId = blockHeader.chain_id;
+    const abs = new ContractAbstraction(address, script, this, this, entrypoints, chainId, rpc);
+    return contractAbstractionComposer(abs, this.context);
+  }
+
+  batch(params?: ParamsWithKind[]) {
+    const batch = new OperationBatch(this.context, this.estimator);
+
+    if (Array.isArray(params)) {
+      batch.with(params);
+    }
+
+    return batch;
+  }
+}
+export function validateKeyHash(value: any): ValidationResult {
+  return validatePrefixedValue(value, implicitPrefix);
+}
+export class InvalidKeyHashError extends Error {
+  public name = 'InvalidKeyHashError';
+  constructor(public message: string) {
+    super(message)
+  }
+}
+export class OperationBatch extends OperationEmitter {
+  private operations: ParamsWithKind[] = [];
+
+  constructor(context: Context, private estimator: EstimationProvider) {
+    super(context);
+  }
+
+  /**
+   *
+   * @description Add a transaction operation to the batch
+   *
+   * @param params Transfer operation parameter
+   */
+  withTransfer(params: TransferParams) {
+    if (validateAddress(params.to) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid 'to' address: ${params.to}`)
+    }
+    this.operations.push({ kind: OpKind.TRANSACTION, ...params });
+    return this;
+  }
+
+  /**
+   *
+   * @description Add a transaction operation to the batch
+   *
+   * @param params Transfer operation parameter
+   */
+  withContractCall(params: ContractMethod<ContractProvider> | ContractMethodObject<ContractProvider>) {
+    return this.withTransfer(params.toTransferParams());
+  }
+
+  /**
+   *
+   * @description Add a delegation operation to the batch
+   *
+   * @param params Delegation operation parameter
+   */
+  withDelegation(params: DelegateParams) {
+    if (params.source && validateAddress(params.source) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid source address: ${params.source}`);
+    }
+    if (params.delegate && validateAddress(params.delegate) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid delegate address: ${params.delegate}`);
+    }
+    this.operations.push({ kind: OpKind.DELEGATION, ...params });
+    return this;
+  }
+
+  /**
+   *
+   * @description Add an activation operation to the batch
+   *
+   * @param params Activation operation parameter
+   */
+  withActivation({ pkh, secret }: ActivationParams) {
+    if (validateKeyHash(pkh) !== ValidationResult.VALID) {
+      throw new InvalidKeyHashError(`Invalid Key Hash: ${pkh}`);
+    }
+    this.operations.push({ kind: OpKind.ACTIVATION, pkh, secret });
+    return this;
+  }
+
+  /**
+   *
+   * @description Add an origination operation to the batch
+   *
+   * @param params Origination operation parameter
+   */
+  withOrigination<TContract extends DefaultContractType = DefaultContractType>(params: OriginateParams<ContractStorageType<TContract>>) {
+    this.operations.push({ kind: OpKind.ORIGINATION, ...params });
+    return this;
+  }
+
+  /**
+   *
+   * @description Add an operation to register a global constant to the batch
+   *
+   * @param params RegisterGlobalConstant operation parameter
+   */
+   withRegisterGlobalConstant(params: RegisterGlobalConstantParams) {
+    this.operations.push({ kind: OpKind.REGISTER_GLOBAL_CONSTANT, ...params });
+    return this;
+  }
+
+  private async getRPCOp(param: ParamsWithKind) {
+    switch (param.kind) {
+      case OpKind.TRANSACTION:
+        return createTransferOperation({
+          ...param,
+        });
+      case OpKind.ORIGINATION:
+        return createOriginationOperation(
+          await this.context.parser.prepareCodeOrigination({
+          ...param,
+        }));
+      case OpKind.DELEGATION:
+        return createSetDelegateOperation({
+          ...param,
+        });
+      case OpKind.ACTIVATION:
+        return {
+          ...param,
+        };
+      case OpKind.REGISTER_GLOBAL_CONSTANT:
+        return createRegisterGlobalConstantOperation({
+          ...param,
+        });
+      default:
+        throw new Error(`Unsupported operation kind: ${(param as any).kind}`);
+    }
+  }
+
+  /**
+   *
+   * @description Add a group operation to the batch. Operation will be applied in the order they are in the params array
+   *
+   * @param params Operations parameter
+   */
+  with(params: ParamsWithKind[]) {
+    for (const param of params) {
+      switch (param.kind) {
+        case OpKind.TRANSACTION:
+          this.withTransfer(param);
+          break;
+        case OpKind.ORIGINATION:
+          this.withOrigination(param);
+          break;
+        case OpKind.DELEGATION:
+          this.withDelegation(param);
+          break;
+        case OpKind.ACTIVATION:
+          this.withActivation(param);
+          break;
+        case OpKind.REGISTER_GLOBAL_CONSTANT:
+          this.withRegisterGlobalConstant(param);
+          break;
+        default:
+          throw new Error(`Unsupported operation kind: ${(param as any).kind}`);
+      }
+    }
+
+    return this;
+  }
+
+  /**
+   *
+   * @description Forge and Inject the operation batch
+   *
+   * @param params Optionally specify the source of the operation
+   */
+  async send(params?: { source?: string }) {
+    const publicKeyHash = await this.signer.publicKeyHash();
+    const publicKey = await this.signer.publicKey();
+    const estimates = await this.estimator.batch(this.operations);
+
+    const revealNeeded = await this.isRevealOpNeeded(this.operations, publicKeyHash);
+    let i = revealNeeded ? 1 : 0;
+
+    const ops: RPCOperation[] = [];
+    for (const op of this.operations) {
+      if (isOpWithFee(op)) {
+        const estimated = await this.estimate(op, async () => estimates[i]);
+        ops.push(await this.getRPCOp({ ...op, ...estimated }));
+      } else {
+        ops.push({ ...op });
+      }
+      i++;
+    }
+    if (revealNeeded) {
+      const reveal: withKind<RevealParams, OpKind.REVEAL> = { kind: OpKind.REVEAL }
+      const estimatedReveal = await this.estimate(reveal, async () => estimates[0]);
+      ops.unshift(await createRevealOperation({ ...estimatedReveal }, publicKeyHash, publicKey))
+    }
+
+    const source = (params && params.source) || publicKeyHash;
+    const prepared = await this.prepareOperation({
+      operation: ops,
+      source,
+    });
+    const opBytes = await this.forge(prepared);
+    const { hash, context, forgedBytes, opResponse } = await this.signAndInject(opBytes);
+    return new BatchOperation(hash, ops, source, forgedBytes, opResponse, context);
+  }
+}
+export class BatchOperation
+  extends Operation
+  implements GasConsumingOperation, StorageConsumingOperation, FeeConsumingOperation
+{
+  constructor(
+    hash: string,
+    private readonly params: RPCOperation[],
+    public readonly source: string,
+    raw: ForgedBytes,
+    results: OperationContentsAndResult[],
+    context: Context
+  ) {
+    super(hash, raw, results, context);
+  }
+
+  private sumProp(arr: any[], prop: string) {
+    return arr.reduce((prev, current) => {
+      return prop in current ? Number(current[prop]) + prev : prev;
+    }, 0);
+  }
+
+  public get status() {
+    return (
+      this.results
+        .filter((result) => BATCH_KINDS.indexOf(result.kind) !== -1)
+        .map((result) => {
+          if (hasMetadataWithResult(result)) {
+            return result.metadata.operation_result.status;
+          } else {
+            return 'unknown';
+          }
+        })[0] || 'unknown'
+    );
+  }
+
+  get fee() {
+    return this.sumProp(this.params, 'fee');
+  }
+
+  get gasLimit() {
+    return this.sumProp(this.params, 'gas_limit');
+  }
+
+  get storageLimit() {
+    return this.sumProp(this.params, 'storage_limit');
+  }
+
+  get consumedGas() {
+    return String(this.sumProp(flattenOperationResult({ contents: this.results }), 'consumed_gas'));
+  }
+
+  get storageDiff() {
+    return String(
+      this.sumProp(flattenOperationResult({ contents: this.results }), 'paid_storage_size_diff')
+    );
+  }
+
+  get errors() {
+    return flattenErrors({ contents: this.results });
+  }
+}
+export const isOpWithFee = <T extends { kind: OpKind }>(
+  op: T
+): op is withKind<T, InternalOperationResultKindEnum> => {
+  return ['transaction', 'delegation', 'origination', 'reveal', 'register_global_constant'].indexOf(op.kind) !== -1;
+};
+export interface ContractProvider extends StorageProvider {
+  originate<TContract extends DefaultContractType = DefaultContractType>(contract: OriginateParams<ContractStorageType<TContract>>): Promise<OriginationOperation<TContract>>;
+  setDelegate(params: DelegateParams): Promise<DelegateOperation>;
+  registerDelegate(params: RegisterDelegateParams): Promise<DelegateOperation>;
+  transfer(params: TransferParams): Promise<TransactionOperation>;
+  reveal(params: RevealParams): Promise<RevealOperation>;
+  at<T extends ContractAbstraction<ContractProvider>>(address: string, contractAbstractionComposer?: (abs: ContractAbstraction<ContractProvider>, context: Context) => T): Promise<T>;
+  batch(params?: ParamsWithKind[]): OperationBatch ;
+  registerGlobalConstant(params: RegisterGlobalConstantParams): Promise<RegisterGlobalConstantOperation>;
+}
+export interface SendParams {
+    fee?: number;
+    storageLimit?: number;
+    gasLimit?: number;
+    amount: number;
+    source?: string;
+    mutez?: boolean;
+}
+export interface ContractMethodInterface {
+    send(params: Partial<SendParams>): Promise<TransactionWalletOperation | TransactionOperation>;
+    toTransferParams(params: Partial<SendParams>): TransferParams;
+}
+export class ParameterSchema {
+  private root: Token;
+
+  static fromRPCResponse(val: { script: ScriptResponse }) {
+    const parameter: Falsy<MichelsonV1ExpressionExtended> =
+      val &&
+      val.script &&
+      Array.isArray(val.script.code) &&
+      (val.script.code.find((x: any) => x.prim === 'parameter') as MichelsonV1ExpressionExtended);
+    if (!parameter || !Array.isArray(parameter.args)) {
+      throw new Error('Invalid rpc response passed as arguments');
+    }
+
+    return new ParameterSchema(parameter.args[0]);
+  }
+
+  get isMultipleEntryPoint() {
+    return (
+      this.root instanceof OrToken ||
+      (this.root instanceof OptionToken && this.root.subToken() instanceof OrToken)
+    );
+  }
+
+  get hasAnnotation() {
+    if (this.isMultipleEntryPoint) {
+      return Object.keys(this.ExtractSchema())[0] !== '0';
+    } else {
+      return true;
+    }
+  }
+
+  constructor(val: MichelsonV1Expression) {
+    this.root = createToken(val, 0);
+  }
+
+  Execute(val: any, semantics?: Semantic) {
+    return this.root.Execute(val, semantics);
+  }
+
+  // Encode(...args: any[]) {
+  //   try {
+  //     return this.root.Encode(args.reverse());
+  //   } catch (ex) {
+  //     if (ex instanceof TokenValidationError) {
+  //       throw ex;
+  //     }
+
+  //     throw new Error(`Unable to encode parameter. ${ex}`);
+  //   }
+  // }
+
+  // EncodeObject(_value?: any) {
+  //   try {
+  //     return this.root.EncodeObject(_value);
+  //   } catch (ex) {
+  //     if (ex instanceof TokenValidationError) {
+  //       throw ex;
+  //     }
+
+  //     throw new Error(`Unable to encode parameter object. ${ex}`);
+  //   }
+  // }
+  ExtractSchema() {
+    return this.root.ExtractSchema();
+  }
+  generateSchema(): TokenSchema {
+    return this.root.generateSchema();
+  }
+
+  ExtractSignatures() {
+    return this.root.ExtractSignature();
+  }
+}
+export type ExplicitTransferParams = Required<Omit<TransferParams, keyof SendParams>> & SendParams;
+export class ContractMethodObject<T extends ContractProvider | Wallet> implements ContractMethodInterface {
+    constructor(
+        private provider: T,
+        private address: string,
+        private parameterSchema: ParameterSchema,
+        private name: string,
+        private args: any = 'unit',
+        private isMultipleEntrypoint = true,
+        private isAnonymous = false
+    ) { }
+
+    /**
+     * @description Get the signature of the smart contract method
+     */
+    getSignature() {
+        return this.isAnonymous
+            ? this.parameterSchema.ExtractSchema()[this.name]
+            : this.parameterSchema.ExtractSchema();
+    }
+
+    /**
+     *
+     * @description Send the smart contract operation
+     *
+     * @param Options generic operation parameter
+     */
+    send(
+        params: Partial<SendParams> = {}
+    ): Promise<T extends Wallet ? TransactionWalletOperation : TransactionOperation> {
+        if (this.provider instanceof Wallet) {
+            return (this.provider as unknown as Wallet).transfer(this.toTransferParams(params)).send() as any;
+        } else {
+            return this.provider.transfer(this.toTransferParams(params)) as any;
+        }
+    }
+
+    /**
+     *
+     * @description Create transfer params to be used with TezosToolkit.contract.transfer methods
+     *
+     * @param Options generic transfer operation parameters
+     */
+    toTransferParams({
+        fee,
+        gasLimit,
+        storageLimit,
+        source,
+        amount = 0,
+        mutez = false,
+    }: Partial<SendParams> = {}): TransferParams {
+        const fullTransferParams: ExplicitTransferParams = {
+            to: this.address,
+            amount,
+            fee,
+            mutez,
+            source,
+            gasLimit,
+            storageLimit,
+            parameter: {
+                entrypoint: this.isMultipleEntrypoint ? this.name : DEFAULT_SMART_CONTRACT_METHOD_NAME,
+                value: this.isAnonymous
+                    ? this.parameterSchema.EncodeObject({ [this.name]: this.args })
+                    : this.parameterSchema.EncodeObject(this.args),
+            },
+        };
+        return fullTransferParams;
+    }
+}
+export class InvalidParameterError extends Error {
+  name = 'Invalid parameters error';
+  constructor(public smartContractMethodName: string, public sigs: any[], public args: any[]) {
+    super(
+      `${smartContractMethodName} Received ${
+        args.length
+      } arguments while expecting one of the following signatures (${JSON.stringify(sigs)})`
+    );
+  }
+}
+export const DEFAULT_SMART_CONTRACT_METHOD_NAME = 'default';
+export class ContractMethod<T extends ContractProvider | Wallet>
+  implements ContractMethodInterface
+{
+  constructor(
+    private provider: T,
+    private address: string,
+    private parameterSchema: ParameterSchema,
+    private name: string,
+    private args: any[],
+    private isMultipleEntrypoint = true,
+    private isAnonymous = false
+  ) {}
+
+  private validateArgs(args: any[], schema: ParameterSchema, name: string) {
+    const sigs = schema.ExtractSignatures();
+
+    if (!sigs.find((x: any[]) => x.length === args.length)) {
+      throw new InvalidParameterError(name, sigs, args);
+    }
+  }
+
+  /**
+   * @description Get the schema of the smart contract method
+   */
+  get schema() {
+    return this.isAnonymous
+      ? this.parameterSchema.ExtractSchema()[this.name]
+      : this.parameterSchema.ExtractSchema();
+  }
+
+  /**
+   * @description Get the signature of the smart contract method
+   */
+  getSignature() {
+    if (this.isAnonymous) {
+      const sig = this.parameterSchema.ExtractSignatures().find((x: any[]) => x[0] === this.name);
+      if (sig) {
+        sig.shift();
+        return sig;
+      }
+    } else {
+      const sig = this.parameterSchema.ExtractSignatures();
+      return sig.length == 1 ? sig[0] : sig;
+    }
+  }
+
+  /**
+   *
+   * @description Send the smart contract operation
+   *
+   * @param Options generic operation parameter
+   */
+  send(
+    params: Partial<SendParams> = {}
+  ): Promise<T extends Wallet ? TransactionWalletOperation : TransactionOperation> {
+    if (this.provider instanceof Wallet) {
+      return (this.provider as unknown as Wallet)
+        .transfer(this.toTransferParams(params))
+        .send() as any;
+    } else {
+      return this.provider.transfer(this.toTransferParams(params)) as any;
+    }
+  }
+
+  /**
+   *
+   * @description Create transfer params to be used with TezosToolkit.contract.transfer methods
+   *
+   * @param Options generic transfer operation parameters
+   */
+  toTransferParams({
+    fee,
+    gasLimit,
+    storageLimit,
+    source,
+    amount = 0,
+    mutez = false,
+  }: Partial<SendParams> = {}): TransferParams {
+    const fullTransferParams: ExplicitTransferParams = {
+      to: this.address,
+      amount,
+      fee,
+      mutez,
+      source,
+      gasLimit,
+      storageLimit,
+      parameter: {
+        entrypoint: this.isMultipleEntrypoint ? this.name : DEFAULT_SMART_CONTRACT_METHOD_NAME,
+        value: this.isAnonymous
+          ? this.parameterSchema.Encode(this.name, ...this.args)
+          : this.parameterSchema.Encode(...this.args),
+      },
+    };
+    return fullTransferParams;
+  }
+}
+type ContractAbstractionComposer<T> = (
+  abs: ContractAbstraction<ContractProvider>,
+  context: Context
+) => T;
 export class OriginationOperation<TContract extends DefaultContractType = DefaultContractType> 
   extends Operation
   implements GasConsumingOperation, StorageConsumingOperation, FeeConsumingOperation {
@@ -4089,7 +6370,122 @@ export class OriginationOperation<TContract extends DefaultContractType = Defaul
     return this.contractProvider.at<TContract>(this.contractAddress);
   }
 }
+export interface PKHOption {
+  forceRefetch?: boolean;
+}
+export type WalletParamsWithKind =
+  | withKind<WalletTransferParams, OpKind.TRANSACTION>
+  | withKind<WalletOriginateParams, OpKind.ORIGINATION>
+  | withKind<WalletDelegateParams, OpKind.DELEGATION>;
+export class WalletOperationBatch {
+  private operations: WalletParamsWithKind[] = [];
 
+  constructor(private walletProvider: WalletProvider, private context: Context) {}
+
+  /**
+   *
+   * @description Add a transaction operation to the batch
+   *
+   * @param params Transfer operation parameter
+   */
+  withTransfer(params: WalletTransferParams) {
+    if (validateAddress(params.to) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid 'to' address: ${params.to}`)
+    }
+    this.operations.push({ kind: OpKind.TRANSACTION, ...params });
+    return this;
+  }
+
+  /**
+   *
+   * @description Add a transaction operation to the batch
+   *
+   * @param params Transfer operation parameter
+   */
+  withContractCall(params: ContractMethod<Wallet> | ContractMethodObject<Wallet>) {
+    return this.withTransfer(params.toTransferParams());
+  }
+
+  /**
+   *
+   * @description Add a delegation operation to the batch
+   *
+   * @param params Delegation operation parameter
+   */
+  withDelegation(params: WalletDelegateParams) {
+    if (params.delegate && validateAddress(params.delegate) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid delegate address: ${params.delegate}`);
+    }
+    this.operations.push({ kind: OpKind.DELEGATION, ...params });
+    return this;
+  }
+
+  /**
+   *
+   * @description Add an origination operation to the batch
+   *
+   * @param params Origination operation parameter
+   */
+  withOrigination<TWallet extends DefaultWalletType = DefaultWalletType>(params: WalletOriginateParams<ContractStorageType<TWallet>>) {
+    this.operations.push({ kind: OpKind.ORIGINATION, ...params });
+    return this;
+  }
+
+  private async mapOperation(param: WalletParamsWithKind) {
+    switch (param.kind) {
+      case OpKind.TRANSACTION:
+        return this.walletProvider.mapTransferParamsToWalletParams(async () => param);
+      // case OpKind.ORIGINATION:
+      //   return this.walletProvider.mapOriginateParamsToWalletParams(async () =>
+      //     this.context.parser.prepareCodeOrigination({
+      //       ...param,
+      //     })
+      //   );
+      case OpKind.DELEGATION:
+        return this.walletProvider.mapDelegateParamsToWalletParams(async () => param);
+      default:
+        throw new Error(`Unsupported operation kind: ${(param as any).kind}`);
+    }
+  }
+
+  /**
+   *
+   * @description Add a group operation to the batch. Operation will be applied in the order they are in the params array
+   *
+   * @param params Operations parameter
+   */
+  with(params: WalletParamsWithKind[]) {
+    for (const param of params) {
+      switch (param.kind) {
+        case OpKind.TRANSACTION:
+          this.withTransfer(param);
+          break;
+        case OpKind.ORIGINATION:
+          this.withOrigination(param);
+          break;
+        case OpKind.DELEGATION:
+          this.withDelegation(param);
+          break;
+        default:
+          throw new Error(`Unsupported operation kind: ${(param as any).kind}`);
+      }
+    }
+
+    return this;
+  }
+
+  async send() {
+    const ops: WalletParamsWithKind[] = [];
+
+    for (const op of this.operations) {
+      ops.push(await this.mapOperation(op));
+    }
+
+    const opHash = await this.walletProvider.sendOperations(ops);
+
+    return this.context.operationFactory.createBatchOperation(opHash);
+  }
+}
 export class Wallet {
   constructor(private context: Context) {}
 
@@ -4127,22 +6523,22 @@ export class Wallet {
    *
    * @param originateParams Originate operation parameter
    */
-  originate<TWallet extends DefaultWalletType = DefaultWalletType>(
-    params: WalletOriginateParams<ContractStorageType<TWallet>>
-  ): { send: () => Promise<OriginationWalletOperation<TWallet>> } {
-    return this.walletCommand(async () => {
-      const mappedParams = await this.walletProvider.mapOriginateParamsToWalletParams(() =>
-        this.context.parser.prepareCodeOrigination({
-          ...params as WalletOriginateParams,
-        })
-      );
-      const opHash = await this.walletProvider.sendOperations([mappedParams]);
-      if (!this.context.proto) {
-        this.context.proto = (await this.context.rpc.getBlock()).protocol as Protocols;
-      }
-      return this.context.operationFactory.createOriginationOperation(opHash) as Promise<OriginationWalletOperation<TWallet>>;
-    });
-  }
+  // originate<TWallet extends DefaultWalletType = DefaultWalletType>(
+  //   params: WalletOriginateParams<ContractStorageType<TWallet>>
+  // ): { send: () => Promise<OriginationWalletOperation<TWallet>> } {
+  //   return this.walletCommand(async () => {
+  //     const mappedParams = await this.walletProvider.mapOriginateParamsToWalletParams(() =>
+  //       this.context.parser.prepareCodeOrigination({
+  //         ...params as WalletOriginateParams,
+  //       })
+  //     );
+  //     const opHash = await this.walletProvider.sendOperations([mappedParams]);
+  //     if (!this.context.proto) {
+  //       this.context.proto = (await this.context.rpc.getBlock()).protocol as Protocols;
+  //     }
+  //     return this.context.operationFactory.createOriginationOperation(opHash) as Promise<OriginationWalletOperation<TWallet>>;
+  //   });
+  // }
 
   /**
    *
@@ -4255,6 +6651,7 @@ export class Wallet {
   }
 }
 
+type PromiseReturnType<T extends (...args: any) => any> = T extends (...args: any) => Promise<infer R> ? R : any;
 export type DefaultContractType = ContractAbstraction<ContractProvider>;
 export type ContractStorageType<T extends ContractAbstraction<ContractProvider|Wallet>> = PromiseReturnType<T['storage']>;
 export interface ContractProvider extends StorageProvider {
@@ -4266,6 +6663,104 @@ export interface ContractProvider extends StorageProvider {
   at<T extends ContractAbstraction<ContractProvider>>(address: string, contractAbstractionComposer?: (abs: ContractAbstraction<ContractProvider>, context: Context) => T): Promise<T>;
   batch(params?: ParamsWithKind[]): OperationBatch ;
   registerGlobalConstant(params: RegisterGlobalConstantParams): Promise<RegisterGlobalConstantOperation>;
+}
+interface Content {
+  kind: string;
+  source: string;
+  fee: string;
+  counter: string;
+  gas_limit: string;
+  storage_limit: string;
+  amount: string;
+  destination: string;
+  parameters: Params;
+  metadata: Metadata;
+}
+interface Params {
+  prim: string;
+  args: any[];
+}
+interface Metadata {
+  balance_updates: Balanceupdate[];
+  operation_result: Operationresult;
+}
+interface Bigmapdiff {
+  key_hash: string;
+  key: Key;
+  value: Value;
+}
+interface Key {
+  bytes: string;
+}
+interface Value {
+  prim: string;
+  args: any[];
+}
+interface Operationresult {
+  status: string;
+  storage: Storage;
+  big_map_diff: Bigmapdiff[];
+  consumed_gas: string;
+  storage_size: string;
+  paid_storage_size_diff: string;
+  consumed_milligas?: string;
+}
+interface Balanceupdate {
+  kind: string;
+  contract?: string;
+  change: string;
+  category?: string;
+  delegate?: string;
+  level?: number;
+}
+export interface RpcTransaction {
+  protocol: string;
+  chain_id: string;
+  hash: string;
+  branch: string;
+  contents: Content[];
+  signature: string;
+}
+function collapse1(val: Token['val'] | any[], prim: string = PairToken.prim): Token['val'] {
+  if (Array.isArray(val)) {
+    return collapse1(
+      {
+        prim: prim,
+        args: val,
+      },
+      prim
+    );
+  }
+  if (val.prim === prim && val.args && val.args.length > 2) {
+    return {
+      ...val,
+      args: [
+        val.args?.[0],
+        {
+          prim: prim,
+          args: val.args?.slice(1),
+        },
+      ],
+    };
+  }
+  return val;
+}
+function deepEqual(a: Token['val'] | any[], b: Token['val'] | any[]): boolean {
+  const ac = collapse1(a);
+  const bc = collapse1(b);
+  return (
+    ac.prim === bc.prim &&
+    ((ac.args === undefined && bc.args === undefined) ||
+      (ac.args !== undefined &&
+        bc.args !== undefined &&
+        ac.args.length === bc.args.length &&
+        ac.args.every((v, i) => deepEqual(v, bc.args?.[i])))) &&
+    ((ac.annots === undefined && bc.annots === undefined) ||
+      (ac.annots !== undefined &&
+        bc.annots !== undefined &&
+        ac.annots.length === bc.annots.length &&
+        ac.annots.every((v, i) => v === bc.annots?.[i])))
+  );
 }
 export class Schema {
   private root: Token;
@@ -4329,17 +6824,17 @@ export class Schema {
     return this.removeTopLevelAnnotation(storage);
   }
 
-  Typecheck(val: any) {
-    if (this.root instanceof BigMapToken && Number.isInteger(Number(val))) {
-      return true;
-    }
-    try {
-      this.root.EncodeObject(val);
-      return true;
-    } catch (ex) {
-      return false;
-    }
-  }
+  // Typecheck(val: any) {
+  //   if (this.root instanceof BigMapToken && Number.isInteger(Number(val))) {
+  //     return true;
+  //   }
+  //   try {
+  //     this.root.EncodeObject(val);
+  //     return true;
+  //   } catch (ex) {
+  //     return false;
+  //   }
+  // }
 
   ExecuteOnBigMapDiff(diff: any[], semantics?: Semantic) {
     if (!this.bigMap) {
@@ -4363,29 +6858,29 @@ export class Schema {
     return this.bigMap.ValueSchema.Execute(key, semantics);
   }
 
-  EncodeBigMapKey(key: BigMapKeyType) {
-    if (!this.bigMap) {
-      throw new Error('No big map schema');
-    }
+  // EncodeBigMapKey(key: BigMapKeyType) {
+  //   if (!this.bigMap) {
+  //     throw new Error('No big map schema');
+  //   }
 
-    try {
-      return this.bigMap.KeySchema.ToBigMapKey(key);
-    } catch (ex) {
-      throw new Error('Unable to encode big map key: ' + ex);
-    }
-  }
+  //   try {
+  //     return this.bigMap.KeySchema.ToBigMapKey(key);
+  //   } catch (ex) {
+  //     throw new Error('Unable to encode big map key: ' + ex);
+  //   }
+  // }
 
-  Encode(_value?: any) {
-    try {
-      return this.root.EncodeObject(_value);
-    } catch (ex) {
-      if (ex instanceof TokenValidationError) {
-        throw ex;
-      }
+  // Encode(_value?: any) {
+  //   try {
+  //     return this.root.EncodeObject(_value);
+  //   } catch (ex) {
+  //     if (ex instanceof TokenValidationError) {
+  //       throw ex;
+  //     }
 
-      throw new Error(`Unable to encode storage object. ${ex}`);
-    }
-  }
+  //     throw new Error(`Unable to encode storage object. ${ex}`);
+  //   }
+  // }
 
   ExtractSchema() {
     return this.removeTopLevelAnnotation(this.root.ExtractSchema());
@@ -4421,8 +6916,8 @@ export class Schema {
       return storage;
     }
     if (Array.isArray(schema) || schema['prim'] === 'pair') {
-      const sch = collapse(schema);
-      const str = collapse(storage, 'Pair');
+      const sch = collapse1(schema);
+      const str = collapse1(storage, 'Pair');
       if (sch.args === undefined || str.args === undefined) {
         throw new Error('Tokens have no arguments'); // unlikely
       }
@@ -4437,6 +6932,706 @@ export class Schema {
     return this.root.findAndReturnTokens(tokenToFind, tokens);
   }
 }
+export enum ChainIds {
+  MAINNET = 'NetXdQprcVkpaWU',
+  CARTHAGENET = 'NetXjD3HPJJjmcd',
+  DELPHINET = 'NetXm8tYqnMWky1',
+  EDONET = 'NetXSgo1ZT2DRUG',
+  FLORENCENET = 'NetXxkAx4woPLyu',
+  GRANADANET = 'NetXz969SFaFn8k',
+  HANGZHOUNET = 'NetXZSsxBpMQeAT',
+  ITHACANET = 'NetXbhmtAbMukLc',
+  ITHACANET2 = 'NetXnHfVqm9iesp',
+}
+export enum DefaultLambdaAddresses {
+  MAINNET = 'KT1CPuTzwC7h7uLXd5WQmpMFso1HxrLBUtpE',
+  CARTHAGENET = 'KT1VAy1o1FGiXYfD3YT7x7k5eF5HSHhmc1u6',
+  DELPHINET = 'KT19abMFs3haqyKYwqdLjK9GbtofryZLvpiK',
+  EDONET = 'KT1A64nVZDccAHGAsf1ZyVajXZcbiwjV3SnN',
+  FLORENCENET = 'KT1KCe3YqGnudsiCWb5twbe2DH5T3EMdLpSE',
+  GRANADANET = 'KT1BCun2vsA4GBQvsKAuGD5x873MfW2jsN9z',
+  HANGZHOUNET = 'KT1PWtBAr1hjK9M9s9oZNZFbfzPdkkD6PSJR',
+  ITHACANET = 'KT1CsEGfRHWeuUQFh9LfVFLVMbm7DFBuHPPU',
+  ITHACANET2 = 'KT1H2a5vGkMLFGBPMs6oRRJshCvYeXSBSadn',
+}
+export class InvalidViewSimulationContext extends Error {
+  public name = 'InvalidViewSimulationContext';
+  constructor(public info: string) {
+    super(`${info} Please configure the context of the view execution in the executeView method.`);
+  }
+}
+export class ContractView {
+  constructor(
+    private currentContract: ContractAbstraction<ContractProvider | Wallet>,
+    private provider: ContractProvider,
+    private name: string,
+    private chainId: string,
+    private callbackParametersSchema: ParameterSchema,
+    private parameterSchema: ParameterSchema,
+    private args: any[]
+  ) {}
+
+  async read(customLambdaAddress?: string) {
+    let lambdaAddress;
+
+    // TODO Verify if the 'customLambdaAdress' is a valid originated contract and if not, return an appropriate error message.  
+    if (customLambdaAddress) {
+      lambdaAddress = customLambdaAddress;
+    } else if (this.chainId === ChainIds.GRANADANET) {
+      lambdaAddress = DefaultLambdaAddresses.GRANADANET;
+    } else if (this.chainId === ChainIds.HANGZHOUNET) {
+      lambdaAddress = DefaultLambdaAddresses.HANGZHOUNET;
+    } else if (this.chainId === ChainIds.ITHACANET) {
+      lambdaAddress = DefaultLambdaAddresses.ITHACANET;
+    } else if (this.chainId === ChainIds.ITHACANET2) {
+      lambdaAddress = DefaultLambdaAddresses.ITHACANET2;
+    } else if (this.chainId === ChainIds.MAINNET) {
+      lambdaAddress = DefaultLambdaAddresses.MAINNET;
+    } else {
+      throw new UndefinedLambdaContractError();
+    }
+
+    const lambdaContract = await this.provider.at(lambdaAddress);
+    const arg = this.parameterSchema.Encode(...this.args);
+    const lambdaView = new LambdaView(lambdaContract, this.currentContract, this.name, arg);
+    const failedWith = await lambdaView.execute();
+    const response = this.callbackParametersSchema.Execute(failedWith);
+    return response;
+  }
+}
+export type Contract = ContractAbstraction<ContractProvider>;
+export type WalletContract = ContractAbstraction<Wallet>;
+export default class LambdaView {
+  public readonly voidLambda: object;
+
+  constructor(
+    private lambdaContract: Contract | WalletContract,
+    private viewContract: ContractAbstraction<ContractProvider | Wallet>,
+    public readonly viewMethod: string = 'default',
+    private contractParameter: MichelsonV1Expression = { prim: 'Unit' }
+  ) {
+    this.voidLambda = this.createVoidLambda();
+  }
+
+  async execute(): Promise<any> {
+    try {
+      await this.lambdaContract.methods.default(this.voidLambda).send();
+    } catch (ex) {
+      if (ex instanceof TezosOperationError) {
+        const lastError: any = ex.errors[ex.errors.length - 1];
+
+        const failedWith = lastError.with;
+        return failedWith;
+      } else {
+        throw ex;
+      }
+    }
+  }
+
+  private createVoidLambda(): object {
+    const [parameter, callback] = this.getView();
+
+    let contractArgs: MichelsonV1Expression[] = [
+      {
+        prim: 'pair',
+        args: [parameter, { prim: 'contract', args: [callback] }],
+      },
+    ];
+
+    if (this.viewMethod === 'default') {
+      contractArgs = ([{ string: '%default' }] as MichelsonV1Expression[]).concat(contractArgs);
+    }
+
+    return [
+      { prim: 'PUSH', args: [{ prim: 'mutez' }, { int: '0' }] },
+      { prim: 'NONE', args: [{ prim: 'key_hash' }] },
+      {
+        prim: 'CREATE_CONTRACT',
+        args: [
+          [
+            { prim: 'parameter', args: [callback] },
+            { prim: 'storage', args: [{ prim: 'unit' }] },
+            {
+              prim: 'code',
+              args: [[{ prim: 'CAR' }, { prim: 'FAILWITH' }]],
+            },
+          ],
+        ],
+      },
+      {
+        prim: 'DIP',
+        args: [
+          [
+            {
+              prim: 'DIP',
+              args: [
+                [
+                  {
+                    prim: 'LAMBDA',
+                    args: [
+                      {
+                        prim: 'pair',
+                        args: [{ prim: 'address' }, { prim: 'unit' }],
+                      },
+                      {
+                        prim: 'pair',
+                        args: [{ prim: 'list', args: [{ prim: 'operation' }] }, { prim: 'unit' }],
+                      },
+                      [
+                        { prim: 'CAR' },
+                        { prim: 'CONTRACT', args: [callback] },
+                        {
+                          prim: 'IF_NONE',
+                          args: [
+                            [
+                              {
+                                prim: 'PUSH',
+                                args: [{ prim: 'string' }, { string: `Callback type unmatched` }],
+                              },
+                              { prim: 'FAILWITH' },
+                            ],
+                            [],
+                          ],
+                        },
+                        {
+                          prim: 'PUSH',
+                          args: [parameter, this.contractParameter],
+                        },
+                        { prim: 'PAIR' },
+                        {
+                          prim: 'DIP',
+                          args: [
+                            [
+                              {
+                                prim: 'PUSH',
+                                args: [
+                                  { prim: 'address' },
+                                  { string: `${this.viewContract.address}%${this.viewMethod}` },
+                                ],
+                              },
+                              { prim: 'DUP' },
+                              { prim: 'CONTRACT', args: contractArgs },
+                              {
+                                prim: 'IF_NONE',
+                                args: [
+                                  [
+                                    {
+                                      prim: 'PUSH',
+                                      args: [
+                                        { prim: 'string' },
+                                        { string: `Contract does not exist` },
+                                      ],
+                                    },
+                                    { prim: 'FAILWITH' },
+                                  ],
+                                  [{ prim: 'DIP', args: [[{ prim: 'DROP' }]] }],
+                                ],
+                              },
+                              {
+                                prim: 'PUSH',
+                                args: [{ prim: 'mutez' }, { int: '0' }],
+                              },
+                            ],
+                          ],
+                        },
+                        { prim: 'TRANSFER_TOKENS' },
+                        {
+                          prim: 'DIP',
+                          args: [[{ prim: 'NIL', args: [{ prim: 'operation' }] }]],
+                        },
+                        { prim: 'CONS' },
+                        { prim: 'DIP', args: [[{ prim: 'UNIT' }]] },
+                        { prim: 'PAIR' },
+                      ],
+                    ],
+                  },
+                ],
+              ],
+            },
+            { prim: 'APPLY' },
+            {
+              prim: 'DIP',
+              args: [
+                [
+                  {
+                    prim: 'PUSH',
+                    args: [{ prim: 'address' }, { string: this.lambdaContract.address }],
+                  },
+                  { prim: 'DUP' },
+                  {
+                    prim: 'CONTRACT',
+                    args: [
+                      {
+                        prim: 'lambda',
+                        args: [
+                          { prim: 'unit' },
+                          {
+                            prim: 'pair',
+                            args: [
+                              { prim: 'list', args: [{ prim: 'operation' }] },
+                              { prim: 'unit' },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  {
+                    prim: 'IF_NONE',
+                    args: [
+                      [
+                        {
+                          prim: 'PUSH',
+                          args: [{ prim: 'string' }, { string: `Contract does not exists` }],
+                        },
+                        { prim: 'FAILWITH' },
+                      ],
+                      [{ prim: 'DIP', args: [[{ prim: 'DROP' }]] }],
+                    ],
+                  },
+                  { prim: 'PUSH', args: [{ prim: 'mutez' }, { int: '0' }] },
+                ],
+              ],
+            },
+            { prim: 'TRANSFER_TOKENS' },
+            {
+              prim: 'DIP',
+              args: [[{ prim: 'NIL', args: [{ prim: 'operation' }] }]],
+            },
+            { prim: 'CONS' },
+          ],
+        ],
+      },
+      { prim: 'CONS' },
+      { prim: 'DIP', args: [[{ prim: 'UNIT' }]] },
+      { prim: 'PAIR' },
+    ];
+  }
+
+  private getView(): [MichelsonV1Expression, MichelsonV1Expression] {
+    const entrypoints = this.viewContract.entrypoints.entrypoints;
+    const entrypoint = entrypoints[this.viewMethod] as MichelsonV1Expression;
+
+    if (!entrypoint) {
+      throw Error(
+        `Contract at ${this.viewContract.address} does not have entrypoint: ${this.viewMethod}`
+      );
+    }
+
+    if (!('prim' in entrypoint) || !entrypoint.args) {
+      // TODO: Enhance this error message to be more descriptive
+      throw Error('Entrypoint args undefined');
+    }
+
+    const args = Array.from(entrypoint.args) as [MichelsonV1Expression, MichelsonV1Expression];
+    const [parameter, callbackContract] = args;
+    if ('annots' in parameter) {
+      delete parameter['annots'];
+    }
+
+    if (!('prim' in callbackContract) || !callbackContract.args) {
+      // TODO: Enhance this error message to be more descriptive
+      throw Error('Callback contract args undefined');
+    }
+
+    let message;
+    if (entrypoint.prim !== 'pair') {
+      message = `Expected {'prim': 'pair', ..} but found {'prim': ${entrypoint.prim}, ..}`;
+    } else if (args.length !== 2) {
+      message = `Expected an Array of length 2, but found: ${args}`;
+    } else if (callbackContract.prim !== 'contract') {
+      message = `Expected a {prim: 'contract', ...}, but found: ${callbackContract.prim}`;
+    } else if (callbackContract.args && callbackContract.args.length !== 1) {
+      message = `Expected a single argument to 'contract', but found: ${callbackContract.args}`;
+    }
+
+    if (message) throw Error(message);
+
+    return [parameter, callbackContract.args[0]] as [MichelsonV1Expression, MichelsonV1Expression];
+  }
+}
+export class InvalidScriptError extends Error {
+  name = 'InvalidScriptError';
+  constructor(public message: string) {
+    super(message);
+  }
+}
+export class ViewEncodingError extends Error {
+  name = 'ViewEncodingError';
+
+  constructor(public smartContractViewName: string, public originalError: any) {
+    super(`Unable to encode the parameter of the view: ${smartContractViewName}.`);
+  }
+}
+export class ViewSchema {
+  readonly viewName: string;
+  readonly viewArgsType: MichelsonV1ExpressionExtended;
+  readonly viewReturnType: MichelsonV1ExpressionExtended;
+  readonly instructions: MichelsonV1ExpressionExtended[];
+  private rootArgsType: Token;
+  private rootReturnType: Token;
+
+  static fromRPCResponse(val: { script: ScriptResponse }) {
+    const allViewSchema: ViewSchema[] = [];
+
+    const views =
+      val &&
+      val.script &&
+      Array.isArray(val.script.code) &&
+      (val.script.code.filter((x: any) => x.prim === 'view') as MichelsonV1ExpressionExtended[]);
+
+    if (views) {
+      views.forEach((view) => {
+        if (!view.args || view.args.length !== 4) {
+          throw new InvalidScriptError(
+            `Invalid on-chain view found in the script: ${JSON.stringify(view)}`
+          );
+        }
+        allViewSchema.push(new ViewSchema(view.args));
+      });
+    }
+    return allViewSchema;
+  }
+
+  constructor(val: MichelsonV1Expression[]) {
+    if (val.length !== 4 || !('string' in val[0])) {
+      throw new InvalidScriptError(`Invalid on-chain view: ${JSON.stringify(val)}`);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.viewName = val[0]['string']!;
+    this.viewArgsType = val[1] as MichelsonV1ExpressionExtended;
+    this.viewReturnType = val[2] as MichelsonV1ExpressionExtended;
+    this.instructions = val[3] as MichelsonV1ExpressionExtended[];
+
+    this.rootArgsType = createToken(this.viewArgsType, 0);
+    this.rootReturnType = createToken(this.viewReturnType, 0);
+  }
+
+  encodeViewArgs(args: any) {
+    try {
+      return this.rootArgsType.EncodeObject(args);
+    } catch (ex) {
+      throw new ViewEncodingError(this.viewName, ex);
+    }
+  }
+  decodeViewResult(val: any, semantics?: Semantic) {
+    return this.rootReturnType.Execute(val, semantics);
+  }
+  extractArgsSchema() {
+    return this.rootArgsType.ExtractSchema();
+  }
+
+  extractResultSchema() {
+    return this.rootReturnType.ExtractSchema();
+  }
+}
+export interface ExecutionContextParams {
+  source?: string;
+  viewCaller: string;
+}
+const runCodeHelper = (
+  viewArgsType: MichelsonV1ExpressionExtended,
+  viewReturnType: MichelsonV1ExpressionExtended,
+  contractStorageType: MichelsonV1Expression,
+  viewInstructions: MichelsonV1ExpressionExtended[],
+  viewArgs: MichelsonV1Expression,
+  contractStorageValue: MichelsonV1Expression,
+  balance: string,
+  chain_id: string,
+  source?: string,
+  amount = '0'
+): RPCRunCodeParam => {
+  return {
+    script: [
+      { prim: 'parameter', args: [{ prim: 'pair', args: [viewArgsType, contractStorageType] }] },
+      { prim: 'storage', args: [{ prim: 'option', args: [viewReturnType] }] },
+      {
+        prim: 'code',
+        args: [
+          [
+            { prim: 'CAR' },
+            viewInstructions,
+            { prim: 'SOME' },
+            { prim: 'NIL', args: [{ prim: 'operation' }] },
+            { prim: 'PAIR' },
+          ],
+        ],
+      },
+    ],
+    storage: { prim: 'None' },
+    input: { prim: 'Pair', args: [viewArgs, contractStorageValue] },
+    amount,
+    balance,
+    chain_id,
+    source,
+  };
+};
+export class InvalidViewParameterError extends Error {
+  name = 'Invalid view parameters error';
+  cause: any;
+  constructor(
+    public smartContractViewName: string,
+    public sigs: any,
+    public args: any,
+    public originalError: any
+  ) {
+    super(
+      `Unable to encode the parameter of the view: ${smartContractViewName}. Received ${args} as parameter while expecting one of the following signatures (${JSON.stringify(
+        sigs
+      )})`
+    );
+    this.cause = originalError;
+  }
+}
+export class OnChainView {
+  constructor(
+    private _rpc: RpcClientInterface,
+    private _contractAddress: string,
+    private _smartContractViewSchema: ViewSchema,
+    private _contractStorageType: MichelsonV1Expression,
+    private _contractStorageValue: MichelsonV1Expression,
+    private _args: any = 'Unit'
+  ) {}
+
+  /**
+   * @description Get the signature of the smart contract view
+   */
+  getSignature() {
+    return {
+      parameter: this._smartContractViewSchema.extractArgsSchema(),
+      result: this._smartContractViewSchema.extractResultSchema(),
+    };
+  }
+
+  /**
+   * @description Get the result of the view simulation
+   * @param executionContext.source the public key hash of the account who initialized this view execution.
+   * @param executionContext.viewCaller the contract address which is the caller of view.
+   */
+  async executeView(executionContext: ExecutionContextParams) {
+    this.verifyContextExecution(executionContext);
+    const balance = (await this._rpc.getBalance(this._contractAddress)).toString();
+    const chainId = await this._rpc.getChainId();
+    return this.executeViewAndDecodeResult(
+      runCodeHelper(
+        this._smartContractViewSchema.viewArgsType,
+        this._smartContractViewSchema.viewReturnType,
+        this._contractStorageType,
+        this.adaptViewCodeToContext(
+          this._smartContractViewSchema.instructions,
+          executionContext.viewCaller,
+          balance
+        ),
+        this.transformArgsToMichelson(),
+        this._contractStorageValue,
+        balance,
+        chainId,
+        executionContext.source
+      )
+    );
+  }
+
+  private verifyContextExecution(executionContext: ExecutionContextParams) {
+    if (
+      executionContext.source &&
+      validateAddress(executionContext.source) !== ValidationResult.VALID
+    ) {
+      throw new InvalidViewSimulationContext(
+        `The source account who initialized the view execution is invalid: ${executionContext.source}.`
+      );
+    }
+    if (
+      !executionContext.viewCaller ||
+      validateAddress(executionContext.viewCaller) !== ValidationResult.VALID
+    ) {
+      throw new InvalidViewSimulationContext(
+        `The contract which is the caller of view is invalid: ${executionContext.viewCaller}.`
+      );
+    }
+  }
+
+  private transformArgsToMichelson() {
+    try {
+      return this._smartContractViewSchema.encodeViewArgs(this._args);
+    } catch (error) {
+      throw new InvalidViewParameterError(
+        this._smartContractViewSchema.viewName,
+        this.getSignature(),
+        this._args,
+        error
+      );
+    }
+  }
+  private adaptViewCodeToContext(
+    instructions: MichelsonV1ExpressionExtended[],
+    viewCaller: string,
+    contractBalance: string
+  ) {
+    const instructionsToReplace = {
+      BALANCE: [{ prim: 'PUSH', args: [{ prim: 'mutez' }, { int: contractBalance }] }],
+      SENDER: [{ prim: 'PUSH', args: [{ prim: 'address' }, { string: viewCaller }] }],
+      SELF_ADDRESS: [
+        { prim: 'PUSH', args: [{ prim: 'address' }, { string: this._contractAddress }] },
+      ],
+      AMOUNT: [{ prim: 'PUSH', args: [{ prim: 'mutez' }, { int: '0' }] }],
+    };
+
+    instructions.forEach((inst: any, i: number) => {
+      if (inst.prim in instructionsToReplace) {
+        instructions[i] = Object(instructionsToReplace)[inst.prim];
+      }
+      if (inst.args && inst.args.length !== 0) {
+        this.adaptViewCodeToContext(inst.args, viewCaller, contractBalance);
+      } else if (Array.isArray(inst)) {
+        this.adaptViewCodeToContext(inst, viewCaller, contractBalance);
+      }
+    });
+    return instructions;
+  }
+
+  private async executeViewAndDecodeResult(viewScript: RPCRunCodeParam) {
+    let storage: MichelsonV1ExpressionExtended;
+    try {
+      storage = (await this._rpc.runCode(viewScript)).storage as MichelsonV1ExpressionExtended;
+    } catch (error: any) {
+      const failWith = validateAndExtractFailwith(error);
+      throw failWith
+        ? new ViewSimulationError(
+            `The simulation of the on-chain view named ${
+              this._smartContractViewSchema.viewName
+            } failed with: ${JSON.stringify(failWith)}`,
+            this._smartContractViewSchema.viewName,
+            failWith,
+            error
+          )
+        : error;
+    }
+    if (!storage.args) {
+      throw new ViewSimulationError(
+        `View simulation failed with an invalid result: ${storage}`,
+        this._smartContractViewSchema.viewName
+      );
+    }
+    return this._smartContractViewSchema.decodeViewResult(storage.args[0]);
+  }
+}
+export class ViewSimulationError extends Error {
+  name = 'ViewSimulationError';
+  constructor(
+    public message: string,
+    public viewName: string,
+    public failWith?: MichelsonV1Expression,
+    public originalError?: any
+  ) {
+    super(message);
+  }
+}
+export const validateAndExtractFailwith = (
+  error: HttpResponseError
+): MichelsonV1Expression | undefined => {
+  if (isJsonString(error.body)) {
+    const parsedError = JSON.parse(error.body);
+    if (Array.isArray(parsedError) && 'with' in parsedError[parsedError.length - 1]) {
+      return parsedError[parsedError.length - 1].with;
+    }
+  }
+};
+const isJsonString = (str: string) => {
+  try {
+    JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+  return true;
+};
+export class ContractMethodFactory<T extends ContractProvider | Wallet> {
+  constructor(private provider: T, private contractAddress: string) {}
+
+  createContractMethodFlatParams(
+    smartContractMethodSchema: ParameterSchema,
+    smartContractMethodName: string,
+    args: any[],
+    isMultipleEntrypoint = true,
+    isAnonymous = false
+  ) {
+    return new ContractMethod<T>(
+      this.provider,
+      this.contractAddress,
+      smartContractMethodSchema,
+      smartContractMethodName,
+      args,
+      isMultipleEntrypoint,
+      isAnonymous
+    );
+  }
+
+  createContractMethodObjectParam(
+    smartContractMethodSchema: ParameterSchema,
+    smartContractMethodName: string,
+    args: any[],
+    isMultipleEntrypoint = true,
+    isAnonymous = false
+  ) {
+    return new ContractMethodObject<T>(
+      this.provider,
+      this.contractAddress,
+      smartContractMethodSchema,
+      smartContractMethodName,
+      args,
+      isMultipleEntrypoint,
+      isAnonymous
+    );
+  }
+
+  createContractViewObjectParam(
+    rpc: RpcClientInterface,
+    smartContractViewSchema: ViewSchema,
+    contractStorageType: MichelsonV1Expression,
+    contractStorageValue: MichelsonV1Expression,
+    viewArgs: any
+  ) {
+    return new OnChainView(
+      rpc,
+      this.contractAddress,
+      smartContractViewSchema,
+      contractStorageType,
+      contractStorageValue,
+      viewArgs
+    );
+  }
+}
+export class UndefinedLambdaContractError extends Error {
+  name = 'Undefined LambdaContract error';
+  constructor() {
+    super(
+      'This might happen if you are using a sandbox. Please provide the address of a lambda contract as a parameter of the read method.'
+    );
+  }
+}
+const isView = (entrypoint: MichelsonV1Expression): boolean => {
+  let isView = false;
+  if ('prim' in entrypoint && entrypoint.prim === 'pair' && entrypoint.args) {
+    const lastElement = entrypoint.args[entrypoint.args.length - 1];
+    if ('prim' in lastElement && lastElement.prim === 'contract') {
+      isView = true;
+    }
+  }
+  return isView;
+};
+type DefaultMethods<T extends ContractProvider | Wallet> = Record<string, (...args: any[]) => ContractMethod<T>>;
+type DefaultMethodsObject<T extends ContractProvider | Wallet> = Record<string, (args?: any) => ContractMethodObject<T>>;
+type DefaultViews = Record<string, (...args: any[]) => ContractView>;
+type DefaultContractViews = Record<string, (args?: any) => OnChainView>;
+type DefaultStorage = unknown;
+const validateArgs = (args: any[], schema: ParameterSchema, name: string) => {
+  const sigs = schema.ExtractSignatures();
+
+  if (!sigs.find((x: any[]) => x.length === args.length)) {
+    throw new InvalidParameterError(name, sigs, args);
+  }
+};
+const isContractProvider = (variableToCheck: any): variableToCheck is ContractProvider =>
+  variableToCheck.contractProviderTypeSymbol !== undefined;
 export class ContractAbstraction<T extends ContractProvider | Wallet,
   TMethods extends DefaultMethods<T> = DefaultMethods<T>,
   TMethodsObject extends DefaultMethodsObject<T> = DefaultMethodsObject<T>,
@@ -4611,6 +7806,24 @@ export class ContractAbstraction<T extends ContractProvider | Wallet,
 }
 
 export type DefaultWalletType = ContractAbstraction<Wallet>;
+export const findWithKind = <T extends { kind: OpKind }, K extends OpKind>(
+  arr: T[],
+  kind: K
+): (T & { kind: K }) | undefined => {
+  if (Array.isArray(arr)) {
+    const found = arr.find(op => op.kind === kind);
+
+    if (found && isKind(found, kind)) {
+      return found;
+    }
+  }
+};
+export const isKind = <T extends { kind: OpKind }, K extends OpKind>(
+  op: T,
+  kind: K
+): op is withKind<T, K> => {
+  return op.kind === kind;
+};
 
 export class OriginationWalletOperation<TWallet extends DefaultWalletType = DefaultWalletType> extends WalletOperation {
   constructor(
@@ -4655,6 +7868,491 @@ export class OriginationWalletOperation<TWallet extends DefaultWalletType = Defa
   }
 }
 
+export interface Packer {
+  packData(data: PackDataParams): Promise<PackDataResponse>
+}
+export type HexString = string;
+export interface PackDataResponse {
+  packed: HexString;
+  gas?: BigNumber | 'unaccounted';
+}
+export type GlobalConstantHash = string; 
+export interface GlobalConstantsProvider {
+
+    /**
+     *
+     * @description Retrieve the Michelson value of a global constant based on its hash
+     *
+     * @param hash a string representing the global constant hash
+     */
+    getGlobalConstantByHash(hash: GlobalConstantHash): Promise<Expr>;
+}
+export interface TzProvider {
+  getBalance(address: string): Promise<BigNumber>;
+  getDelegate(address: string): Promise<string | null>;
+
+  activate(pkh: string, secret: string): Promise<Operation>;
+}
+export class RpcTzProvider extends OperationEmitter implements TzProvider {
+  constructor(context: Context) {
+    super(context);
+  }
+
+  async getBalance(address: string): Promise<BigNumber> {
+    if (validateAddress(address) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid address: ${address}`);
+    }
+    return this.rpc.getBalance(address);
+  }
+
+  async getDelegate(address: string): Promise<string | null> {
+    if (validateAddress(address) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid address: ${address}`);
+    }
+    return this.rpc.getDelegate(address);
+  }
+
+  async activate(pkh: string, secret: string) {
+    if (validateKeyHash(pkh) !== ValidationResult.VALID) {
+      throw new InvalidKeyHashError(`Invalid Public Key Hash: ${pkh}`);
+    }
+    const operation: RPCActivateOperation = {
+      kind: OpKind.ACTIVATION,
+      pkh,
+      secret,
+    };
+
+    const prepared = await this.prepareOperation({ operation: [operation], source: pkh });
+    const forgedBytes = await this.forge(prepared);
+    const bytes = `${forgedBytes.opbytes}00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000`;
+    return new Operation(
+      await this.rpc.injectOperation(bytes),
+      { ...forgedBytes, opbytes: bytes },
+      [],
+      this.context.clone()
+    );
+  }
+}
+interface Limits {
+  fee?: number;
+  storageLimit?: number;
+  gasLimit?: number;
+}
+const mergeLimits = (
+  userDefinedLimit: Limits,
+  defaultLimits: Required<Limits>
+): Required<Limits> => {
+  return {
+    fee: typeof userDefinedLimit.fee === 'undefined' ? defaultLimits.fee : userDefinedLimit.fee,
+    gasLimit:
+      typeof userDefinedLimit.gasLimit === 'undefined'
+        ? defaultLimits.gasLimit
+        : userDefinedLimit.gasLimit,
+    storageLimit:
+      typeof userDefinedLimit.storageLimit === 'undefined'
+        ? defaultLimits.storageLimit
+        : userDefinedLimit.storageLimit,
+  };
+};
+export class RPCEstimateProvider extends OperationEmitter implements EstimationProvider {
+  private readonly ALLOCATION_STORAGE = 257;
+  private readonly ORIGINATION_STORAGE = 257;
+  private readonly OP_SIZE_REVEAL = 128;
+
+  // Maximum values defined by the protocol
+  private async getAccountLimits(pkh: string, constants: ConstantsResponse, numberOfOps?: number) {
+    const balance = await this.rpc.getBalance(pkh);
+    const {
+      hard_gas_limit_per_operation,
+      hard_gas_limit_per_block,
+      hard_storage_limit_per_operation,
+      cost_per_byte,
+    } = constants;
+    return {
+      fee: 0,
+      gasLimit: numberOfOps
+        ? Math.floor(
+            this.ajustGasForBatchOperation(
+              hard_gas_limit_per_block,
+              hard_gas_limit_per_operation,
+              numberOfOps
+            ).toNumber()
+          )
+        : hard_gas_limit_per_operation.toNumber(),
+      storageLimit: Math.floor(
+        BigNumber.min(balance.dividedBy(cost_per_byte), hard_storage_limit_per_operation).toNumber()
+      ),
+    };
+  }
+
+  // Fix for Granada where the total gasLimit of a batch can not exceed the hard_gas_limit_per_block.
+  // If the total gasLimit of the batch is higher than the hard_gas_limit_per_block,
+  // the gasLimit is calculated by dividing the hard_gas_limit_per_block by the number of operation in the batch (numberOfOps).
+  // numberOfOps is incremented by 1 for safety in case a reveal operation is needed
+  private ajustGasForBatchOperation(
+    gasLimitBlock: BigNumber,
+    gaslimitOp: BigNumber,
+    numberOfOps: number
+  ) {
+    return BigNumber.min(gaslimitOp, gasLimitBlock.div(numberOfOps + 1));
+  }
+
+  private getEstimationPropertiesFromOperationContent(
+    content: PreapplyResponse['contents'][0],
+    size: number,
+    costPerByte: BigNumber
+  ): EstimateProperties {
+    const operationResults = flattenOperationResult({ contents: [content] });
+    let totalGas = 0;
+    let totalMilligas = 0;
+    let totalStorage = 0;
+    operationResults.forEach((result) => {
+      totalStorage +=
+        'originated_contracts' in result && typeof result.originated_contracts !== 'undefined'
+          ? result.originated_contracts.length * this.ORIGINATION_STORAGE
+          : 0;
+      totalStorage += 'allocated_destination_contract' in result ? this.ALLOCATION_STORAGE : 0;
+      totalGas += Number(result.consumed_gas) || 0;
+      totalMilligas += Number(result.consumed_milligas) || 0;
+      totalStorage +=
+        'paid_storage_size_diff' in result ? Number(result.paid_storage_size_diff) || 0 : 0;
+      totalStorage +=
+        'storage_size' in result && 'global_address' in result
+          ? Number(result.storage_size) || 0
+          : 0;
+    });
+
+    if (totalGas !== 0 && totalMilligas === 0) {
+      // This will convert gas to milligas for Carthagenet where result does not contain consumed gas in milligas.
+      totalMilligas = totalGas * 1000;
+    }
+
+    if (isOpWithFee(content)) {
+      return {
+        milligasLimit: totalMilligas || 0,
+        storageLimit: Number(totalStorage || 0),
+        opSize: size,
+        minimalFeePerStorageByteMutez: costPerByte.toNumber(),
+      };
+    } else {
+      return {
+        milligasLimit: 0,
+        storageLimit: 0,
+        opSize: size,
+        minimalFeePerStorageByteMutez: costPerByte.toNumber(),
+        baseFeeMutez: 0,
+      };
+    }
+  }
+
+  private async prepareEstimate(params: PrepareOperationParams, constants: ConstantsResponse) {
+    const prepared = await this.prepareOperation(params);
+    const {
+      opbytes,
+      opOb: { branch, contents },
+    } = await this.forge(prepared);
+    const operation: RPCRunOperationParam = {
+      operation: { branch, contents, signature: SIGNATURE_STUB },
+      chain_id: await this.rpc.getChainId(),
+    };
+
+    const { opResponse } = await this.simulate(operation);
+    const { cost_per_byte } = constants;
+    const errors = [...flattenErrors(opResponse, 'backtracked'), ...flattenErrors(opResponse)];
+
+    // Fail early in case of errors
+    if (errors.length) {
+      throw new TezosOperationError(errors);
+    }
+
+    let numberOfOps = 1;
+    if (Array.isArray(params.operation) && params.operation.length > 1) {
+      numberOfOps =
+        opResponse.contents[0].kind === 'reveal'
+          ? params.operation.length - 1
+          : params.operation.length;
+    }
+
+    return opResponse.contents.map((x) => {
+      return this.getEstimationPropertiesFromOperationContent(
+        x,
+        // TODO: Calculate a specific opSize for each operation.
+        x.kind === 'reveal' ? this.OP_SIZE_REVEAL / 2 : opbytes.length / 2 / numberOfOps,
+        cost_per_byte
+      );
+    });
+  }
+
+  /**
+   *
+   * @description Estimate gasLimit, storageLimit and fees for an origination operation
+   *
+   * @returns An estimation of gasLimit, storageLimit and fees for the operation
+   *
+   * @param OriginationOperation Originate operation parameter
+   */
+  async originate({ fee, storageLimit, gasLimit, ...rest }: OriginateParams) {
+    const pkh = await this.signer.publicKeyHash();
+    const protocolConstants = await this.rpc.getConstants();
+    const DEFAULT_PARAMS = await this.getAccountLimits(pkh, protocolConstants);
+    const op = await createOriginationOperation(
+      await this.context.parser.prepareCodeOrigination({
+        ...rest,
+        ...mergeLimits({ fee, storageLimit, gasLimit }, DEFAULT_PARAMS),
+      })
+    );
+    const isRevealNeeded = await this.isRevealOpNeeded([op], pkh);
+    const ops = isRevealNeeded ? await this.addRevealOp([op], pkh) : op;
+    const estimateProperties = await this.prepareEstimate(
+      { operation: ops, source: pkh },
+      protocolConstants
+    );
+    if (isRevealNeeded) {
+      estimateProperties.shift();
+    }
+    return Estimate.createEstimateInstanceFromProperties(estimateProperties);
+  }
+  /**
+   *
+   * @description Estimate gasLimit, storageLimit and fees for an transfer operation
+   *
+   * @returns An estimation of gasLimit, storageLimit and fees for the operation
+   *
+   * @param TransferOperation Originate operation parameter
+   */
+  async transfer({ fee, storageLimit, gasLimit, ...rest }: TransferParams) {
+    if (validateAddress(rest.to) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid 'to' address: ${rest.to}`);
+    }
+    if (rest.source && validateAddress(rest.source) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid 'source' address: ${rest.source}`);
+    }
+    const pkh = await this.signer.publicKeyHash();
+    const protocolConstants = await this.rpc.getConstants();
+    const DEFAULT_PARAMS = await this.getAccountLimits(pkh, protocolConstants);
+    const op = await createTransferOperation({
+      ...rest,
+      ...mergeLimits({ fee, storageLimit, gasLimit }, DEFAULT_PARAMS),
+    });
+    const isRevealNeeded = await this.isRevealOpNeeded([op], pkh);
+    const ops = isRevealNeeded ? await this.addRevealOp([op], pkh) : op;
+    const estimateProperties = await this.prepareEstimate(
+      { operation: ops, source: pkh },
+      protocolConstants
+    );
+    if (isRevealNeeded) {
+      estimateProperties.shift();
+    }
+    return Estimate.createEstimateInstanceFromProperties(estimateProperties);
+  }
+
+  /**
+   *
+   * @description Estimate gasLimit, storageLimit and fees for a delegate operation
+   *
+   * @returns An estimation of gasLimit, storageLimit and fees for the operation
+   *
+   * @param Estimate
+   */
+  async setDelegate({ fee, gasLimit, storageLimit, ...rest }: DelegateParams) {
+    if (rest.source && validateAddress(rest.source) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid source address: ${rest.source}`);
+    }
+    if (rest.delegate && validateAddress(rest.delegate) !== ValidationResult.VALID) {
+      throw new InvalidAddressError(`Invalid delegate address: ${rest.delegate}`);
+    }
+
+    const pkh = await this.signer.publicKeyHash();
+    const sourceOrDefault = rest.source || pkh;
+    const protocolConstants = await this.rpc.getConstants();
+    const DEFAULT_PARAMS = await this.getAccountLimits(sourceOrDefault, protocolConstants);
+    const op = await createSetDelegateOperation({
+      ...rest,
+      ...mergeLimits({ fee, storageLimit, gasLimit }, DEFAULT_PARAMS),
+    });
+    const isRevealNeeded = await this.isRevealOpNeeded([op], pkh);
+    const ops = isRevealNeeded ? await this.addRevealOp([op], pkh) : op;
+    const estimateProperties = await this.prepareEstimate(
+      { operation: ops, source: pkh },
+      protocolConstants
+    );
+    if (isRevealNeeded) {
+      estimateProperties.shift();
+    }
+    return Estimate.createEstimateInstanceFromProperties(estimateProperties);
+  }
+
+  /**
+   *
+   * @description Estimate gasLimit, storageLimit and fees for a each operation in the batch
+   *
+   * @returns An array of Estimate objects. If a reveal operation is needed, the first element of the array is the Estimate for the reveal operation.
+   */
+  async batch(params: ParamsWithKind[]) {
+    const pkh = await this.signer.publicKeyHash();
+    let operations: RPCOperation[] = [];
+    const protocolConstants = await this.rpc.getConstants();
+    const DEFAULT_PARAMS = await this.getAccountLimits(pkh, protocolConstants, params.length);
+    for (const param of params) {
+      switch (param.kind) {
+        case OpKind.TRANSACTION:
+          operations.push(
+            await createTransferOperation({
+              ...param,
+              ...mergeLimits(param, DEFAULT_PARAMS),
+            })
+          );
+          break;
+        case OpKind.ORIGINATION:
+          operations.push(
+            await createOriginationOperation(
+              await this.context.parser.prepareCodeOrigination({
+                ...param,
+                ...mergeLimits(param, DEFAULT_PARAMS),
+              })
+            )
+          );
+          break;
+        case OpKind.DELEGATION:
+          operations.push(
+            await createSetDelegateOperation({
+              ...param,
+              ...mergeLimits(param, DEFAULT_PARAMS),
+            })
+          );
+          break;
+        case OpKind.ACTIVATION:
+          operations.push({
+            ...param,
+            ...DEFAULT_PARAMS,
+          });
+          break;
+        case OpKind.REGISTER_GLOBAL_CONSTANT:
+          operations.push(
+            await createRegisterGlobalConstantOperation({
+              ...param,
+              ...mergeLimits(param, DEFAULT_PARAMS),
+            })
+          );
+          break;
+        default:
+          throw new Error(`Unsupported operation kind: ${(param as any).kind}`);
+      }
+    }
+    const isRevealNeeded = await this.isRevealOpNeeded(operations, pkh);
+    operations = isRevealNeeded ? await this.addRevealOp(operations, pkh) : operations;
+    const estimateProperties = await this.prepareEstimate(
+      { operation: operations, source: pkh },
+      protocolConstants
+    );
+
+    return Estimate.createArrayEstimateInstancesFromProperties(estimateProperties);
+  }
+
+  /**
+   *
+   * @description Estimate gasLimit, storageLimit and fees for a delegate operation
+   *
+   * @returns An estimation of gasLimit, storageLimit and fees for the operation
+   *
+   * @param Estimate
+   */
+  async registerDelegate(params: RegisterDelegateParams) {
+    const pkh = await this.signer.publicKeyHash();
+    const protocolConstants = await this.rpc.getConstants();
+    const DEFAULT_PARAMS = await this.getAccountLimits(pkh, protocolConstants);
+    const op = await createRegisterDelegateOperation({ ...params, ...DEFAULT_PARAMS }, pkh);
+    const isRevealNeeded = await this.isRevealOpNeeded([op], pkh);
+    const ops = isRevealNeeded ? await this.addRevealOp([op], pkh) : op;
+    const estimateProperties = await this.prepareEstimate(
+      { operation: ops, source: pkh },
+      protocolConstants
+    );
+    if (isRevealNeeded) {
+      estimateProperties.shift();
+    }
+    return Estimate.createEstimateInstanceFromProperties(estimateProperties);
+  }
+
+  /**
+   *
+   * @description Estimate gasLimit, storageLimit and fees to reveal the current account
+   *
+   * @returns An estimation of gasLimit, storageLimit and fees for the operation or undefined if the account is already revealed
+   *
+   * @param Estimate
+   */
+  async reveal(params?: RevealParams) {
+    const pkh = await this.signer.publicKeyHash();
+    if (await this.isAccountRevealRequired(pkh)) {
+      const protocolConstants = await this.rpc.getConstants();
+      const DEFAULT_PARAMS = await this.getAccountLimits(pkh, protocolConstants);
+      const op = await createRevealOperation(
+        {
+          ...params,
+          ...DEFAULT_PARAMS,
+        },
+        pkh,
+        await this.signer.publicKey()
+      );
+      const estimateProperties = await this.prepareEstimate(
+        { operation: op, source: pkh },
+        protocolConstants
+      );
+      return Estimate.createEstimateInstanceFromProperties(estimateProperties);
+    }
+  }
+
+  /**
+   *
+   * @description Estimate gasLimit, storageLimit and fees for an registerGlobalConstant operation
+   *
+   * @returns An estimation of gasLimit, storageLimit and fees for the operation
+   *
+   * @param params registerGlobalConstant operation parameter
+   */
+  async registerGlobalConstant({
+    fee,
+    storageLimit,
+    gasLimit,
+    ...rest
+  }: RegisterGlobalConstantParams) {
+    const pkh = await this.signer.publicKeyHash();
+    const protocolConstants = await this.rpc.getConstants();
+    const DEFAULT_PARAMS = await this.getAccountLimits(pkh, protocolConstants);
+    const op = await createRegisterGlobalConstantOperation({
+      ...rest,
+      ...mergeLimits({ fee, storageLimit, gasLimit }, DEFAULT_PARAMS),
+    });
+    const isRevealNeeded = await this.isRevealOpNeeded([op], pkh);
+    const ops = isRevealNeeded ? await this.addRevealOp([op], pkh) : op;
+    const estimateProperties = await this.prepareEstimate(
+      { operation: ops, source: pkh },
+      protocolConstants
+    );
+    if (isRevealNeeded) {
+      estimateProperties.shift();
+    }
+    return Estimate.createEstimateInstanceFromProperties(estimateProperties);
+  }
+
+  private async addRevealOp(op: RPCOperation[], pkh: string) {
+    op.unshift(
+      await createRevealOperation(
+        {
+          ...{
+            fee: DEFAULT_FEE.REVEAL,
+            gasLimit: DEFAULT_GAS_LIMIT.REVEAL,
+            storageLimit: DEFAULT_STORAGE_LIMIT.REVEAL,
+          },
+        },
+        pkh,
+        await this.signer.publicKey()
+      )
+    );
+    return op;
+  }
+}
 export class Context {
   private _rpcClient: RpcClientInterface;
   private _forger: Forger;
