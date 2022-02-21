@@ -3,6 +3,24 @@
 import { Account } from '@tonclient/appkit';
 import contractPackage from './contracts/TONTokenWallet.js';
 import contractPackageRoot from './contracts/RootTokenContract.js';
+import {
+  Address,
+  ProviderRpcClient,
+  TvmException
+} from 'everscale-inpage-provider';
+
+const ever = new ProviderRpcClient();
+
+async function login(){
+  const { accountInteraction } = await ever.requestPermissions({
+    permissions: ['basic', 'accountInteraction'],
+  });
+  if (accountInteraction == null) {
+    throw new Error('Insufficient permissions');
+  }
+}
+window.login = login;
+
 
 import {
   signerKeys,
