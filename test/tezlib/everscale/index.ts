@@ -139,7 +139,7 @@ export class Wallet extends Account {
     }
 }
 
-interface ITokenRecievedNotification {
+interface ITokenReceivedNotification {
     message_id: string
     from: string
     amount: number
@@ -161,7 +161,7 @@ export class TokenWallet {
         });
     }
 
-    private messageHandler(data: {boc: string, id: string, src: string}, callback: (data: ITokenRecievedNotification) => void){
+    private messageHandler(data: {boc: string, id: string, src: string}, callback: (data: ITokenReceivedNotification) => void){
         this.account.decodeMessage(data.boc).then(async decoded => {
             if(decoded.name === "internalTransfer"){
                 callback({
@@ -176,7 +176,7 @@ export class TokenWallet {
         })
     }
 
-    public async onTokenRecieved(callback: (data: ITokenRecievedNotification) => void){
+    public async onTokenReceived(callback: (data: ITokenReceivedNotification) => void){
         this.account.subscribeMessages("boc src id", data => this.messageHandler(data, callback));
     }
 
@@ -292,7 +292,7 @@ export class MassListener {
         return this.decodePayload(message.result[0].boc)
     }
 
-    private async coinRecievedHandler(transaction: ICoinTransaction, callback: INotificationHandler){
+    private async coinReceivedHandler(transaction: ICoinTransaction, callback: INotificationHandler){
         console.log(transaction)
         callback({
             amount: parseInt(transaction.balance_delta, 16) / 1_000_000_000,
@@ -304,12 +304,12 @@ export class MassListener {
         });
     }
 
-    private onCoinRecieved(callback: INotificationHandler){
+    private onCoinReceived(callback: INotificationHandler){
         this.client.net.subscribe_collection({
             collection: "transactions",
             filter: { account_addr: { in: this.coin_targets } },
             result: "id in_message {src dst} in_msg balance_delta"
-        }, ({result: tx}) => this.coinRecievedHandler(tx, callback));
+        }, ({result: tx}) => this.coinReceivedHandler(tx, callback));
     }
 
     private decodeMessage(boc: string){
@@ -324,7 +324,7 @@ export class MassListener {
         })
     }
 
-    private async tokenRecievedHandler(message: ITokenMessage, callback: INotificationHandler){
+    private async tokenReceivedHandler(message: ITokenMessage, callback: INotificationHandler){
         const decoded = await this.decodeMessage(message.boc);
         if(decoded.name === "internalTransfer"){
             callback({
@@ -338,17 +338,17 @@ export class MassListener {
         }
     }
 
-    private onTokenRecieved(callback: INotificationHandler){
+    private onTokenReceived(callback: INotificationHandler){
         this.client.net.subscribe_collection({
             collection: "messages",
             filter: { dst: { in: [...this.tokens.keys()] } },
             result: "boc src dst id"
-        }, ({result: msg}) => this.tokenRecievedHandler(msg, callback))
+        }, ({result: msg}) => this.tokenReceivedHandler(msg, callback))
     }
     
 
-    public onRecieved(callback: INotificationHandler){
-        this.onTokenRecieved(callback);
-        this.onCoinRecieved(callback);
+    public onReceived(callback: INotificationHandler){
+        this.onTokenReceived(callback);
+        this.onCoinReceived(callback);
     }
 }

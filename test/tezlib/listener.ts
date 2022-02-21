@@ -22,8 +22,8 @@ async function main() {
     console.log(`[*] TEZOS: Listening ${config.tezos.token_contract} for incoming tokens...`)
     console.log("\n");
 
-    everscale.onTokenRecieved(data => {
-        console.log(`[*] EVERSCALE: Token recieved!\n | Amount: ${data.amount}\n | Payload: ${data.payload}`);
+    everscale.onTokenReceived(data => {
+        console.log(`[*] EVERSCALE: Token received!\n | Amount: ${data.amount}\n | Payload: ${data.payload}`);
     })
 
     const tezosSubscription = tezos.stream.subscribeOperation({
@@ -33,7 +33,7 @@ async function main() {
     tezosSubscription.on("data", (data: any) => {
         const [{string: reciever}, {int: amount}] = data.parameters.value.args[1].args;
         if(reciever === config.tezos.address) {
-            console.log(`[*] TEZOS: Token recieved!\n | Amount: ${amount}`);
+            console.log(`[*] TEZOS: Token received!\n | Amount: ${amount}`);
         }
     })
 }

@@ -13,9 +13,9 @@ const client = new TonClient({
 
 async function main() {
     const listener = new MassListener(client, [config.coin.address], config.tokens);
-    listener.onRecieved(notification => {
-        console.log("RECIEVED:", notification);
-    })
+    listener.onReceived(notification => {
+        console.log("RECEIVED:", notification);
+    });
     
     const wallet = await Wallet.init(client, await client.crypto.generate_random_sign_keys());
     await wallet.transfer(config.coin.address, 1);
