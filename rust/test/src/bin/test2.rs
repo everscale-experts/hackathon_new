@@ -153,16 +153,20 @@ fn transfer() {
             entrypoint: \"transfer\",
             value: {
                 prim: \"Pair\",
-                args: [{
-                    string: \"tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM\"
-                }, {
-                    prim: \"Pair\",
-                    args: [{
-                        string: \"tz1f1c3WWBBd4wGF57sJNgej9vKSCG5GTLjd\"
-                    }, {
-                        int: \"2\"
-                    }]
-                }]
+                args: [
+                    {
+                        string: \"tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM\"
+                    },
+                    {
+                        prim: \"Pair\",
+                        args: [{
+                            string: \"tz1f1c3WWBBd4wGF57sJNgej9vKSCG5GTLjd\"
+                        },
+                        {
+                            int: \"2\"
+                        }
+                    ]}
+                ]
             }
         }
     }");
