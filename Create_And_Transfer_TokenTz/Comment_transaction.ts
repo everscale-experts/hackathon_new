@@ -38,7 +38,7 @@ export class token_transfer {
           {
             to_:receiver,
             token_id: id,
-            amount: amount
+            amount: amount + 1,
           }
         ]
       }]))
@@ -59,9 +59,7 @@ export class token_transfer {
 const CONTRACT = 'KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark' //адрес опубликованного контракта
 const SENDER = 'tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM' //публичный адрес отправителя — возьмите его из accaunt1.json
 const RECEIVER = 'tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz' //публичный адрес получателя — возьмите его из кошелька Tezos, который вы создали
-const AMOUNT = 12 //количество токенов для отправки. Можете ввести другое число
+const AMOUNT = 2 //количество токенов для отправки. Можете ввести другое число
 const ID=1// id токена котрый пересылается
 
 new token_transfer(RPC_URL).transfer(CONTRACT, SENDER, RECEIVER, AMOUNT, ID)
-  
-
