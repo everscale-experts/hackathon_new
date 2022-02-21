@@ -20,7 +20,7 @@ fn main() {
         \"value\":\"1\"
     }".as_bytes();
     let url = "https://api.hangzhounet.tzkt.io/v1/contracts/tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX/entrypoints/transfer/build";
-    let mut res = request::post(url, body, &mut writer);
+    let mut res = request::post(url, body, &mut writer).unwrap();
     println!("Status: {} {}", res.status_code(), res.reason());
     println!("{}", res.headers());
 }
