@@ -293,7 +293,6 @@ export class MassListener {
     }
 
     private async coinReceivedHandler(transaction: ICoinTransaction, callback: INotificationHandler){
-        console.log(transaction)
         callback({
             amount: parseInt(transaction.balance_delta, 16) / 1_000_000_000,
             from: transaction.in_message.src,

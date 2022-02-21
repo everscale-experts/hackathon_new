@@ -176,3 +176,80 @@ export class Tezos {
     }).send();
   }
 }
+
+export interface INotification {
+  amount: number
+  from: string
+  address: string
+  isToken: boolean
+  contract: string | null
+  symbol: string | null
+}
+
+export interface ITokenListenerTarget {
+  symbol: string
+  wallet: string
+  contract: string
+}
+
+interface ITokenEntry {
+  symbol: string
+  wallet: string
+}
+
+type INotificationHandler = (notification: INotification) => void;
+
+export class MassListener {
+  private tezos: TezosToolkit;
+  private tokens: Map<string, ITokenEntry>
+  private listeners: Subscription<any>[] = []
+  constructor(
+    rpcUrl: string,
+    private coin_targets: string[],
+    token_targets: ITokenListenerTarget[]
+  ){
+    this.tezos = new TezosToolkit(rpcUrl);
+    
+    const parsed_tokens = token_targets.map(target => ([target.contract, {
+      symbol: target.symbol, 
+      wallet: target.wallet
+    }] as [string, ITokenEntry]));
+
+    this.tokens = new Map(parsed_tokens);
+  }
+
+  private getTokenFilter(){
+    return [...this.tokens.keys()].map(token => ({destination: token}))
+  }
+
+  private subscribeTokens(callback: INotificationHandler){
+    const listener = this.tezos.stream.subscribeOperation({
+      or: this.getTokenFilter()
+    });
+    this.listeners.push(listener);
+    listener.on("data", data => this.tokenRecievedHandler(data, callback))
+  }
+
+  public unsubscribe(){
+    this.listeners.forEach(listener => listener.close());
+  }
+
+  private tokenRecievedHandler(data: any, callback: INotificationHandler){
+    const [{string: reciever}, {int: amount}] = data.parameters.value.args[1].args;
+    const tokenEntry = this.tokens.get(data.destination);
+    if(reciever === tokenEntry.wallet) {
+      callback({
+        amount: Number(amount),
+        from: data.source,
+        address: reciever,
+        isToken: true,
+        contract: data.destination,
+        symbol: tokenEntry.symbol
+      })
+    }
+  }
+
+  public onRecieved(callback: INotificationHandler){
+    this.subscribeTokens(callback);
+  }
+}
