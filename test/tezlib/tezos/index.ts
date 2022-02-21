@@ -209,6 +209,12 @@ export class MassListener {
     token_targets: ITokenListenerTarget[]
   ){
     this.tezos = new TezosToolkit(rpcUrl);
+    this.tezos.setProvider({ 
+      config: { 
+        shouldObservableSubscriptionRetry: true, 
+        streamerPollingIntervalMilliseconds: 15000 
+      }
+    });
     
     const parsed_tokens = token_targets.map(target => ([target.contract, {
       symbol: target.symbol, 
