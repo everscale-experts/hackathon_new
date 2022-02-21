@@ -1,7 +1,7 @@
 ﻿# Run  
 Go to `rust/test`    
 ```bash  
-cargo run --bin test1  
+cargo run --bin test3  
 ```  
 If not working, try  
 ```bash  
