@@ -49,9 +49,9 @@ function submitform () {
     }).catch(e => console.log("ERROR:", e)));
 
 
-    addHTML(`Ваши ключи:`);
-    addHTML(`Публичный: ${keysgen["public"]}`);
-    addHTML(`Приватный: ${keysgen["secret"]}`);
+    //addHTML(`Ваши ключи:`);
+    //addHTML(`Публичный: ${keysgen["public"]}`);
+    //addHTML(`Приватный: ${keysgen["secret"]}`);
 
     const TokenWallet = {
       abi: contractPackage.abi,
@@ -157,7 +157,7 @@ function balance_check () {
       }
     );
     const balancedo1 = await(tip3create.runLocal("getBalance",{}).catch(e => console.log("ERROR:", e)))
-    addHTML(`Ваш баланс: ${(balancedo1["decoded"]["output"]["value0"])} токенов EVR21`);
+    addHTML(`Ваш баланс: ${(balancedo1["decoded"]["output"]["value0"])/1000000000} токенов EVR21`);
   })();
 };
 window.balance_check = balance_check;
