@@ -43,7 +43,7 @@ tvm_linker decode --tvc flex/tokens-fungible/TONTokenWallet.tvc > decode.txt
 
 
 ./tonos-cli call 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae deployWallet '{"_answer_id":"0", "pubkey":"0xb66483a3491b26026520f35f7dad6b0c0185fcf5f857f756fad50a755cc6d270", "tokens":"10000000000","evers":"2000000000"}' --sign deploy.keys.json --abi flex/tokens-fungible/RootTokenContract.abi
-./tonos-cli call 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae deployWallet '{"_answer_id":"0", "pubkey":"0xf34b3397a1d3ad46a09a6b4f184d66953de98c38faeabdf496ed034d9578891f", "tokens":"10000000000","evers":"2000000000"}' --sign deploy.keys.json --abi flex/tokens-fungible/RootTokenContract.abi
+./tonos-cli call 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae deployWallet '{"_answer_id":"0", "pubkey":"0x6bae20d514e25347139ca62cb1e84d7168e1db42a69664e4c5e7194b00de0d53", "tokens":"10000000000","evers":"2000000000"}' --sign deploy.keys.json --abi flex/tokens-fungible/RootTokenContract.abi
 
 
 ./tonos-cli run 0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1 getBalance {} --abi flex/tokens-fungible/TONTokenWallet.abi
