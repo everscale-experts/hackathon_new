@@ -1,6 +1,6 @@
 import { TonClient } from "@tonclient/core";
 import { libNode } from "@tonclient/lib-node";
-import { TokenWallet } from "./everscale/everlib";
+import { TokenWallet } from "./everscale";
 import config from "./everscale_transfer.config.json";
 
 TonClient.useBinaryLibrary(libNode);
