@@ -7,6 +7,8 @@ npm i
 npm install light-server
 npx light-server -s dist
 ```
+
+## Проверить localhost или что у вас там)) на порту 4000
 # Доступные кошельки для теста
 
 0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647
