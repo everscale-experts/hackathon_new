@@ -5,8 +5,7 @@ import { MassListener as TezosListener, Tezos } from "../tezos";
 import ever_config from "./everscale.config.json";
 import tezos_config from "./tezos.config.json";
 
-import acc1 from "../tezos/accounts/account1.json"
-import acc2 from "../tezos/accounts/account2.json"
+import acc from "../tezos/accounts/account2.json"
 
 TonClient.useBinaryLibrary(libNode);
 
@@ -21,19 +20,19 @@ const tezosRpc = "https://rpc.hangzhounet.teztnets.xyz";
 async function main() {
     const tezos_listener = new TezosListener(tezosRpc, [tezos_config.coin.address], tezos_config.tokens);
     const everscale_listener = new EverscaleListener(client, [ever_config.coin.address], ever_config.tokens);
-    everscale_listener.onReceived(notification => {
-        console.log("RECEIVED:", notification);
+
+    everscale_listener.onReceived((notification) => {
+        console.log("EVER:", notification);
     });
 
     tezos_listener.onRecieved((notification) => {
-        console.log(notification)
+        console.log("TEZOS:", notification)
     })
 
-    const wallet1 = new Tezos(tezosRpc, acc1);
-    const wallet2 = new Tezos(tezosRpc, acc2);
+    const wallet = new Tezos(tezosRpc, acc);
 
-    await wallet2.transferToken("KT1TbLx2naxBorSXfo1KzZDe5taYfTyXD3YX", "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM", 5);
-    console.log("transfer complete!");
+    await wallet.transferToken("KT1TbLx2naxBorSXfo1KzZDe5taYfTyXD3YX", "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM", 5);
+    await wallet.transfer("tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM", 1);
 }
 
 main().catch(e => {

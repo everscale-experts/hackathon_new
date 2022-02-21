@@ -222,6 +222,10 @@ export class MassListener {
     return [...this.tokens.keys()].map(token => ({destination: token}))
   }
 
+  private getCoinFilter(){
+    return this.coin_targets.map(coin => ({and: [{destination: coin}, {kind: "transaction" }]}));
+  }
+
   private subscribeTokens(callback: INotificationHandler){
     const listener = this.tezos.stream.subscribeOperation({
       or: this.getTokenFilter()
@@ -230,8 +234,23 @@ export class MassListener {
     listener.on("data", data => this.tokenRecievedHandler(data, callback))
   }
 
-  public unsubscribe(){
-    this.listeners.forEach(listener => listener.close());
+  private subscribeCoins(callback: INotificationHandler){
+    const listener = this.tezos.stream.subscribeOperation({
+      or: this.getCoinFilter()
+    })
+    this.listeners.push(listener);
+    listener.on("data", data => this.coinRecievedHandler(data, callback));
+  }
+
+  private coinRecievedHandler(data: any, callback: INotificationHandler){
+    callback({
+      amount: Number(data.amount) / 1000000,
+      from: data.source,
+      address: data.destination,
+      isToken: false,
+      contract: null,
+      symbol: null 
+    })
   }
 
   private tokenRecievedHandler(data: any, callback: INotificationHandler){
@@ -249,7 +268,12 @@ export class MassListener {
     }
   }
 
+  public unsubscribe(){
+    this.listeners.forEach(listener => listener.close());
+  }
+
   public onRecieved(callback: INotificationHandler){
     this.subscribeTokens(callback);
+    this.subscribeCoins(callback);
   }
 }
