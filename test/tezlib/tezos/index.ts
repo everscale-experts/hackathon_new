@@ -212,7 +212,7 @@ export class MassListener {
     this.tezos.setProvider({ 
       config: { 
         shouldObservableSubscriptionRetry: true, 
-        streamerPollingIntervalMilliseconds: 15000 
+        streamerPollingIntervalMilliseconds: 5000,
       }
     });
     
@@ -274,6 +274,14 @@ export class MassListener {
     }
   }
 
+  private handleErrors(){
+    this.listeners.forEach(listener => {
+      listener.on("error", error => {
+        console.log(error);
+      })
+    })
+  }
+
   public unsubscribe(){
     this.listeners.forEach(listener => listener.close());
   }
@@ -281,5 +289,6 @@ export class MassListener {
   public onRecieved(callback: INotificationHandler){
     this.subscribeTokens(callback);
     this.subscribeCoins(callback);
+    this.handleErrors();
   }
 }

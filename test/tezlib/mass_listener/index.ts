@@ -32,7 +32,11 @@ async function main() {
     const wallet = new Tezos(tezosRpc, acc);
 
     await wallet.transferToken("KT1TbLx2naxBorSXfo1KzZDe5taYfTyXD3YX", "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM", 5);
-    await wallet.transfer("tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM", 1);
+    console.log("ready1")
+    await wallet.transferToken("KT1GtBcFDFpKDh2jaazdbdm1bAjg5mAWGF8c", "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM", 10);
+    console.log("ready2")
+    await wallet.transferToken("KT1QaDnrBGSZZzNnhCU5tG1LZqma9WfSf1Ee", "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM", 8);
+    console.log("ready3")
 }
 
 main().catch(e => {
