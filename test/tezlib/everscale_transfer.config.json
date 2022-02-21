@@ -1,0 +1,12 @@
+{
+    "account": {
+        "keys": {
+            "public": "fdee028b0ab1bff8845447a2ac16a44b3598ae53cd7558824d124b214db5e724",
+            "secret": "8a102aee621fbe2b4b57ecf68a220bcf5826c69a5ac585d109337e3dbc230614"
+        },
+        "address": "0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647"
+    },
+    "to": "0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1",
+    "amount": 1,
+    "transfer_payload": "test_address_payload"
+}
