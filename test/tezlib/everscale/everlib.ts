@@ -94,7 +94,7 @@ export class Wallet extends Account {
             payload: comment ? await this.getCommentPayload(comment) : ""
         })
     }
-    
+
     public async onTransaction(callback: (data: ITransactionNotification) => void){
         await this.subscribe("transactions", {
             account_addr: { eq: await this.getAddress() }
@@ -139,7 +139,7 @@ export class TokenWallet {
         this.keys = keys;
         this.account = new Account(getContract("TokenWallet"), {
             signer: keys ? signerKeys(keys) : signerNone(),
-            address, 
+            address,
             client
         });
     }
@@ -206,7 +206,7 @@ export class TokenWallet {
             return_ownership: 0,
             payload: payload ? await this.getCommentPayload(payload) : ""
         });
-        
+
         return transfer.out_messages.length ? transfer.transaction.id : null
     }
 }
