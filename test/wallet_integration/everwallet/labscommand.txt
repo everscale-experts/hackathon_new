@@ -1,5 +1,4 @@
-"meat alcohol target lyrics aware impose ti
-mber trial cash foot improve notable"
+"meat alcohol target lyrics aware impose timber trial cash foot improve notable"
 
 second wallet
 stuff leaf funny wrap depart diesel author comfort thrive breeze come smart
@@ -44,10 +43,12 @@ tvm_linker decode --tvc flex/tokens-fungible/TONTokenWallet.tvc > decode.txt
 
 
 ./tonos-cli call 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae deployWallet '{"_answer_id":"0", "pubkey":"0xb66483a3491b26026520f35f7dad6b0c0185fcf5f857f756fad50a755cc6d270", "tokens":"10000000000","evers":"2000000000"}' --sign deploy.keys.json --abi flex/tokens-fungible/RootTokenContract.abi
+./tonos-cli call 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae deployWallet '{"_answer_id":"0", "pubkey":"0xf34b3397a1d3ad46a09a6b4f184d66953de98c38faeabdf496ed034d9578891f", "tokens":"10000000000","evers":"2000000000"}' --sign deploy.keys.json --abi flex/tokens-fungible/RootTokenContract.abi
 
 
 ./tonos-cli run 0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1 getBalance {} --abi flex/tokens-fungible/TONTokenWallet.abi
 ./tonos-cli run 0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647 getBalance {} --abi flex/tokens-fungible/TONTokenWallet.abi
+./tonos-cli run 0:88c82d8d7eb5f51e63cf4d0321c11041d1e8701cbbb5df0c42381b00f5b3edc0 getBalance {} --abi flex/tokens-fungible/TONTokenWallet.abi
 
 
 ./tonos-cli call 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae deployWallet '{"_answer_id":"0", "pubkey":"0xfdee028b0ab1bff8845447a2ac16a44b3598ae53cd7558824d124b214db5e724", "tokens":"10000000000","evers":"2000000000"}' --sign deploy.keys.json --abi flex/tokens-fungible/RootTokenContract.abi
