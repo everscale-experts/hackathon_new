@@ -86,7 +86,7 @@ changing ureq version
   
   
 ## Algorithm  
-### build parameterst (https://api.hangzhounet.tzkt.io/v1/contracts/{address}/entrypoints/transfer/build)  
+### build parameters (https://api.hangzhounet.tzkt.io/v1/contracts/{address}/entrypoints/transfer/build)  
 ```json
 {
   "from": "<address>",
