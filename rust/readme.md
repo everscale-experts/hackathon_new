@@ -32,6 +32,8 @@ https://docs.dipdup.net/
 ##### StructOpt docs  
 https://docs.rs/structopt/latest/structopt/  
   
+## from taquito  
+lines 248-259 from packages/taquito/src/wallet/wallet.ts  
   
 # Problems  
 ## build command for ring v0.16.20  
