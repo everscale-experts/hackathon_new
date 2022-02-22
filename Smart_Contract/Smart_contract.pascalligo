@@ -1,8 +1,16 @@
+//первый способ 
+// смарт контракт KT1X7DmWgCU4h1V7hbwPpzwGJcXBfoydcgwW
+
+
 type strings is (string*string*string*string*string*string)
+
 type action is
 | Addition of strings
+
 type storage is string
+
 function add (const adresResieverTz: string ; const adresSenderTz : string; const amountTz : string; const adresResieerEver: string; const adressContractToken : string; const nameId:string) : string is adresResieverTz^" "^adresSenderTz^" "^amountTz^" "^adresResieerEver^" "^adressContractToken^" "^nameId
+
 function main (const parameter : action ; const _store : storage) :
  (list(operation) * string) is block {
    const result : string =
@@ -11,4 +19,32 @@ function main (const parameter : action ; const _store : storage) :
  end;
  } with ((nil : list(operation)), result)
 
-)
+
+
+
+
+//второй способ 
+//Смарт контракт KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw
+
+
+
+type p1 is michelson_pair(string,"adressContractToken", string,"nameId")
+type p2 is michelson_pair(string,"adresResieerEver", p1, "p1")
+type p3 is michelson_pair(string,"amountTz", p2, "p2")
+type p4 is michelson_pair(string,"adresSenderTz", p3, "p3")
+type p5 is michelson_pair(string,"adresResieverTz", p4, "p4")
+
+type action is
+| Addition of p5
+type storage is string
+function add (const adresResieverTz: string ; const adresSenderTz : string; const amountTz : string; const adresResieerEver: string; const adressContractToken : string; const nameId:string) : string is adresResieverTz^" "^adresSenderTz^" "^amountTz^" "^adresResieerEver^" "^adressContractToken^" "^nameId
+function main (const parameter : action ; const store : storage) :
+(list(operation) * string) is block {
+  const result : string =
+  case parameter of
+| Addition(params) -> add(params.0, params.1.0, params.1.1.0, params.1.1.1.0, params.1.1.1.1.0, params.1.1.1.1.1)
+end;
+} with ((nil : list(operation)), result)
+
+
+
