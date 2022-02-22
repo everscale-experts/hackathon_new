@@ -4,15 +4,49 @@ import { Account } from '@tonclient/appkit';
 import contractPackage from './contracts/TONTokenWallet.js';
 import contractPackageRoot from './contracts/RootTokenContract.js';
 import contractPackageSM from './contracts/SafeMultisig.js';
-
+import {
+  signerKeys,
+  TonClient,
+  MessageBodyType,
+  signerNone,
+  //abiContract,
+} from "@tonclient/core";
+import { libWeb } from '@tonclient/lib-web';
 import {
   Address,
   ProviderRpcClient,
   TvmException
 } from 'everscale-inpage-provider';
 
+TonClient.useBinaryLibrary(libWeb);
+
+/*Local Storage*/
+
+const broxus_address = localStorage.getItem('broxus_address') || 0;
+
+
+/* Temporary function for testing */
+
+function addHTML(message) {
+  document.body.insertAdjacentHTML("beforeend", `<p>${message}</p>`);
+}
+
+/* Contracts(maybe we don't need this) */
+
+const TokenWallet = {
+  abi: contractPackage.abi,
+  tvc:contractPackage.tvc,
+}
+const TokenRoot = {
+  abi: contractPackageRoot.abi,
+  tvc:contractPackageRoot.tvc,
+}
+
+/* Auth in EVERCRYSTAL*/
+
 const ever = new ProviderRpcClient();
-//const keys = localStorage.getItem('highScore') || 0;
+
+/* Login in EVERCRYSTAL*/
 
 async function login(){
   const { accountInteraction } = await ever.requestPermissions({
@@ -21,37 +55,35 @@ async function login(){
   if (accountInteraction == null) {
     throw new Error('Insufficient permissions');
   }
+  localStorage.setItem('broxus_address', accountInteraction.address);
+
 }
 window.login = login;
 
-async function send(){
-  const send = await ever.sendMessage({
-    sender:"0:129dc05b739d8ab9161ac710b92e1e3dcfb32e284a509ed8180e978554b1e16b",
-    recipient:"0:0eb093156b485497001f06cf5332861b34f306963c2476af5f433fe7050da0a0",
-    amount:"500000000",
-    bounce:false,
-    /*payload:{
-      abi:contractPackageSM.abi,
-      method:"sendTransaction",
-      params:{
-        dest:"0:0eb093156b485497001f06cf5332861b34f306963c2476af5f433fe7050da0a0",
-        value:500000000,
-        bounce: false,
-        allBalance: false,
-      }
-    }*/
-  })
-}
-window.send = send;
-
+/* Logout in EVERCRYSTAL*/
 
 async function login_out(){
   await ever.disconnect();
 }
 window.login_out = login_out;
 
+/* Send in EVERCRYSTAL*/
 
+async function send(){
+  var form = document.querySelector('#myform');
+  var formData = new FormData(form);
+  var address = formData.get('address');
+  const tokenvalue = parseFloat(formData.get('token')) * 1000000000;
+  const send = await ever.sendMessage({
+    sender:broxus_address,
+    recipient:address,
+    amount:tokenvalue.toString(),
+    bounce:false,
+  })
+}
+window.send = send;
 
+/* Login in Extraton*/
 
 async function login_extraton(){
   const provider = await new freeton.providers.ExtensionProvider(
@@ -62,23 +94,7 @@ async function login_extraton(){
 window.login_extraton = login_extraton;
 
 
-
-import {
-  signerKeys,
-  TonClient,
-  MessageBodyType,
-  signerNone,
-  //abiContract,
-} from "@tonclient/core"
-import { libWeb } from '@tonclient/lib-web';
-
-TonClient.useBinaryLibrary(libWeb);
-
-
-function addHTML(message) {
-  document.body.insertAdjacentHTML("beforeend", `<p>${message}</p>`);
-}
-
+/* Temporary functions for signing via TONSDK */
 
 
 function submitform () {
@@ -106,20 +122,6 @@ function submitform () {
       phrase: seed,
       path: HD_PATH,
     }).catch(e => console.log("ERROR:", e)));
-
-
-    //addHTML(`Ваши ключи:`);
-    //addHTML(`Публичный: ${keysgen["public"]}`);
-    //addHTML(`Приватный: ${keysgen["secret"]}`);
-
-    const TokenWallet = {
-      abi: contractPackage.abi,
-      tvc:contractPackage.tvc,
-    }
-    const TokenRoot = {
-      abi: contractPackageRoot.abi,
-      tvc:contractPackageRoot.tvc,
-    }
 
     const accountroot = new Account(
       TokenRoot,
@@ -187,14 +189,7 @@ function balance_check () {
     addHTML(`Публичный: ${keysgen["public"]}`);
     addHTML(`Приватный: ${keysgen["secret"]}`);
 
-    const TokenWallet = {
-      abi: contractPackage.abi,
-      tvc:contractPackage.tvc,
-    }
-    const TokenRoot = {
-      abi: contractPackageRoot.abi,
-      tvc:contractPackageRoot.tvc,
-    }
+
 
     const accountroot = new Account(
       TokenRoot,
