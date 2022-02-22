@@ -1,26 +1,34 @@
-use http_req::request;
-use http_req::response::StatusCode;
+use rpc_api::http_api::HttpApi;
+mod common;
+use common::operation_command::LocalWalletState;
+use types::PublicKey;
+use types::PrivateKey;
+type Error = Box<dyn std::error::Error>;
 
+pub struct OperationSignatureInfo {
+    /// base58check with prefix(`Prefix::operation`) encoded operation hash.
+    pub operation_hash: String,
+    /// forged operation(hex) concatenated with signature('hex').
+    pub operation_with_signature: String,
+    /// operation signature encoded with base58check with prefix (`Prefix::edsig`).
+    pub signature: String,
+}
+
+fn sign_operation() -> Result<OperationSignatureInfo, Error> {
+    let local_state = LocalWalletState {
+        public_key: PublicKey::from_base58check("edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH").unwrap(),
+        private_key: PrivateKey::from_base58check("edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD").unwrap(),
+    };
+    if let Some(state) = Some(&local_state) {
+        // let forged_operation = operation_group.forge();
+        let sig_info = state.signer().sign_forged_operation_bytes(
+            forged_operation.as_ref(),
+        );
+        Ok(sig_info)
+    } else {
+        exit_with_error_no_wallet_type_selected()
+    }
+}
 fn main() {
-    // let mut writer = Vec::new();
-    // let mut res = request::get("https://doc.rust-lang.org", &mut writer).unwrap();
-    // println!("Status: {} {}", res.status_code(), res.reason());
-    // println!("{}", res.headers());
-    // if res.status_code() == StatusCode::new(302) {
-    //     let location = "https://www.rust-lang.org/learn";
-    //     let location2 =res.headers().get("Location");
-    //     println!("{}", location2.unwrap());
-    //     // ERROR
-    //     let _res2 = request::get(location, &mut writer).unwrap();
-    // }
-    let mut writer: Vec<u8> = Vec::new();
-    let body = "{
-        \"from\":\"tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R\",
-        \"to\":\"tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R\",
-        \"value\":\"1\"
-    }".as_bytes();
-    let url = "https://api.hangzhounet.tzkt.io/v1/contracts/tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX/entrypoints/transfer/build";
-    let mut res = request::post(url, body, &mut writer).unwrap();
-    println!("Status: {} {}", res.status_code(), res.reason());
-    println!("{}", res.headers());
+    let client = HttpApi::new(base_url);
 }
