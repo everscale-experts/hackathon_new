@@ -20,6 +20,41 @@ import {
 
 TonClient.useBinaryLibrary(libWeb);
 
+/* Temple Wallet */
+/*
+import { TezosToolkit } from '@taquito/taquito';
+
+const Tezos = new TezosToolkit('https://testnet-tezos.giganode.io');
+import { BeaconWallet } from '@taquito/beacon-wallet';
+const options = {
+  name: 'EverscaleBridge',
+  iconUrl: 'https://tezostaquito.io/img/favicon.png',
+  preferredNetwork: "hangzhounet",
+  eventHandlers: {
+    PERMISSION_REQUEST_SUCCESS: {
+      handler: async (data) => {
+        console.log('permission data:', data);
+      },
+    },
+  },
+};
+const wallet = new BeaconWallet(options);
+
+async function login_with_tezos(){
+  await wallet.requestPermissions({
+    network: {
+      type: 'mainnet' | 'granadanet' | 'hangzhounet' | 'custom',
+    },
+  });
+  const userAddress = await wallet.getPKH();
+
+Tezos.setWalletProvider(wallet);
+}
+window.login_with_tezos = login_with_tezos;
+
+*/
+
+
 /*Local Storage*/
 
 const broxus_address = localStorage.getItem('broxus_address') || 0;
@@ -64,6 +99,7 @@ window.login = login;
 
 async function login_out(){
   await ever.disconnect();
+  localStorage.removeItem('broxus_address');
 }
 window.login_out = login_out;
 

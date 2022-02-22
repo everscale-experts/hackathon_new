@@ -15,6 +15,9 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
+    "@taquito/beacon-wallet": "^11.2.0",
+    "@taquito/tezbridge-wallet": "^11.2.0",
+    "@temple-wallet/dapp": "^6.1.0",
     "@tonclient/appkit": "^0.3.0",
     "@tonclient/core": "^1.30.0",
     "@tonclient/lib-web": "^1.30.0",
