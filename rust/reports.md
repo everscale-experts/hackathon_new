@@ -6,13 +6,13 @@
 2) Сфорджите транзакцию с помощью рпц /helpers/forge/operations https://gitlab.com/tezos/tezos/-/blob/master/docs/api/hangzhou-openapi.json.  
 3) Отправьте полученные байты с помощью рпц /injection/operation  
   - Документация: https://tezos.gitlab.io/shell/rpc.html.  
-  - 
   
 ### Трудности, если были
-- третий пункт було непонятно, как делать;  
-Нашел дополнительную информацию здесь:
-- ...ссылки..
-- ...
+- третий пункт непонятно, как делать;  
+Нашел дополнительную информацию здесь:  
+https://tezosguides.com/wallet_integration/basics/sign/  
+https://tezos.stackexchange.com/questions/3904/call-contract-entrypoint-that-requires-tez-to-be-sent  
+https://baking-bad.org/blog/2021/03/03/tzkt-v14-released-with-improved-smart-contract-data-and-websocket-api/  
   
 ### План на завтра
 - разобраться с третьим пунктом, т.е. как сформировать запрос к RPC;  
@@ -20,10 +20,11 @@
 Ссылка: https://tezosdefihack-2022.slack.com/archives/C02QS4D5AV8/p1645463648299039?thread_ts=1645389926.038619&cid=C02QS4D5AV8  
   
 # 22/02/2022    
-### Что сделано
-...
+### Что сделано  
+Найдена информация о подписи  
+https://tezos.stackexchange.com/questions/2825/how-to-write-my-own-signer  
 ### Трудности, если были
-...
+...  
 ### План на завтра
 ...
   
