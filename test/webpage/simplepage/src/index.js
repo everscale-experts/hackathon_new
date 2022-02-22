@@ -1,8 +1,10 @@
 //import { TONClient, setWasmOptions, abiContract } from 'ton-client-web-js';
-
+import freeton from 'freeton';
 import { Account } from '@tonclient/appkit';
 import contractPackage from './contracts/TONTokenWallet.js';
 import contractPackageRoot from './contracts/RootTokenContract.js';
+import contractPackageSM from './contracts/SafeMultisig.js';
+
 import {
   Address,
   ProviderRpcClient,
@@ -10,6 +12,7 @@ import {
 } from 'everscale-inpage-provider';
 
 const ever = new ProviderRpcClient();
+//const keys = localStorage.getItem('highScore') || 0;
 
 async function login(){
   const { accountInteraction } = await ever.requestPermissions({
@@ -20,6 +23,44 @@ async function login(){
   }
 }
 window.login = login;
+
+async function send(){
+  const send = await ever.sendMessage({
+    sender:"0:129dc05b739d8ab9161ac710b92e1e3dcfb32e284a509ed8180e978554b1e16b",
+    recipient:"0:0eb093156b485497001f06cf5332861b34f306963c2476af5f433fe7050da0a0",
+    amount:"500000000",
+    bounce:false,
+    /*payload:{
+      abi:contractPackageSM.abi,
+      method:"sendTransaction",
+      params:{
+        dest:"0:0eb093156b485497001f06cf5332861b34f306963c2476af5f433fe7050da0a0",
+        value:500000000,
+        bounce: false,
+        allBalance: false,
+      }
+    }*/
+  })
+}
+window.send = send;
+
+
+async function login_out(){
+  await ever.disconnect();
+}
+window.login_out = login_out;
+
+
+
+
+async function login_extraton(){
+  const provider = await new freeton.providers.ExtensionProvider(
+    window.freeton,
+  );
+  //signer = await provider.getSigner();
+}
+window.login_extraton = login_extraton;
+
 
 
 import {

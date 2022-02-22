@@ -18,6 +18,7 @@ mainnet:
 Non-bounceable address (for init): UQBcgRm7gUuRyzxm0T_UTyO13-4wcCL3XCWypCwHEXlKqrQP
 Bounceable address (for later access): EQBcgRm7gUuRyzxm0T_UTyO13-4wcCL3XCWypCwHEXlKqunK
 
+./tonos-cli getkeypair deploy_broxus.js"refuse near cause excuse zoo assist physical reform equal lift race review"
 
 Контракт TokenFactory
 0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa
@@ -30,12 +31,15 @@ Bounceable address (for later access): EQBcgRm7gUuRyzxm0T_UTyO13-4wcCL3XCWypCwHE
 "owner":"0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa",
 "initialSupplyTo":"0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa",
 "initialSupply":"0",
-"deployWalletValue":"2000000000",
+"deployWalletValue":"100000",
 "mintDisabled":"false",
 "burnByRootDisabled":"false",
 "burnPaused":"false",
 "remainingGasTo":"0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa"
 }' --sign keys_main.json --abi ton-eth-bridge-token-contracts/build/TokenFactory.abi.json
+
+
+200 000 000
 
 ./tonos-cli run 0:5c8119bb814b91cb3c66d13fd44f23b5dfee307022f75c25b2a42c0711794aaa _deployValue {} --abi ton-eth-bridge-token-contracts/build/TokenFactory.abi.json
 

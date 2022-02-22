@@ -2,7 +2,6 @@
   <head>
     <title>Everscale Bridge</title>
     <script src="main.js"></script>
-    <script  type="module" src="broxus.js"></script>
 
 
   </head>
@@ -17,7 +16,12 @@
     <input id="seed" size="64" name ="seed" type="text" autocomplete="token" placeholder="Введите свою seed фразу" />
     <button type="submit" onclick="submitform(); return false;"><p>Отправить</p></button>
     <button type="submit" onclick="balance_check(); return false;"><p>Чекнуть баланс</p></button>
-    <button type="submit" onclick="login(); return false;"><p>Connect EVERBroxus</p></button>
+    <button type="submit" onclick="login(); return false;"><p>Connect EVER_Broxus</p></button>
+    <button type="submit" onclick="login_out(); return false;"><p>Disconnect EVER_Broxus</p></button>
+    <button type="submit" onclick="send(); return false;"><p>Отправить EVERCRYSTAL</p></button>
+
+    <button type="submit" onclick="login_extraton(); return false;"><p>Connect Extraton</p></button>
+
     </form>
     </div>
     <footer>
