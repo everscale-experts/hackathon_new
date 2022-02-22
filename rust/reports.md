@@ -23,12 +23,14 @@ https://baking-bad.org/blog/2021/03/03/tzkt-v14-released-with-improved-smart-con
 ### Что сделано  
 Найдена информация о подписи  
 https://tezos.stackexchange.com/questions/2825/how-to-write-my-own-signer  
-### Трудности, если были
-...  
-### План на завтра
-...
-  
-  
-  
-  
-  
+https://gitlab.com/unit410/tezos-hsm-signer  
+https://github.com/lattejed/tezos-azure-hsm-signer  
+https://github.com/tacoinfra/remote-signer  
+`rust/test/src/common/operation_command/mod.rs` строка 377, функция sign_operation  
+### Трудности, если были  
+Пока не было  
+### План на завтра  
+[ ] Сбилдить параметры на расте  
+[ ] Сфоржить транзакцию на расте  
+[ ] Подписать и сгенерировать hex-строку на расте  
+[ ] Отправить байты (hex-строка) с помощью rpc на расте  
