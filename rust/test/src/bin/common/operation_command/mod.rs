@@ -31,7 +31,7 @@ mod operation_command_api;
 pub use operation_command_api::*;
 
 /// Exit and print error that no wallet type(trezor, ledger, local) was selected.
-fn exit_with_error_no_wallet_type_selected() -> ! {
+pub fn exit_with_error_no_wallet_type_selected() -> ! {
     exit_with_error(format!(
         "{}\n{}",
         "trezor, ledger, or local wallet needs to be used to create this operation. Neither selected.",
@@ -374,11 +374,7 @@ impl OperationCommand {
         Ok(())
     }
 
-    fn sign_operation(
-        &mut self,
-        operation_group: &NewOperationGroup,
-    ) -> Result<OperationSignatureInfo, Error>
-    {
+    fn sign_operation(&mut self, operation_group: &NewOperationGroup) -> Result<OperationSignatureInfo, Error> {
         if let Some(state) = self.local_state.as_ref() {
             let forged_operation = operation_group.forge();
             let sig_info = state.signer().sign_forged_operation_bytes(

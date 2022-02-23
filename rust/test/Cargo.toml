@@ -22,7 +22,10 @@ lib = { path = "../lib" }
 types = { path = "../types" }
 # emojies = { package = "cli_emojies", path = "../cli_emojies" }
 ureq = { path = "../urequ" }
+rpc_api = { path = "../rpc_api" }
 structopt = "0.3.21"
+http = "0.1.5"
+reqwest = "0.10.0"
 console = "0.14.0"
 dialoguer = "0.8"
 
