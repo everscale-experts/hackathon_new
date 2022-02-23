@@ -19,16 +19,16 @@
 Описание - `A script or one of its callees took more time than the operation said it would.`  
 
 ### Планы на завтра  
-0)
-- [ ] дописать расчёт fee и газа (возможно, это решит проблему)  
-1) разобраться с ошибками (☝️)  
-- [ ] `Ill typed data`  
-- [ ] `Invalid constant`  
-- [ ] `Gas quota exceeded for the operation`  
-2)  
-- [ ] дописать расчёт fee и газа  
-- [ ] добавить возможность вызывать другие методы  
-- [ ] добавить config.json  
+1) #### для начала...  
+    - [ ] дописать расчёт fee и газа (возможно, это решит проблему)  
+2) #### разобраться с ошибками (☝️)  
+    - [ ] `Ill typed data`  
+    - [ ] `Invalid constant`  
+    - [ ] `Gas quota exceeded for the operation`  
+3) #### и...  
+    - [ ] дописать расчёт fee и газа  
+    - [ ] добавить возможность вызывать другие методы  
+    - [ ] добавить config.json  
   
 # 22.02.2022    
 ### Что сделано  
