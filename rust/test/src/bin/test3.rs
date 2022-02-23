@@ -164,6 +164,7 @@ fn sign_operation() -> Result<OperationSignatureInfo, Error> {
     if let Some(state) = Some(&local_state) {
         // let forged_operation = operation_group.forge();
         let sig_info = state.signer().sign_forged_operation_bytes(
+            // forged_operation.as_ref(),
             "92122a7e654cdff09e22a7be1b7d41bd279ffa197a0137e6fea0d3ed3ce95fc06c002122d44d997e158c36c60649d198c4175dad425efa09d2a405f44e000101420eaa410ac21addf427211cddd6115cba385a940000".as_bytes(),
         );
         Ok(sig_info)
@@ -171,7 +172,9 @@ fn sign_operation() -> Result<OperationSignatureInfo, Error> {
         exit_with_error_no_wallet_type_selected()
     }
 }
-
 fn main() {
-    println!("{}", sign_operation().unwrap().operation_hash);
+    let res = sign_operation().unwrap();
+    println!("{}", res.operation_hash);
+    println!("{}", res.operation_with_signature);
+    println!("{}", res.signature);
 }
