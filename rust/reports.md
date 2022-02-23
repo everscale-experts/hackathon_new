@@ -20,7 +20,7 @@
 Возникает ошибка `Gas quota exceeded for the operation` на hangzhou.tzstats.com/{operation} - не решено  
 Описание - `A script or one of its callees took more time than the operation said it would.`  
 
-### Планы на завтра  
+### План на завтра  
 1) #### для начала...  
     - [ ] дописать расчёт fee и газа (возможно, это решит проблему)  
 2) #### разобраться с ошибками (☝️)  
