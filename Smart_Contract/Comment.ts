@@ -1,7 +1,7 @@
 import { BatchOperation, TezosToolkit } from '@taquito/taquito'
 import { InMemorySigner } from '@taquito/signer'
-const acc = require('./account1.json')
-const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz'
+const acc = require('./account1.json') 
+const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz' // RPC тестовой сети 
 const CONTRACT = 'KT1X7DmWgCU4h1V7hbwPpzwGJcXBfoydcgwW' //адрес опубликованного контракта
 
 
@@ -32,7 +32,7 @@ export class token_transfer {
         const batchOp = await batch.send()
         console.log(`Awaiting for ${batchOp.opHash} to be confirmed...`)
         return batchOp.confirmation(1).then(() => batchOp.opHash) //ждем одно подтверждение сети
-        .then((hash) => console.log(`Hash: https://hangzhou.tzstats.com/${hash}`)) //получаем хеш операции
+        .then((hash) => console.log(`Hash: https://hangzhou2net.tzkt.io/${hash}`)) //получаем хеш операции
 
         
     }
