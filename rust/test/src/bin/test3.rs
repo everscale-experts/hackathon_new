@@ -1,5 +1,6 @@
 use lib::NewTransactionOperation;
 use lib::NewTransactionParameters;
+use lib::api::InjectOperationsResult;
 use lib::micheline::MichelinePrim;
 use rpc_api::api::GetProtocolInfoResult;
 use rpc_api::api::ProtocolInfo;
@@ -15,6 +16,7 @@ use types::NewOperation;
 use types::BlockHash;
 use types::micheline::Micheline;
 use types::micheline::PrimType;
+use ureq::SerdeValue;
 type Error = Box<dyn std::error::Error>;
 
 #[derive(Deserialize)]
@@ -146,9 +148,7 @@ fn forge_transaction_parameters(op: NewTransactionParameters) {
 //     ].concat())
 // }
 
-fn sign_operation() -> Result<OperationSignatureInfo, Error> {
-    let endpoint = "https://hangzhounet.api.tez.ie";
-    let agent = ureq::Agent::new();
+fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatureInfo, Error> {
     let local_state = LocalWalletState {
         public_key: PublicKey::from_base58check("edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH").unwrap(),
         private_key: PrivateKey::from_base58check("edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD").unwrap(),
@@ -172,9 +172,22 @@ fn sign_operation() -> Result<OperationSignatureInfo, Error> {
         exit_with_error_no_wallet_type_selected()
     }
 }
+
+fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoint: &str) -> InjectOperationsResult {
+    let operation_with_signature_json = SerdeValue::String(operation_with_signature.to_owned());
+
+    Ok(agent.post(format!("{}/injection/operation", endpoint).as_str())
+       .send_json(operation_with_signature_json)?
+       .into_json()?)
+}
+
 fn main() {
-    let res = sign_operation().unwrap();
+    let endpoint = "https://hangzhounet.api.tez.ie";
+    let agent = ureq::Agent::new();
+    let res = sign_operation(agent.clone(), endpoint).unwrap();
     println!("{}", res.operation_hash);
     println!("{}", res.operation_with_signature);
     println!("{}", res.signature);
+    let inject_res = inject_operations(agent.clone(), res.operation_with_signature.as_str(), endpoint).unwrap();
+    println!("{}", inject_res);
 }
