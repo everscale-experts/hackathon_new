@@ -158,6 +158,15 @@ fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
     value
 }
 
+fn get_value(agent: ureq::Agent, endpoint: String, contract: String) -> serde_json::Value {
+    let body = serde_json::json!({
+        "from": ""
+    });
+    agent.post(format!("{}/v1/contracts/{}/entrypoints/transfer/build", endpoint, contract).as_str())
+        .send_json(body).unwrap()
+        .into_json().unwrap()
+}
+
 fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatureInfo, Error> {
     let local_state = LocalWalletState {
         public_key: PublicKey::from_base58check("edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH").unwrap(),
@@ -177,36 +186,15 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
             "branch": get_block_hash(agent.clone(), endpoint.to_string()),
             "contents": [
                 {
-                  "kind": "transaction",
-                  "source": "tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R",
-                  "destination": "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
-                  "fee": "1274",
-                  "counter": "3334867",
-                  "gas_limit": "5000",
-                  "storage_limit": "0",
-                  "amount": "1",
-                  "parameters": {
-                    "entrypoint": "transfer",
-                    "value": {
-                      "prim": "Pair",
-                      "args": [
-                        {
-                          "bytes": "00007b78f517483cfa4c16f56e11ec2eb20ded2625a9"
-                        },
-                        {
-                          "prim": "Pair",
-                          "args": [
-                            {
-                              "bytes": "00007b78f517483cfa4c16f56e11ec2eb20ded2625a9"
-                            },
-                            {
-                              "int": "16"
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  }
+                    "kind": "transaction",
+                    "source": "tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R",
+                    "destination": "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
+                    "fee": "1274",
+                    "counter": "3334869",
+                    "gas_limit": "5000",
+                    "storage_limit": "0",
+                    "amount": "1",
+                    "parameters": get_value(agent.clone(), endpoint.to_string(), "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1".to_string())
                 }
             ]
         });
