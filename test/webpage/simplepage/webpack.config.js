@@ -2,6 +2,19 @@ const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: 'development',
+  resolve: {
+    fallback: {
+    //  buffer: require.resolve("buffer/"),
+      crypto: require.resolve("crypto-browserify"),
+      stream: require.resolve("stream-browserify"),
+      //events: require.resolve("events/"),
+    //  path: require.resolve("path-browserify"),
+      http: require.resolve("stream-http"),
+      https: require.resolve("https-browserify"),
+      os: require.resolve("os-browserify/browser"),
+      url: require.resolve("url")
+    }
+  },
   plugins: [
     new CopyPlugin({
       patterns: [

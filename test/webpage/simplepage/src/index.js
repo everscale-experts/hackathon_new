@@ -20,12 +20,12 @@ import {
 
 TonClient.useBinaryLibrary(libWeb);
 
-/* Temple Wallet */
-/*
+/* Temple Wallet Variables */
+
 import { TezosToolkit } from '@taquito/taquito';
+import { BeaconWallet } from '@taquito/beacon-wallet';
 
 const Tezos = new TezosToolkit('https://testnet-tezos.giganode.io');
-import { BeaconWallet } from '@taquito/beacon-wallet';
 const options = {
   name: 'EverscaleBridge',
   iconUrl: 'https://tezostaquito.io/img/favicon.png',
@@ -41,6 +41,7 @@ const options = {
 const wallet = new BeaconWallet(options);
 
 async function login_with_tezos(){
+  console.log("start");
   await wallet.requestPermissions({
     network: {
       type: 'mainnet' | 'granadanet' | 'hangzhounet' | 'custom',
@@ -48,11 +49,11 @@ async function login_with_tezos(){
   });
   const userAddress = await wallet.getPKH();
 
-Tezos.setWalletProvider(wallet);
+  Tezos.setWalletProvider(wallet);
 }
 window.login_with_tezos = login_with_tezos;
 
-*/
+
 
 
 /*Local Storage*/
