@@ -18,6 +18,7 @@ use types::micheline::Micheline;
 use types::micheline::PrimType;
 use ureq::SerdeValue;
 type Error = Box<dyn std::error::Error>;
+use hex::FromHex;
 
 #[derive(Deserialize)]
 struct ProtocolInfoJson {
@@ -152,7 +153,8 @@ fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
     let value = agent.get(format!("{}/chains/main/blocks/head/hash", endpoint).as_str(), "")
         .call().unwrap()
         .into_json().unwrap();
-    // println!("{}", value);
+    println!("{}", value);
+    println!("");
     value
 }
 
@@ -161,14 +163,14 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
         public_key: PublicKey::from_base58check("edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH").unwrap(),
         private_key: PrivateKey::from_base58check("edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD").unwrap(),
     };
-    let operation_group = NewOperationGroup {
-        branch: BlockHash::from_base58check("BLpcXF8ADJbGuyUKNv7TypXRd5rqnoPn3PMqJLNBeRSr4VFeUuK").unwrap(),
-        next_protocol_hash: get_protocol_info(agent.clone(), endpoint).unwrap().next_protocol_hash,
-        reveal: None,
-        transaction: None,
-        delegation: None,
-        origination: None,
-    };
+    // let operation_group = NewOperationGroup {
+    //     branch: BlockHash::from_base58check("BLpcXF8ADJbGuyUKNv7TypXRd5rqnoPn3PMqJLNBeRSr4VFeUuK").unwrap(),
+    //     next_protocol_hash: get_protocol_info(agent.clone(), endpoint).unwrap().next_protocol_hash,
+    //     reveal: None,
+    //     transaction: None,
+    //     delegation: None,
+    //     origination: None,
+    // };
     if let Some(state) = Some(&local_state) {
         // let forged_operation = operation_group.forge();
         let body = serde_json::json!({
@@ -176,15 +178,15 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
             "contents": [
                 {
                   "kind": "transaction",
-                  "source": "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX",
+                  "source": "tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R",
                   "destination": "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
                   "fee": "1274",
-                  "counter": "86610",
+                  "counter": "3334867",
                   "gas_limit": "5000",
                   "storage_limit": "0",
                   "amount": "1",
                   "parameters": {
-                    "entrypoint": "transaction",
+                    "entrypoint": "transfer",
                     "value": {
                       "prim": "Pair",
                       "args": [
@@ -198,7 +200,7 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
                               "bytes": "00007b78f517483cfa4c16f56e11ec2eb20ded2625a9"
                             },
                             {
-                              "int": "1"
+                              "int": "16"
                             }
                           ]
                         }
@@ -211,12 +213,13 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
         let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", endpoint).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
-        // println!("{}", bytes.to_string());
-        // println!("");
+        println!("{}", bytes.as_str().unwrap());
+        println!("");
         let sig_info = state.signer().sign_forged_operation_bytes(
             // forged_operation.as_ref(),
             // bytes,
-            bytes.to_string().as_bytes(),
+            // bytes.as_str().unwrap().as_bytes(),
+            &Vec::from_hex(bytes.as_str().unwrap()).unwrap()[..],
         );
         Ok(sig_info)
     } else {
