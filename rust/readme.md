@@ -84,6 +84,40 @@ changing ureq version
 ### error: process didn't exit successfully: `target\debug\tezedge.exe` (exit code: 1)  
 ##### ***Working on solution***  
   
+  
+## Algorithm  
+### build parameters (https://api.hangzhounet.tzkt.io/v1/contracts/{address}/entrypoints/transfer/build)  
+```json
+{
+  "from": "<address>",
+  "to": "<address>",
+  "value": "<amount>"
+}
+```
+### forge transaction through rpc (https://hangzhounet.api.tez.ie/chains/main/blocks/head/helpers/forge/operations)  
+```json
+{
+  "branch": "<hash>",
+  "contents": [
+    {
+      "kind": "transaction",
+      "sourse": "<address>",
+      "destination": "<address>",
+      "fee": "<fee>",
+      "counter": "<counter>",
+      "gas_limit": "<gas limit>",
+      "storage_limit": "<storage limit>",
+      "amount": "<amount>"
+    }
+  ]
+}
+```
+### sign and send bytes through rpc (https://hangzhounet.api.tez.ie/injection/operation)  
+```json
+"<hex-string>"
+```
+  
+  
 ## From Slack  
 Michael Zaikin - Baking Bad:  
 Есть раст клиент https://github.com/tezedge/tezedge-client там есть базовые вещи типа работы с нодой, локальный форджинг и подпись, но правда без доки  
@@ -96,5 +130,3 @@ RPC тестнета: https://rpc.hangzhounet.teztnets.xyz
 Explorer тестнета: https://hangzhou.tzstats.com  
 Кран тестнета: https://teztnets.xyz/hangzhounet-faucet  
 @tezos_faucet_bot - бот для получения тестовых монет, вдруг кому пригодится  
-
-

@@ -1,0 +1,36 @@
+# 21/02/2022  
+### Что сделано  
+- Найден алгоритм для вызова метода контракта без привязки к языки (через сетевой API)    
+  - Описание алгоритма:  
+1) Сбилдите параметры с помощью тзкт апи: https://api.tzkt.io/#operation/Contracts_BuildEntrypointParametersPOST.  
+2) Сфорджите транзакцию с помощью рпц /helpers/forge/operations https://gitlab.com/tezos/tezos/-/blob/master/docs/api/hangzhou-openapi.json.  
+3) Отправьте полученные байты с помощью рпц /injection/operation  
+  - Документация: https://tezos.gitlab.io/shell/rpc.html.  
+  
+### Трудности, если были
+- третий пункт непонятно, как делать;  
+Нашел дополнительную информацию здесь:  
+https://tezosguides.com/wallet_integration/basics/sign/  
+https://tezos.stackexchange.com/questions/3904/call-contract-entrypoint-that-requires-tez-to-be-sent  
+https://baking-bad.org/blog/2021/03/03/tzkt-v14-released-with-improved-smart-contract-data-and-websocket-api/  
+  
+### План на завтра
+- разобраться с третьим пунктом, т.е. как сформировать запрос к RPC;  
+Из слека: "тело запроса должно быть хекс строкой, типа "ff00ff00ff00..." - это конкатенация сфордженных байт с подписью"
+Ссылка: https://tezosdefihack-2022.slack.com/archives/C02QS4D5AV8/p1645463648299039?thread_ts=1645389926.038619&cid=C02QS4D5AV8  
+  
+# 22/02/2022    
+### Что сделано  
+Найдена информация о подписи  
+https://tezos.stackexchange.com/questions/2825/how-to-write-my-own-signer  
+https://gitlab.com/unit410/tezos-hsm-signer  
+https://github.com/lattejed/tezos-azure-hsm-signer  
+https://github.com/tacoinfra/remote-signer  
+`rust/test/src/common/operation_command/mod.rs` строка 377, функция sign_operation  
+### Трудности, если были  
+Пока не было  
+### План на завтра  
+- [ ] Сбилдить параметры на расте  
+- [ ] Сфоржить транзакцию на расте  
+- [ ] Подписать и сгенерировать hex-строку на расте  
+- [ ] Отправить байты (hex-строка) с помощью rpc на расте  

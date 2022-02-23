@@ -6,7 +6,10 @@ use common::operation_command::LocalWalletState;
 use lib::signer::OperationSignatureInfo;
 use common::operation_command::exit_with_error_no_wallet_type_selected;
 use types::PublicKey;
+<<<<<<< HEAD
 use types::Forged;
+=======
+>>>>>>> cd2c11deeb563a53097d4d16fcaa488258dab07a
 use types::PrivateKey;
 use types::NewOperationGroup;
 use types::BlockHash;
@@ -38,6 +41,7 @@ fn get_protocol_info(agent: ureq::Agent, endpoint: &str) -> GetProtocolInfoResul
         .into())
 }
 
+<<<<<<< HEAD
 fn forge(group: &NewOperationGroup) -> Forged {
     Forged([
         group.branch.forge().take(),
@@ -47,6 +51,8 @@ fn forge(group: &NewOperationGroup) -> Forged {
     ].concat())
 }
 
+=======
+>>>>>>> cd2c11deeb563a53097d4d16fcaa488258dab07a
 fn sign_operation() -> Result<OperationSignatureInfo, Error> {
     let endpoint = "https://hangzhounet.api.tez.ie";
     let agent = ureq::Agent::new();
@@ -61,7 +67,11 @@ fn sign_operation() -> Result<OperationSignatureInfo, Error> {
         transaction: None,
         delegation: None,
         origination: None,
+<<<<<<< HEAD
     };
+=======
+    }
+>>>>>>> cd2c11deeb563a53097d4d16fcaa488258dab07a
     if let Some(state) = Some(&local_state) {
         // let forged_operation = operation_group.forge();
         let sig_info = state.signer().sign_forged_operation_bytes(
@@ -73,4 +83,9 @@ fn sign_operation() -> Result<OperationSignatureInfo, Error> {
     }
 }
 fn main() {
+<<<<<<< HEAD
 }
+=======
+    let client = HttpApi::new(base_url);
+}
+>>>>>>> cd2c11deeb563a53097d4d16fcaa488258dab07a
