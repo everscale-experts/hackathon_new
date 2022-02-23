@@ -123,22 +123,22 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
         let body = serde_json::json!({
             "branch": get_block_hash(agent.clone(), endpoint.to_string()),
             "contents": [
-              {
-                "kind": "transaction",
-                "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
-                "destination": "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g",
-                "fee": "1000",
-                "counter": format!("{}", counter),
-                "gas_limit": "5000",
-                "storage_limit": "100",
-                "amount": "0",
-                "parameters": {
-                    "entrypoint": "transfer",
-                    "value": get_value(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g".to_string())
+                {
+                    "kind": "transaction",
+                    "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
+                    "destination": "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g",
+                    "fee": "1000",
+                    "counter": format!("{}", counter),
+                    "gas_limit": "6000",
+                    "storage_limit": "100",
+                    "amount": "0",
+                    "parameters": {
+                        "entrypoint": "transfer",
+                        "value": get_value(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g".to_string())
+                    }
                 }
-              }
             ]
-          });
+        });
         let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", endpoint).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
