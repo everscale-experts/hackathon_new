@@ -1,4 +1,42 @@
-# 21/02/2022  
+# 23.02.2022  
+### Что сделано  
+Сбилдил (build), сфоржил, подписал и отправил транзакцию с вызовом метода в блокчейн на расте  
+Замучал Макса Стребкова по поводу подписи https://tezosdefihack-2022.slack.com/archives/C02QS4D5AV8/p1645389926038619  
+Научился вызывать методы у контрактов на расте, но пока с ошибками (написал о них ниже)  
+### Трудности  
+Была проблема с подписью (подробнее можно почитать по ссылке выше) - решено (как оказалось, я неправильно конвертировал байтовую строку в байтовый список)  
+
+Возникает ошибка `Ill typed data` на hangzhou.tzstats.com/{operation} - не решено  
+Описание - `The toplevel error thrown when trying to typecheck a data expression against a given type (always followed by more precise errors)`  
+
+Возникает ошибка `Invalid constant` на hangzhou.tzstats.com/{operation} - не решено  
+Описание - `A data expression was invalid for its expected type.`  
+
+Возникает ошибка `Gas quota exceeded for the operation` на hangzhou.tzstats.com/{operation} - не решено  
+Описание - `A script or one of its callees took more time than the operation said it would.`  
+
+### Планы на завтра  
+- [ ] разобраться с ошибками (☝️)  
+- [ ] добавить возможность вызывать другие методы  
+- [ ] добавить config.json  
+  
+# 22.02.2022    
+### Что сделано  
+Найдена информация о подписи  
+https://tezos.stackexchange.com/questions/2825/how-to-write-my-own-signer  
+https://gitlab.com/unit410/tezos-hsm-signer  
+https://github.com/lattejed/tezos-azure-hsm-signer  
+https://github.com/tacoinfra/remote-signer  
+`rust/test/src/common/operation_command/mod.rs` строка 377, функция sign_operation  
+### Трудности, если были  
+Пока не было  
+### План на завтра  
+- [x] Сбилдить параметры на расте  
+- [x] Сфоржить транзакцию на расте  
+- [x] Подписать и сгенерировать hex-строку на расте  
+- [x] Отправить байты (hex-строка) с помощью rpc на расте  
+
+# 21.02.2022  
 ### Что сделано  
 - Найден алгоритм для вызова метода контракта без привязки к языки (через сетевой API)    
   - Описание алгоритма:  
@@ -18,28 +56,3 @@ https://baking-bad.org/blog/2021/03/03/tzkt-v14-released-with-improved-smart-con
 - разобраться с третьим пунктом, т.е. как сформировать запрос к RPC;  
 Из слека: "тело запроса должно быть хекс строкой, типа "ff00ff00ff00..." - это конкатенация сфордженных байт с подписью"
 Ссылка: https://tezosdefihack-2022.slack.com/archives/C02QS4D5AV8/p1645463648299039?thread_ts=1645389926.038619&cid=C02QS4D5AV8  
-  
-# 22/02/2022    
-### Что сделано  
-Найдена информация о подписи  
-https://tezos.stackexchange.com/questions/2825/how-to-write-my-own-signer  
-https://gitlab.com/unit410/tezos-hsm-signer  
-https://github.com/lattejed/tezos-azure-hsm-signer  
-https://github.com/tacoinfra/remote-signer  
-`rust/test/src/common/operation_command/mod.rs` строка 377, функция sign_operation  
-### Трудности, если были  
-Пока не было  
-### План на завтра  
-- [x] Сбилдить параметры на расте  
-- [x] Сфоржить транзакцию на расте  
-- [x] Подписать и сгенерировать hex-строку на расте  
-- [x] Отправить байты (hex-строка) с помощью rpc на расте  
-
-# 23.02.2022  
-### Что сделано  
-Сфоржил транзакцию на расте  
-Замучал Макса Стребкова по поводу подписи https://tezosdefihack-2022.slack.com/archives/C02QS4D5AV8/p1645389926038619  
-Научился вызывать методы у контрактов на расте, но пока с ошибкой (Gas quota exceeded for the operation)  
-### Трудности  
-Была проблема с подписью (подробнее можно почитать по ссылке выше) - решено (как оказалось, я неправильно конвертировал байтовую строку в байтовый список)  
-Возникает ошибка `Gas quota exceeded for the operation` на hangzhou.tzstats.com/{operation} - не решено  
