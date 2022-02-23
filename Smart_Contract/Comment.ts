@@ -1,6 +1,8 @@
 import { BatchOperation, TezosToolkit } from '@taquito/taquito'
 import { InMemorySigner } from '@taquito/signer'
 const acc = require('./account1.json')
+const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz'
+const CONTRACT = 'KT1X7DmWgCU4h1V7hbwPpzwGJcXBfoydcgwW' //адрес опубликованного контракта
 
 
 export class token_transfer {
@@ -19,7 +21,8 @@ export class token_transfer {
       
       const contract = await this.tezos.wallet.at(contract1)
       const batch = await this.tezos.wallet.batch()
-      //                                               adresResieverTz                           adresSenderTz                    amoutTz        adresResieerEver                                                adressContractToken                id транзакции 
+      // Вызываем метод default смарт-контракта и вписываем комментарий
+      //                                               addressReсeiverTz                           addressSenderTz                amoutTz        addressReсeiverEver                                                addressContractToken       id транзакции 
       .withContractCall(contract.methods.default("tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM", "tz1VcUcuUEcUGSZRcxNcj8JCrCG1xhZVRYt6", "2000","0:c54a25311764a560d64b70b8c334991462e56da9bd48df0074c3b0ed27f4f4fd","KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark", "2" ))
         
       
@@ -35,9 +38,7 @@ export class token_transfer {
     }
    }
 
-   const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz'
-const CONTRACT = 'KT1X7DmWgCU4h1V7hbwPpzwGJcXBfoydcgwW' //адрес опубликованного контракта
-
+ 
 
 new token_transfer(RPC_URL).transfer(CONTRACT)
   

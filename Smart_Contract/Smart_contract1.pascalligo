@@ -1,0 +1,29 @@
+//первый способ 
+// смарт контракт KT1X7DmWgCU4h1V7hbwPpzwGJcXBfoydcgwW
+
+
+type strings is (string*string*string*string*string*string)
+
+type action is
+| Addition of strings
+
+type storage is string
+
+function add (const adresResieverTz: string ; 
+const adresSenderTz : string; 
+const amountTz : string; 
+const adresResieerEver: string; 
+const adressContractToken : string; 
+const nameId:string) : string is adresResieverTz^" "^
+adresSenderTz^" "^amountTz^" "^adresResieerEver^" "^
+adressContractToken^" "^nameId
+
+function main (const parameter : action ; const _store : storage) :
+ (list(operation) * string) is block {
+   const result : string =
+   case parameter of
+ | Addition(n1, n2,n3,n4,n5,n6) -> add(n1, n2,n3,n4,n5,n6)
+ end;
+ } with ((nil : list(operation)), result)
+
+
