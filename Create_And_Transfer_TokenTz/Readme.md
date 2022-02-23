@@ -24,3 +24,8 @@ npm install --global yarn
 
 Пользовался: https://github.com/ecadlabs/taquito/blob/master/example/example-Tzip12BigMapTokenMetadata.ts#L59
 
+
+### Трансфер токенов 
+1. запустить файл [transfer](\transfer.ts) (npx ts-node transfer.ts)
+2. По желанию изменить поля получатель, отправитель, количество и id токена
+
