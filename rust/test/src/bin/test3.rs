@@ -148,6 +148,14 @@ fn forge_transaction_parameters(op: NewTransactionParameters) {
 //     ].concat())
 // }
 
+fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
+    let value = agent.get(format!("{}/chains/main/blocks/head/hash", endpoint).as_str(), "")
+        .call().unwrap()
+        .into_json().unwrap();
+    // println!("{}", value);
+    value
+}
+
 fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatureInfo, Error> {
     let local_state = LocalWalletState {
         public_key: PublicKey::from_base58check("edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH").unwrap(),
@@ -164,15 +172,15 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
     if let Some(state) = Some(&local_state) {
         // let forged_operation = operation_group.forge();
         let body = serde_json::json!({
-            "branch": "BLJMQU8WzGVyX7zRZBb4MiYomNdJz46ggrfEUAaeVLhqjabVKar",
+            "branch": get_block_hash(agent.clone(), endpoint.to_string()),
             "contents": [
                 {
                   "kind": "transaction",
                   "source": "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX",
-                  "destination": "KT1Ec3jNXyxyA54nezwcjGDRoutECJCQjpya",
+                  "destination": "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
                   "fee": "1274",
                   "counter": "86610",
-                  "gas_limit": "2000",
+                  "gas_limit": "5000",
                   "storage_limit": "0",
                   "amount": "1",
                   "parameters": {
@@ -203,12 +211,12 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
         let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", endpoint).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
-        println!("{}", bytes.to_string());
-        println!("");
+        // println!("{}", bytes.to_string());
+        // println!("");
         let sig_info = state.signer().sign_forged_operation_bytes(
             // forged_operation.as_ref(),
             // bytes,
-            "bytes".as_bytes(),
+            bytes.to_string().as_bytes(),
         );
         Ok(sig_info)
     } else {
@@ -228,9 +236,9 @@ fn main() {
     let endpoint = "https://hangzhounet.api.tez.ie";
     let agent = ureq::Agent::new();
     let res = sign_operation(agent.clone(), endpoint).unwrap();
-    println!("{}", res.operation_hash);
+    // println!("{}", res.operation_hash);
     println!("{}", res.operation_with_signature);
-    println!("{}", res.signature);
+    // println!("{}", res.signature);
     let inject_res = inject_operations(agent.clone(), res.operation_with_signature.as_str(), endpoint).unwrap();
     println!("{}", inject_res);
 }
