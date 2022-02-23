@@ -155,7 +155,7 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
     };
     let operation_group = NewOperationGroup {
         branch: BlockHash::from_base58check("BLpcXF8ADJbGuyUKNv7TypXRd5rqnoPn3PMqJLNBeRSr4VFeUuK").unwrap(),
-        next_protocol_hash: get_protocol_info(agent, endpoint).unwrap().next_protocol_hash,
+        next_protocol_hash: get_protocol_info(agent.clone(), endpoint).unwrap().next_protocol_hash,
         reveal: None,
         transaction: None,
         delegation: None,
@@ -163,9 +163,52 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
     };
     if let Some(state) = Some(&local_state) {
         // let forged_operation = operation_group.forge();
+        let body = serde_json::json!({
+            "branch": "BLJMQU8WzGVyX7zRZBb4MiYomNdJz46ggrfEUAaeVLhqjabVKar",
+            "contents": [
+                {
+                  "kind": "transaction",
+                  "source": "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX",
+                  "destination": "KT1Ec3jNXyxyA54nezwcjGDRoutECJCQjpya",
+                  "fee": "1274",
+                  "counter": "86610",
+                  "gas_limit": "2000",
+                  "storage_limit": "0",
+                  "amount": "1",
+                  "parameters": {
+                    "entrypoint": "transaction",
+                    "value": {
+                      "prim": "Pair",
+                      "args": [
+                        {
+                          "bytes": "00007b78f517483cfa4c16f56e11ec2eb20ded2625a9"
+                        },
+                        {
+                          "prim": "Pair",
+                          "args": [
+                            {
+                              "bytes": "00007b78f517483cfa4c16f56e11ec2eb20ded2625a9"
+                            },
+                            {
+                              "int": "1"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+            ]
+        });
+        let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", endpoint).as_str())
+            .send_json(body).unwrap()
+            .into_json().unwrap();
+        println!("{}", bytes.to_string());
+        println!("");
         let sig_info = state.signer().sign_forged_operation_bytes(
             // forged_operation.as_ref(),
-            "92122a7e654cdff09e22a7be1b7d41bd279ffa197a0137e6fea0d3ed3ce95fc06c002122d44d997e158c36c60649d198c4175dad425efa09d2a405f44e000101420eaa410ac21addf427211cddd6115cba385a940000".as_bytes(),
+            // bytes,
+            "bytes".as_bytes(),
         );
         Ok(sig_info)
     } else {
