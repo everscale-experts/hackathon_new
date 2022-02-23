@@ -53,102 +53,6 @@ fn prim(prim_type: PrimType) -> MichelinePrim {
     MichelinePrim::new(prim_type)
 }
 
-fn forge_transaction_parameters(op: NewTransactionParameters) {
-    // let mut res = Forged(vec![2]).0;
-
-    // let mut value: Vec<Micheline> = vec![
-    //     prim(PrimType::DROP).into(),
-    //     prim(PrimType::NIL)
-    //         .with_arg(prim(PrimType::operation).into())
-    //         .into(),
-    // ];
-    // value.extend(match op {
-    //     // NewTransactionOperation::SetDelegate(addr) => {
-    //     //     let delegate = addr.forge().take();
-    //     //     vec![
-    //     //         prim(PrimType::PUSH).with_args(vec![
-    //     //             prim(PrimType::key_hash).into(),
-    //     //             Micheline::Bytes(delegate),
-    //     //         ]).into(),
-    //     //         prim(PrimType::SOME).into(),
-    //     //         prim(PrimType::SET_DELEGATE).into(),
-    //     //     ]
-    //     // }
-    //     NewTransactionParameters::CancelDelegate => {
-    //         vec![
-    //             prim(PrimType::NONE)
-    //                 .with_arg(prim(PrimType::key_hash).into())
-    //                 .into(),
-    //             prim(PrimType::SET_DELEGATE).into(),
-    //         ]
-    //     }
-    //     NewTransactionParameters::Transfer { to, amount } => {
-    //         let mut values = match to {
-    //             Address::Implicit(dest) => vec![
-    //                 prim(PrimType::PUSH).with_args(vec![
-    //                     prim(PrimType::key_hash).into(),
-    //                     Micheline::Bytes(dest.forge().take()),
-    //                 ]).into(),
-    //                 prim(PrimType::IMPLICIT_ACCOUNT).into(),
-    //             ],
-    //             Address::Originated(_) => vec![
-    //                 prim(PrimType::PUSH).with_args(vec![
-    //                     prim(PrimType::address).into(),
-    //                     Micheline::Bytes(to.forge().take()),
-    //                 ]).into(),
-    //                 prim(PrimType::CONTRACT)
-    //                     .with_arg(prim(PrimType::unit).into())
-    //                     .into(),
-    //                 Micheline::Array(vec![
-    //                     prim(PrimType::IF_NONE).with_args(vec![
-    //                         Micheline::Array(vec![
-    //                             Micheline::Array(vec![
-    //                                 prim(PrimType::UNIT).into(),
-    //                                 prim(PrimType::FAILWITH).into(),
-    //                             ]),
-    //                         ]),
-    //                         Micheline::Array(vec![]),
-    //                     ]).into(),
-    //                 ]),
-    //             ],
-    //         };
-
-    //         values.extend(vec![
-    //             prim(PrimType::PUSH).with_args(vec![
-    //                 prim(PrimType::mutez).into(),
-    //                 Micheline::Int(*amount),
-    //             ]).into(),
-    //             prim(PrimType::UNIT).into(),
-    //             prim(PrimType::TRANSFER_TOKENS).into(),
-    //         ]);
-
-    //         values
-    //     }
-    // });
-    // value.push(prim(PrimType::CONS).into());
-
-    // let value_bytes = Micheline::Array(value).forge().take();
-    // res.extend(value_bytes.forge());
-
-    // Forged(res)
-}
-
-// fn forge(group: &NewOperationGroup) -> Forged {
-//     Forged([
-//         Forged(group.branch.as_ref().to_vec()).0,
-//         group.to_operations_vec().into_iter()
-//             .flat_map(|op| {
-//                 match op {
-//                     // NewOperation::Reveal(op) => op.forge(),
-//                     NewOperation::Transaction(op) => forge_transaction_parameters(op),
-//                     // NewOperation::Delegation(op) => op.forge(),
-//                     // NewOperation::Origination(op) => op.forge(),
-//                 }
-//             }.0)
-//             .collect(),
-//     ].concat())
-// }
-
 fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
     let value = agent.get(format!("{}/chains/main/blocks/head/hash", endpoint).as_str(), "")
         .call().unwrap()
@@ -159,18 +63,34 @@ fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
 }
 
 fn get_value(agent: ureq::Agent, endpoint: String, contract: String) -> serde_json::Value {
-    let body = serde_json::json!({
-        "from": ""
-    });
+    let body = serde_json::json!([
+        {
+          "from_": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
+          "txs": [
+                {
+                "to_": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark",
+                "token_id": "1",
+                "amount": "50"
+                }
+            ]
+        }
+    ]);
     agent.post(format!("{}/v1/contracts/{}/entrypoints/transfer/build", endpoint, contract).as_str())
         .send_json(body).unwrap()
         .into_json().unwrap()
 }
 
+fn get_contract_counter(agent: ureq::Agent, endpoint: String, address: String) -> u64 {
+    println!("{}/v1/accounts/{}/counter", endpoint, address);
+    agent.get(format!("{}/v1/accounts/{}/counter", endpoint, address).as_str(), "")
+        .call().unwrap()
+        .into_json().unwrap()
+}
+
 fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatureInfo, Error> {
     let local_state = LocalWalletState {
-        public_key: PublicKey::from_base58check("edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH").unwrap(),
-        private_key: PrivateKey::from_base58check("edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD").unwrap(),
+        public_key: PublicKey::from_base58check("edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd").unwrap(),
+        private_key: PrivateKey::from_base58check("edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R").unwrap(),
     };
     // let operation_group = NewOperationGroup {
     //     branch: BlockHash::from_base58check("BLpcXF8ADJbGuyUKNv7TypXRd5rqnoPn3PMqJLNBeRSr4VFeUuK").unwrap(),
@@ -182,22 +102,43 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
     // };
     if let Some(state) = Some(&local_state) {
         // let forged_operation = operation_group.forge();
+        // let body = serde_json::json!({
+        //     "branch": get_block_hash(agent.clone(), endpoint.to_string()),
+        //     "contents": [
+        //         {
+        //             "kind": "transaction",
+        //             "source": "tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R",
+        //             "destination": "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
+        //             "fee": "1274",
+        //             "counter": "3334869",
+        //             "gas_limit": "5000",
+        //             "storage_limit": "0",
+        //             "amount": "1",
+        //             "parameters": get_value(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1".to_string())
+        //         }
+        //     ]
+        // });
+        let counter = get_contract_counter(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R".to_string()) + 1;
+        println!("{}", counter);
         let body = serde_json::json!({
             "branch": get_block_hash(agent.clone(), endpoint.to_string()),
             "contents": [
-                {
-                    "kind": "transaction",
-                    "source": "tz1f1WndyZoUQWU3ujAMCy4b1VtuYhxpc82R",
-                    "destination": "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
-                    "fee": "1274",
-                    "counter": "3334869",
-                    "gas_limit": "5000",
-                    "storage_limit": "0",
-                    "amount": "1",
-                    "parameters": get_value(agent.clone(), endpoint.to_string(), "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1".to_string())
+              {
+                "kind": "transaction",
+                "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
+                "destination": "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g",
+                "fee": "1000",
+                "counter": format!("{}", counter),
+                "gas_limit": "5000",
+                "storage_limit": "100",
+                "amount": "0",
+                "parameters": {
+                    "entrypoint": "transfer",
+                    "value": get_value(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g".to_string())
                 }
+              }
             ]
-        });
+          });
         let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", endpoint).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
@@ -231,5 +172,6 @@ fn main() {
     println!("{}", res.operation_with_signature);
     // println!("{}", res.signature);
     let inject_res = inject_operations(agent.clone(), res.operation_with_signature.as_str(), endpoint).unwrap();
+    println!("https://hangzhou.tzstats.com/{}", inject_res.as_str().unwrap());
     println!("{}", inject_res);
 }
