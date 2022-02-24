@@ -22,7 +22,6 @@ impl NewTransactionOperationBuilder {
         use ImplicitOrOriginatedWithManager::*;
         match self.source {
             Implicit(source) => {
-                println!("implicit");
                 NewTransactionOperation {
                     source: source,
                     // destination: Address::from_base58check("KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1").unwrap(),
@@ -49,7 +48,6 @@ impl NewTransactionOperationBuilder {
                 // }
             }
             OriginatedWithManager(OriginatedAddressWithManager { address, manager }) => {
-                println!("originated");
                 NewTransactionOperation {
                     source: manager,
                     destination: address.into(),

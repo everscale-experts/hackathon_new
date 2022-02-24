@@ -1,5 +1,9 @@
-use lib::NewTransactionOperation;
-use lib::NewTransactionParameters;
+use lib::BlockHash;
+use lib::NewOperationGroup;
+use lib::NewOperationWithKind;
+use lib::api::RunOperationContents;
+use lib::api::RunOperationError;
+use rpc_api::api::RunOperationJson;
 use lib::api::InjectOperationsResult;
 use lib::micheline::MichelinePrim;
 use rpc_api::api::GetProtocolInfoResult;
@@ -11,14 +15,15 @@ use lib::signer::OperationSignatureInfo;
 use common::operation_command::exit_with_error_no_wallet_type_selected;
 use types::PublicKey;
 use types::PrivateKey;
-use types::NewOperationGroup;
-use types::NewOperation;
-use types::BlockHash;
-use types::micheline::Micheline;
 use types::micheline::PrimType;
 use ureq::SerdeValue;
-type Error = Box<dyn std::error::Error>;
 use hex::FromHex;
+
+type Error = Box<dyn std::error::Error>;
+
+const BASE_FEE: u64 = 100;
+const MIN_NTEZ_PER_GAS: u64 = 100;
+const MIN_NTEZ_PER_BYTE: u64 = 1000;
 
 #[derive(Deserialize)]
 struct ProtocolInfoJson {
@@ -43,7 +48,7 @@ impl Into<ProtocolInfo> for ProtocolInfoJson {
 }
 
 fn get_protocol_info(agent: ureq::Agent, endpoint: &str) -> GetProtocolInfoResult {
-    Ok(agent.get(&get_protocol_info_url(endpoint), &"get_protocol_info")
+    Ok(agent.get(&get_protocol_info_url(endpoint), "")
         .call()?
         .into_json::<ProtocolInfoJson>()?
         .into())
@@ -85,6 +90,53 @@ fn get_contract_counter(agent: ureq::Agent, endpoint: String, address: String) -
     agent.get(format!("{}/v1/accounts/{}/counter", endpoint, address).as_str(), "")
         .call().unwrap()
         .into_json().unwrap()
+}
+
+pub fn estimate_operation_fee(
+    base_fee: u64,
+    ntez_per_byte: u64,
+    ntez_per_gas: u64,
+    estimated_gas: u64,
+    estimated_bytes: u64
+) -> u64 {
+    // add 32 bytes for the branch block hash.
+    let estimated_bytes = estimated_bytes + 32;
+
+    base_fee
+        + ntez_per_byte * estimated_bytes / 1000
+        + ntez_per_gas * (estimated_gas) / 1000
+        // correct rounding error for above two divisions
+        + 2
+}
+
+fn get_chain_id(agent: ureq::Agent, endpoint: String) -> String {
+    agent.get(format!("{}/chains/main/chain_id", endpoint).as_str(), "")
+        .call().unwrap()
+        .into_json().unwrap()
+}
+
+fn run_operation(
+    agent: ureq::Agent,
+    endpoint: String,
+    operation_group: &NewOperationGroup
+) -> Result<RunOperationContents, RunOperationError> {
+    Ok(agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", endpoint).as_str())
+       .send_json(ureq::json!({
+            "chain_id": get_chain_id(agent.clone(), endpoint),
+            // "chain_id": "NetXZSsxBpMQeAT",
+            "operation": {
+                "branch": &operation_group.branch,
+                // this is necessary to be valid signature for this call
+                // to work, but doesn't need to match the actual operation signature.
+                "signature": "edsigthZLBZKMBUCwHpMCXHkGtBSzwh7wdUxqs7C1LRMk64xpcVU8tyBDnuFuf9CLkdL3urGem1zkHXFV9JbBBabi6k8QnhW4RG",
+                "contents": operation_group.to_operations_vec()
+                    .into_iter()
+                    .map(|op| NewOperationWithKind::from(op))
+                    .collect::<Vec<_>>(),
+            },
+       }))?
+       .into_json::<RunOperationJson>()?
+       .into())
 }
 
 fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatureInfo, Error> {
@@ -167,6 +219,22 @@ fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoin
 fn main() {
     let endpoint = "https://hangzhounet.api.tez.ie";
     let agent = ureq::Agent::new();
+    // let opres = run_operation(
+    //     agent.clone(),
+    //     endpoint.to_string(),
+    //     // &NewOperationGroup::new(
+    //     //     BlockHash::from_base58check(get_block_hash(agent.clone(), endpoint.to_string()).as_str()).unwrap(),
+    //     //     get_block_hash(agent.clone(), endpoint.to_string()))
+    //     &NewOperationGroup {
+    //         branch: BlockHash::from_base58check(get_block_hash(agent.clone(), endpoint.to_string()).as_str()).unwrap(),
+    //         delegation: None,
+    //         next_protocol_hash: get_block_hash(agent.clone(), endpoint.to_string()),
+    //         origination: None,
+    //     }
+    // ).unwrap();
+    // for i in opres {
+    //     println!("{}", i.consumed_gas);
+    // };
     let res = sign_operation(agent.clone(), endpoint).unwrap();
     // println!("{}", res.operation_hash);
     println!("{}", res.operation_with_signature);
