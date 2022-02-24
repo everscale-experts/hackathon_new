@@ -1,5 +1,6 @@
 # 24-25.02.2022  
 ### Что сделано  
+Прочитал про расчёт fee: https://medium.com/aditya-gautam-tech-blog/how-to-calculate-gas-fee-for-a-smart-contract-on-tezos-dee0bd37ca44  
 ### Трудности  
 ### Планы  
 
