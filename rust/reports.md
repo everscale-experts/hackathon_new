@@ -1,3 +1,9 @@
+# 24-25.02.2022  
+### Что сделано  
+Прочитал про расчёт fee: https://medium.com/aditya-gautam-tech-blog/how-to-calculate-gas-fee-for-a-smart-contract-on-tezos-dee0bd37ca44  
+### Трудности  
+### Планы  
+
 # 23.02.2022  
 
 ### Что сделано  
@@ -28,7 +34,6 @@
     - [ ] `Invalid constant`  
     - [ ] `Gas quota exceeded for the operation`  
 3) #### и...  
-    - [ ] дописать расчёт fee и газа  
     - [ ] добавить возможность вызывать другие методы  
     - [ ] добавить config.json  
     - [ ] дописать ожидание ухода операции в блокчейн и вывод результата в консоль (?)  
