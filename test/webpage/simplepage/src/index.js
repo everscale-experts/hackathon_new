@@ -173,12 +173,17 @@ async function send_everwallet(){
   const walletInfo = await client.accounts.getWalletInfo();
   console.log(walletInfo);
   const account = await client.accounts.getAccount();
+  var form = document.querySelector('#myform');
+  var formData = new FormData(form);
+  var address_recepient = formData.get('address');
+  const tokenvalue = parseFloat(formData.get('token')) * 1000000000;
+
 
   const send = await client.accounts.walletTransfer(
     account.public,
     walletInfo.address,
-    "0:b4c133e34531703dbbbed93c5e201a3b1b25891e71ae83e64eaa38230d572c94",
-    "1000000000"
+    address_recepient,
+    tokenvalue.toString(),
   );
 
   console.log(send);
