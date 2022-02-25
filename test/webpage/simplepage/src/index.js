@@ -53,9 +53,6 @@ async function login_with_tezos(){
 }
 window.login_with_tezos = login_with_tezos;
 
-
-
-
 /*Local Storage*/
 
 const broxus_address = localStorage.getItem('broxus_address') || 0;
@@ -123,12 +120,30 @@ window.send = send;
 /* Login in Extraton*/
 
 async function login_extraton(){
-  const provider = await new freeton.providers.ExtensionProvider(
-    window.freeton,
+  const provider = await new freeton.providers.ExtensionProvider(window.freeton);
+  const signer =  await provider.getSigner();
+  const network = signer.network.server;
+  const address = signer.wallet.address;
+  var form = document.querySelector('#myform');
+  var formData = new FormData(form);
+  var address_recepient = formData.get('address');
+  const tokenvalue = parseFloat(formData.get('token')) * 1000000000;
+
+  console.log(signer.network.server);
+  console.log(signer.wallet.address);
+
+
+const trasnfer = await signer.wallet.transfer(
+  address_recepient,
+  tokenvalue.toString(),
   );
-  //signer = await provider.getSigner();
+  console.log(trasnfer)
+
+  //const signer = await provider.getSigner();
 }
 window.login_extraton = login_extraton;
+
+
 
 
 /* Temporary functions for signing via TONSDK */

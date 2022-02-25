@@ -31,6 +31,13 @@ tvm_linker decode --tvc ton-labs-contracts/solidity/safemultisig/SafeMultisigWal
 
 
 ./tonos-cli run 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9a getWalletAddress '{"pubkey":"0xb66483a3491b26026520f35f7dad6b0c0185fcf5f857f756fad50a755cc6d270"}' --abi flex/tokens-fungible/RootTokenContract.abi
+./tonos-cli run 0:68618890c447cc6be870142c062f5e3f64d42c7925531615cf77e3598edd35e2 getWalletAddress '{"pubkey":"0xb69319aeb6e25c3421707fa658a513cf79022a0ffa8663a0ce328b86fc3a46bc"}' --abi flex/tokens-fungible/FlexTokenRoot.abi
+./tonos-cli run 0:68618890c447cc6be870142c062f5e3f64d42c7925531615cf77e3598edd35e2 getSymbol {} --abi flex/tokens-fungible/FlexTokenRoot.abi
+
+
+./tonos-cli run 0:90f374ef8d04cac45cbd365171ed93887b4835106390542cc522c219223d146d getBalance {} --abi flex/tokens-fungible/FlexWallet.abi
+
+
 ./tonos-cli run 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9a getName {} --abi flex/tokens-fungible/RootTokenContract.abi
 ./tonos-cli run 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae getName {} --abi flex/tokens-fungible/RootTokenContract.abi
 ./tonos-cli run 0:7f6225f4b84d9889593fb1d9366e12132b6b0c007db813f17897e33033e9a9ae getWalletAddress '{"pubkey":"0xb66483a3491b26026520f35f7dad6b0c0185fcf5f857f756fad50a755cc6d270"}' --abi flex/tokens-fungible/RootTokenContract.abi

@@ -14,6 +14,9 @@ npx light-server -s dist
 
 https://chrome.google.com/webstore/detail/ever-wallet/cgeeodpfagjceefieflmdfphplkenlfk?hl=ru
 
+### everscalewallet(svoi.dev)
+https://github.com/SVOIcom/ton-provider/tree/main/example
+
 # Доступные кошельки для теста
 
 0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647
