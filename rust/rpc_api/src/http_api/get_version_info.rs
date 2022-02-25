@@ -37,11 +37,12 @@ impl From<std::io::Error> for GetVersionInfoError {
 
 impl GetVersionInfo for HttpApi {
     fn get_version_info(&self) -> GetVersionInfoResult {
-        println!("[... > execute > transfer > execute > build_operation_group > get_version_info]");
-        let value: String = get_version_info_url(&self.base_url);
-        println!("{}", value);
+        // println!("[... > execute > transfer > execute > build_operation_group > get_version_info]");
+        // let value: String = get_version_info_url(&self.base_url);
+        // println!("{}", value);
+        let value: String = "https://hangzhounet.api.tez.ie/version".to_string();
         // let value: String = "https://rpctest.tzbeta.net/version".to_string();
-        Ok(self.client.get(&value, &"HttpApi > get_version_info")
+        Ok(self.client.get(&value, "HttpApi > get_version_info")
             .call()?
             .into_json()?)
     }

@@ -136,7 +136,8 @@ fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount: &s
     let transfer_obj = TransferLocal {
         verbose: 3,
         no_prompt: false,
-        endpoint: "https://rpctest.tzbeta.net".to_string(),
+        // endpoint: "https://rpctest.tzbeta.net".to_string(),
+        endpoint: "https://hangzhounet.api.tez.ie/".to_string(),
         public_key: public_key.to_string(),
         private_key: secret_key.to_string(),
         from: from.to_string(),
