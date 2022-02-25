@@ -2,6 +2,7 @@
 ### Что сделано  
 Прочитал про расчёт fee: https://medium.com/aditya-gautam-tech-blog/how-to-calculate-gas-fee-for-a-smart-contract-on-tezos-dee0bd37ca44  
 Посмотрел, как taquito рассчитывает fee и gas  
+Посмотрел, как tezedge client рассчитывает fee и gas. Более понятно, но ещё не разобрался до конца  
 ### Трудности  
 Для вычисления fee нужен рассчитанный gas, для расчёта которого нужно отправить post-запрос на /helpers/scripts/run_operation, в теле которого нужно указать fee  
 ### Планы  
