@@ -70,10 +70,10 @@ fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
 fn get_value(agent: ureq::Agent, endpoint: String, contract: String) -> serde_json::Value {
     let body = serde_json::json!([
         {
-          "from_": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
+          "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
           "txs": [
                 {
-                "to_": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark",
+                "to_": "tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz",
                 "token_id": "1",
                 "amount": "50"
                 }
@@ -85,7 +85,7 @@ fn get_value(agent: ureq::Agent, endpoint: String, contract: String) -> serde_js
         .into_json().unwrap()
 }
 
-fn get_contract_counter(agent: ureq::Agent, endpoint: String, address: String) -> u64 {
+fn get_address_counter(agent: ureq::Agent, endpoint: String, address: String) -> u64 {
     println!("{}/v1/accounts/{}/counter", endpoint, address);
     agent.get(format!("{}/v1/accounts/{}/counter", endpoint, address).as_str(), "")
         .call().unwrap()
@@ -93,18 +93,15 @@ fn get_contract_counter(agent: ureq::Agent, endpoint: String, address: String) -
 }
 
 pub fn estimate_operation_fee(
-    base_fee: u64,
-    ntez_per_byte: u64,
-    ntez_per_gas: u64,
     estimated_gas: u64,
     estimated_bytes: u64
 ) -> u64 {
     // add 32 bytes for the branch block hash.
     let estimated_bytes = estimated_bytes + 32;
 
-    base_fee
-        + ntez_per_byte * estimated_bytes / 1000
-        + ntez_per_gas * (estimated_gas) / 1000
+    BASE_FEE
+        + MIN_NTEZ_PER_BYTE * estimated_bytes / 1000
+        + MIN_NTEZ_PER_GAS * (estimated_gas) / 1000
         // correct rounding error for above two divisions
         + 2
 }
@@ -118,28 +115,34 @@ fn get_chain_id(agent: ureq::Agent, endpoint: String) -> String {
 fn run_operation(
     agent: ureq::Agent,
     endpoint: String,
-    operation_group: &NewOperationGroup
+    branch: String
 ) -> Result<RunOperationContents, RunOperationError> {
-    Ok(agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", endpoint).as_str())
+    Ok(agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", endpoint.clone()).as_str())
        .send_json(ureq::json!({
-            "chain_id": get_chain_id(agent.clone(), endpoint),
+            "chain_id": get_chain_id(agent.clone(), endpoint.clone()),
             // "chain_id": "NetXZSsxBpMQeAT",
             "operation": {
-                "branch": &operation_group.branch,
+                "branch": branch,
                 // this is necessary to be valid signature for this call
                 // to work, but doesn't need to match the actual operation signature.
                 "signature": "edsigthZLBZKMBUCwHpMCXHkGtBSzwh7wdUxqs7C1LRMk64xpcVU8tyBDnuFuf9CLkdL3urGem1zkHXFV9JbBBabi6k8QnhW4RG",
-                "contents": operation_group.to_operations_vec()
-                    .into_iter()
-                    .map(|op| NewOperationWithKind::from(op))
-                    .collect::<Vec<_>>(),
-            },
+                "contents": [{
+                    "amount": "50",
+                    "counter": format!("{}", get_address_counter(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R".to_string()) + 1),
+                    "destination": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
+                    "fee": "100000",
+                    "gas_limit": "10300",
+                    "kind": "transaction",
+                    "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
+                    "storage_limit": "257"
+                }]
+            }
        }))?
        .into_json::<RunOperationJson>()?
        .into())
 }
 
-fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatureInfo, Error> {
+fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String) -> Result<OperationSignatureInfo, Error> {
     let local_state = LocalWalletState {
         public_key: PublicKey::from_base58check("edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd").unwrap(),
         private_key: PrivateKey::from_base58check("edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R").unwrap(),
@@ -170,19 +173,19 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str) -> Result<OperationSignatu
         //         }
         //     ]
         // });
-        let counter = get_contract_counter(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R".to_string()) + 1;
+        let counter = get_address_counter(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R".to_string()) + 1;
         println!("{}", counter);
         let body = serde_json::json!({
-            "branch": get_block_hash(agent.clone(), endpoint.to_string()),
+            "branch": branch,
             "contents": [
                 {
                     "kind": "transaction",
                     "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
                     "destination": "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g",
-                    "fee": "1000",
+                    "fee": "1066",
                     "counter": format!("{}", counter),
-                    "gas_limit": "6000",
-                    "storage_limit": "100",
+                    "gas_limit": "7198",
+                    "storage_limit": "1",
                     "amount": "0",
                     "parameters": {
                         "entrypoint": "transfer",
@@ -219,23 +222,19 @@ fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoin
 fn main() {
     let endpoint = "https://hangzhounet.api.tez.ie";
     let agent = ureq::Agent::new();
-    // let opres = run_operation(
-    //     agent.clone(),
-    //     endpoint.to_string(),
-    //     // &NewOperationGroup::new(
-    //     //     BlockHash::from_base58check(get_block_hash(agent.clone(), endpoint.to_string()).as_str()).unwrap(),
-    //     //     get_block_hash(agent.clone(), endpoint.to_string()))
-    //     &NewOperationGroup {
-    //         branch: BlockHash::from_base58check(get_block_hash(agent.clone(), endpoint.to_string()).as_str()).unwrap(),
-    //         delegation: None,
-    //         next_protocol_hash: get_block_hash(agent.clone(), endpoint.to_string()),
-    //         origination: None,
-    //     }
-    // ).unwrap();
-    // for i in opres {
-    //     println!("{}", i.consumed_gas);
-    // };
-    let res = sign_operation(agent.clone(), endpoint).unwrap();
+    let branch = get_block_hash(agent.clone(), endpoint.to_string());
+    let opres = run_operation(
+        agent.clone(),
+        endpoint.to_string(),
+        // &NewOperationGroup::new(
+        //     BlockHash::from_base58check(get_block_hash(agent.clone(), endpoint.to_string()).as_str()).unwrap(),
+        //     get_block_hash(agent.clone(), endpoint.to_string()))
+        branch.clone()
+    ).unwrap();
+    for i in opres {
+        println!("{}", i.consumed_gas);
+    };
+    let res = sign_operation(agent.clone(), endpoint, branch).unwrap();
     // println!("{}", res.operation_hash);
     println!("{}", res.operation_with_signature);
     // println!("{}", res.signature);
