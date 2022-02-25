@@ -24,32 +24,52 @@ TonClient.useBinaryLibrary(libWeb);
 
 import { TezosToolkit } from '@taquito/taquito';
 import { BeaconWallet } from '@taquito/beacon-wallet';
+import { TempleWallet } from '@temple-wallet/dapp';
 
-const Tezos = new TezosToolkit('https://testnet-tezos.giganode.io');
-const options = {
-  name: 'EverscaleBridge',
-  iconUrl: 'https://tezostaquito.io/img/favicon.png',
-  preferredNetwork: "hangzhounet",
-  eventHandlers: {
-    PERMISSION_REQUEST_SUCCESS: {
-      handler: async (data) => {
-        console.log('permission data:', data);
-      },
-    },
-  },
-};
-const wallet = new BeaconWallet(options);
+
 
 async function login_with_tezos(){
+  const Tezos = new TezosToolkit('https://testnet-tezos.giganode.io');
+  const options = {
+    name: 'EverscaleBridge',
+    iconUrl: 'https://tezostaquito.io/img/favicon.png',
+    preferredNetwork: "hangzhounet",
+    eventHandlers: {
+      PERMISSION_REQUEST_SUCCESS: {
+        handler: async (data) => {
+          console.log('permission data:', data);
+        },
+      },
+    },
+  };
+  const wallet = new BeaconWallet(options);
   console.log("start");
   await wallet.requestPermissions({
     network: {
       type: 'mainnet' | 'granadanet' | 'hangzhounet' | 'custom',
     },
   });
-  const userAddress = await wallet.getPKH();
+  /*const userAddress = await wallet.getPKH();
+  console.log(userAddress)
+  Tezos.setWalletProvider(wallet);*/
+  /*Tezos.wallet
+  .transfer({ to: 'tz1NhNv9g7rtcjyNsH8Zqu79giY5aTqDDrzB', amount: 0.2 })
+  .send()
+  .then((op) => {
+  println(`Hash: ${op.opHash}`);
 
-  Tezos.setWalletProvider(wallet);
+  op.confirmation()
+  .then((result) => {
+  console.log(result);
+  if (result.completed) {
+  println('Transaction correctly processed!');
+} else {
+println('An error has occurred');
+}
+})
+.catch((err) => println(err));
+});*/
+
 }
 window.login_with_tezos = login_with_tezos;
 
@@ -133,9 +153,9 @@ async function login_extraton(){
   console.log(signer.wallet.address);
 
 
-const trasnfer = await signer.wallet.transfer(
-  address_recepient,
-  tokenvalue.toString(),
+  const trasnfer = await signer.wallet.transfer(
+    address_recepient,
+    tokenvalue.toString(),
   );
   console.log(trasnfer)
 
@@ -143,6 +163,28 @@ const trasnfer = await signer.wallet.transfer(
 }
 window.login_extraton = login_extraton;
 
+
+/* Login in Extraton*/
+
+async function send_everwallet(){
+  const client = await getTONWeb();
+  window.client = client;
+  console.log(client);
+  const walletInfo = await client.accounts.getWalletInfo();
+  console.log(walletInfo);
+  const account = await client.accounts.getAccount();
+
+  const send = await client.accounts.walletTransfer(
+    account.public,
+    walletInfo.address,
+    "0:b4c133e34531703dbbbed93c5e201a3b1b25891e71ae83e64eaa38230d572c94",
+    "1000000000"
+  );
+
+  console.log(send);
+  //const signer = await provider.getSigner();
+}
+window.send_everwallet = send_everwallet;
 
 
 
