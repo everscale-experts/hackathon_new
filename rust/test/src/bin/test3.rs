@@ -82,10 +82,11 @@ pub fn estimate_gas_consumption(
     agent: ureq::Agent,
     endpoint: String,
     branch: String,
-    to: &str
+    contract: String,
+    to: &str,
 ) -> Result<OperationGroupGasConsumption, RunOperationError>
 {
-    let op_results = run_operation(agent.clone(), endpoint, branch)?;
+    let op_results = run_operation(agent.clone(), endpoint, branch, contract.clone())?;
     let tx_additional_gas = match to {
         "Implicit" => 1427,
         "Originated" => 2863,
@@ -154,9 +155,10 @@ fn get_chain_id(agent: ureq::Agent, endpoint: String) -> String {
 fn run_operation(
     agent: ureq::Agent,
     endpoint: String,
-    branch: String
+    branch: String,
+    contract: String
 ) -> Result<RunOperationContents, RunOperationError> {
-    Ok(agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/simulate_operation", endpoint.clone()).as_str())
+    Ok(agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", endpoint.clone()).as_str())
        .send_json(ureq::json!({
             "chain_id": get_chain_id(agent.clone(), endpoint.clone()),
             // "chain_id": "NetXZSsxBpMQeAT",
@@ -166,14 +168,18 @@ fn run_operation(
                 // to work, but doesn't need to match the actual operation signature.
                 "signature": "edsigthZLBZKMBUCwHpMCXHkGtBSzwh7wdUxqs7C1LRMk64xpcVU8tyBDnuFuf9CLkdL3urGem1zkHXFV9JbBBabi6k8QnhW4RG",
                 "contents": [{
-                    "amount": "50",
-                    "counter": format!("{}", get_address_counter(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R".to_string()) + 1),
-                    "destination": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
-                    "fee": "100000",
-                    "gas_limit": "10300",
                     "kind": "transaction",
                     "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
-                    "storage_limit": "257"
+                    "fee": "100000",
+                    "counter": format!("{}", get_address_counter(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R".to_string()) + 1),
+                    "gas_limit": "10300",
+                    "storage_limit": "257",
+                    "amount": "50",
+                    "destination": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
+                    // "parameters": {
+                    //     "entrypoint": "default",
+                    //     "value": get_value(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), contract.clone())
+                    // }
                 }]
             }
        }))?
@@ -181,7 +187,7 @@ fn run_operation(
        .into())
 }
 
-fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String) -> Result<OperationSignatureInfo, Error> {
+fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String, contract: String) -> Result<OperationSignatureInfo, Error> {
     let local_state = LocalWalletState {
         public_key: PublicKey::from_base58check("edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd").unwrap(),
         private_key: PrivateKey::from_base58check("edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R").unwrap(),
@@ -214,6 +220,13 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String) -> Result<
         // });
         let counter = get_address_counter(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R".to_string()) + 1;
         // println!("{}", counter);
+        let estimated_gas = estimate_gas_consumption(
+            agent.clone(),
+            endpoint.to_string(),
+            branch.clone(),
+            "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX".to_string(),
+            "Implicit",
+        ).unwrap().total();
         let body = serde_json::json!({
             "branch": branch,
             "contents": [
@@ -223,7 +236,7 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String) -> Result<
                     "destination": "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw",
                     "fee": "2688",
                     "counter": format!("{}", counter),
-                    "gas_limit": "5000",
+                    "gas_limit": format!("{}", estimated_gas),
                     "storage_limit": "100",
                     "amount": "0",
                     "parameters": {
@@ -264,6 +277,7 @@ fn main() {
     let manual_fee = 0.1;
     let agent = ureq::Agent::new();
     let branch = get_block_hash(agent.clone(), endpoint.to_string());
+    let contract = "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw";
     // let op_res = run_operation(
     //     agent.clone(),
     //     endpoint.to_string(),
@@ -274,14 +288,17 @@ fn main() {
     // ).unwrap();
     // let consumed_gas = op_res[0].consumed_gas;
     // println!("{}", consumed_gas);
-    let estimated_gas = estimate_gas_consumption(agent.clone(), endpoint.to_string(), branch.clone(), "Implicit").unwrap();
-    println!("***********************************************************");
-    println!("estimated gas for implicit: {}", estimated_gas.transaction.unwrap_or(0));
-    println!("***********************************************************");
-    let estimated_gas1 = estimate_gas_consumption(agent.clone(), endpoint.to_string(), branch.clone(), "Originated").unwrap();
-    println!("estimated gas for originated: {}", estimated_gas1.transaction.unwrap_or(0));
-    println!("***********************************************************");
-    let res = sign_operation(agent.clone(), endpoint, branch.clone()).unwrap();
+    // let estimated_gas = estimate_gas_consumption(
+    //     agent.clone(),
+    //     endpoint.to_string(),
+    //     branch.clone(),
+    //     "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw".to_string(),
+    //     "Implicit",
+    // ).unwrap();
+    // println!("***********************************************************");
+    // println!("estimated gas: {}", estimated_gas.transaction.unwrap_or(0));
+    // println!("***********************************************************");
+    let res = sign_operation(agent.clone(), endpoint, branch.clone(), contract.to_string()).unwrap();
     // println!("{}", res.operation_hash);
     println!("{}", res.operation_with_signature);
     // println!("{}", res.signature);

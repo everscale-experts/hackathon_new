@@ -3,9 +3,10 @@
 Вызвал метод default у контракта KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw (хэш операции: oonQjwY2pM31ykMmJaukq95WFycQGGdakvevqrXWP3RoLd5EjWx)  
 https://hangzhou.tzstats.com/oonQjwY2pM31ykMmJaukq95WFycQGGdakvevqrXWP3RoLd5EjWx  
 https://hangzhou2net.tzkt.io/oonQjwY2pM31ykMmJaukq95WFycQGGdakvevqrXWP3RoLd5EjWx  
-Написал функцию, которая неправильно вычисляет газ
+Написал функцию, которая вычисляет газ  
 ### Трудности  
 Непонятно, почему возникали ошибки `Ill typed data` и `Invalid constant`  
+Непонятно, как отправить параметры вызова метода на /helpers/scripts/run_operation и получить ответ, в котором будет consumed_gas, так как это поле отсутствует, если передать параметры вызова метода. Другой способ пока не нашел  
 ### Планы  
 
 # 24-25.02.2022  
