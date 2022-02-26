@@ -16,6 +16,7 @@ https://chrome.google.com/webstore/detail/ever-wallet/cgeeodpfagjceefieflmdfphpl
 
 ### everscalewallet(svoi.dev)
 https://github.com/SVOIcom/ton-provider/tree/main/example
+https://firebasestorage.googleapis.com/v0/b/ton-labs.appspot.com/o/documents%2Fapplication%2Fpdf%2Fwzm8im20x2rkolx1s8i-TONWallet%20document.pdf?alt=media&token=bbd617cf-38ed-4eb3-81ad-8d6435886283
 
 # Доступные кошельки для теста
 

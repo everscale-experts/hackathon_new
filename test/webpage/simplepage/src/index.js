@@ -28,9 +28,18 @@ import { TempleWallet } from '@temple-wallet/dapp';
 
 
 
+
 async function login_with_tezos(){
-  const Tezos = new TezosToolkit('https://testnet-tezos.giganode.io');
-  const options = {
+
+  /*const available = await ThanosWallet.isAvailable();
+  console.log(available);
+
+  const wallet = new TempleWallet('MyAwesomeDapp');
+  const auth = await wallet.connect('hangzhounet');
+  console.log(auth);*/
+
+  //const Tezos = new TezosToolkit('https://testnet-tezos.giganode.io');
+  /*const options = {
     name: 'EverscaleBridge',
     iconUrl: 'https://tezostaquito.io/img/favicon.png',
     preferredNetwork: "hangzhounet",
@@ -42,13 +51,16 @@ async function login_with_tezos(){
       },
     },
   };
-  const wallet = new BeaconWallet(options);
+  console.log(options);*/
+  const wallet = await new BeaconWallet({ name: "Beacon Docs Taquito" });
   console.log("start");
-  await wallet.requestPermissions({
+  const auth = await wallet.requestPermissions({
     network: {
-      type: 'mainnet' | 'granadanet' | 'hangzhounet' | 'custom',
+          type: 'mainnet' | 'granadanet' | 'hangzhounet' | 'custom',
     },
   });
+  console.log(auth);
+
   /*const userAddress = await wallet.getPKH();
   console.log(userAddress)
   Tezos.setWalletProvider(wallet);*/

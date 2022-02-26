@@ -1,10 +1,11 @@
 const CopyPlugin = require('copy-webpack-plugin');
+const webpack = require('webpack');
 
 module.exports = {
   mode: 'development',
   resolve: {
     fallback: {
-    //  buffer: require.resolve("buffer/"),
+      buffer: require.resolve("buffer"),
       crypto: require.resolve("crypto-browserify"),
       stream: require.resolve("stream-browserify"),
       //events: require.resolve("events/"),
@@ -23,6 +24,9 @@ module.exports = {
      }
       ],
     }),
+    new webpack.ProvidePlugin({
+            Buffer: ['buffer', 'Buffer'],
+        }),
   ],
 
 };
