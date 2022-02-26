@@ -29,6 +29,8 @@ Multisig от Madfish-solutions [тут](https://github.com/madfish-solutions/te
 Myltisig от Tezosing  [ссылка](https://github.com/atticlab/tezosign)   
 Myltisig TQTezos [тут](https://assets.tqtezos.com/docs/token-contracts/multisig-specialized/2-originate-and-use-multisig-contract/)  
 Multisig разработанный на хакатоне https://msig.netlify.app/ гит хаба нету
+
+Видео по созданию Multisig [тут](https://morioh.com/p/674f718d10ac)
 <br>
 <br>
 
