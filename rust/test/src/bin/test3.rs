@@ -233,7 +233,7 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String, contract: 
                 {
                     "kind": "transaction",
                     "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
-                    "destination": "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw",
+                    "destination": contract,
                     "fee": "2688",
                     "counter": format!("{}", counter),
                     "gas_limit": format!("{}", estimated_gas),
@@ -241,7 +241,7 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String, contract: 
                     "amount": "0",
                     "parameters": {
                         "entrypoint": "default",
-                        "value": get_value(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw".to_string())
+                        "value": get_value(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), contract)
                     }
                 }
             ]
@@ -249,7 +249,7 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String, contract: 
         let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", endpoint).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
-        // println!("{}", bytes.as_str().unwrap());
+        println!("{}", estimate_operation_fee(estimated_gas, bytes.as_str().unwrap().len() as u64));
         println!("bytes length: {}", bytes.as_str().unwrap().len());
         println!("");
         let sig_info = state.signer().sign_forged_operation_bytes(
@@ -274,7 +274,6 @@ fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoin
 
 fn main() {
     let endpoint = "https://hangzhounet.api.tez.ie";
-    let manual_fee = 0.1;
     let agent = ureq::Agent::new();
     let branch = get_block_hash(agent.clone(), endpoint.to_string());
     let contract = "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw";
