@@ -1,11 +1,11 @@
 use crate::api::{TransportError, GetVersionInfo, GetVersionInfoResult, GetVersionInfoError};
 use crate::http_api::HttpApi;
 
-fn get_version_info_url(base_url: &str) -> String {
-    let res: String = format!("{}/version", base_url);
-    println!("[... > transfer > execute > build_operation_group > get_version_info > get_version_info_url]");
-    res
-}
+// fn get_version_info_url(base_url: &str) -> String {
+//     let res: String = format!("{}/version", base_url);
+//     println!("[... > transfer > execute > build_operation_group > get_version_info > get_version_info_url]");
+//     res
+// }
 
 impl From<ureq::Error> for GetVersionInfoError {
     fn from(error: ureq::Error) -> Self {

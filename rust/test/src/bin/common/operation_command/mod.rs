@@ -1,13 +1,18 @@
 use std::time::Duration;
 use std::thread;
-use console::{style, Term};
-
-use lib::{
-    Forge, Address, ImplicitAddress, ImplicitOrOriginatedWithManager,
-    NewOperationGroup, NewOperation, NewTransactionOperation, NewRevealOperation,
-    NewTransactionOperationBuilder, NewDelegationOperationBuilder,
-    KeyDerivationPath, PrivateKey, PublicKey,
-};
+use console::style;
+use lib::Forge;
+use lib::Address;
+use lib::ImplicitAddress;
+use lib::ImplicitOrOriginatedWithManager;
+use lib::NewOperationGroup;
+use lib::NewOperation;
+use lib::NewTransactionOperation;
+use lib::NewRevealOperation;
+use lib::NewTransactionOperationBuilder;
+use lib::NewDelegationOperationBuilder;
+use lib::PrivateKey;
+use lib::PublicKey;
 
 use lib::signer::{LocalSigner, OperationSignatureInfo};
 use lib::explorer_api::TzStats;
@@ -15,12 +20,13 @@ use lib::explorer_api::TzStats;
 // use lib::ledger_api::Ledger;
 use lib::api::*;
 
+use crate::common::YesNoCustomAmount;
 // use cli_spinner::SpinnerBuilder;
 // use crate::trezor::trezor_execute;
 // use crate::ledger::ledger_execute;
 use crate::common::{
     exit_with_error,
-    yes_no_custom_amount_input, YesNoCustomAmount,
+    // yes_no_custom_amount_input, YesNoCustomAmount,
     estimate_gas_consumption, estimate_operation_fees,
 };
 

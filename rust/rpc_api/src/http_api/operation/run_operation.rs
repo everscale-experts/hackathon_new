@@ -1,8 +1,9 @@
 use types::{NewOperationGroup, NewOperationWithKind};
-use crate::api::{
-    GetChainID, RunOperation, RunOperationResult,
-    TransportError, RunOperationError, RunOperationJson,
-};
+use crate::api::RunOperation;
+use crate::api::RunOperationResult;
+use crate::api::TransportError;
+use crate::api::RunOperationError;
+use crate::api::RunOperationJson;
 use crate::http_api::HttpApi;
 
 fn run_operation_url(base_url: &str) -> String {
@@ -57,9 +58,9 @@ impl RunOperation for HttpApi {
                     .collect::<Vec<_>>(),
             },
         });
-        println!("************run operation body***************");
-        println!("{:#?}", body);
-        println!("************run operation body***************");
+        // println!("************run operation body***************");
+        // println!("{:#?}", body);
+        // println!("************run operation body***************");
         Ok(self.client.post(&run_operation_url(&self.base_url))
            .send_json(body)?
            .into_json::<RunOperationJson>()?

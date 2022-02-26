@@ -3,6 +3,7 @@
 Вызвал метод default у контракта KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw (хэш операции: oonQjwY2pM31ykMmJaukq95WFycQGGdakvevqrXWP3RoLd5EjWx)  
 https://hangzhou.tzstats.com/oonQjwY2pM31ykMmJaukq95WFycQGGdakvevqrXWP3RoLd5EjWx  
 https://hangzhou2net.tzkt.io/oonQjwY2pM31ykMmJaukq95WFycQGGdakvevqrXWP3RoLd5EjWx  
+Написал функцию, которая неправильно вычисляет газ
 ### Трудности  
 Непонятно, почему возникали ошибки `Ill typed data` и `Invalid constant`  
 ### Планы  

@@ -1,3 +1,4 @@
+use crate::common::OperationGroupGasConsumption;
 use lib::BlockHash;
 use lib::NewOperationGroup;
 use lib::NewOperationWithKind;
@@ -62,9 +63,43 @@ fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
     let value = agent.get(format!("{}/chains/main/blocks/head/hash", endpoint).as_str(), "")
         .call().unwrap()
         .into_json().unwrap();
-    println!("{}", value);
-    println!("");
+    println!("Block hash: {}", value);
+    // println!("");
     value
+}
+
+fn find_consumed_gas_for_kind(
+    kind: &str,
+    run_op_contents: &RunOperationContents,
+) -> Option<u64> {
+    run_op_contents.iter()
+        .find(|op| op.kind.as_str() == kind)
+        // Add 100 for safety
+        .map(|op| op.consumed_gas + 100)
+}
+
+pub fn estimate_gas_consumption(
+    agent: ureq::Agent,
+    endpoint: String,
+    branch: String,
+    to: &str
+) -> Result<OperationGroupGasConsumption, RunOperationError>
+{
+    let op_results = run_operation(agent.clone(), endpoint, branch)?;
+    let tx_additional_gas = match to {
+        "Implicit" => 1427,
+        "Originated" => 2863,
+        "SetDelegate" => 1000,
+        "CancelDelegate" => 1000,
+        _ => 0,
+    };
+
+    Ok(OperationGroupGasConsumption {
+        reveal: find_consumed_gas_for_kind("reveal", &op_results),
+        transaction: find_consumed_gas_for_kind("transaction", &op_results)
+            .map(|gas| gas + tx_additional_gas),
+        delegation: find_consumed_gas_for_kind("delegation", &op_results),
+    })
 }
 
 fn get_value(agent: ureq::Agent, endpoint: String, contract: String) -> serde_json::Value {
@@ -90,7 +125,7 @@ fn get_value(agent: ureq::Agent, endpoint: String, contract: String) -> serde_js
 }
 
 fn get_address_counter(agent: ureq::Agent, endpoint: String, address: String) -> u64 {
-    println!("{}/v1/accounts/{}/counter", endpoint, address);
+    // println!("{}/v1/accounts/{}/counter", endpoint, address);
     agent.get(format!("{}/v1/accounts/{}/counter", endpoint, address).as_str(), "")
         .call().unwrap()
         .into_json().unwrap()
@@ -121,7 +156,7 @@ fn run_operation(
     endpoint: String,
     branch: String
 ) -> Result<RunOperationContents, RunOperationError> {
-    Ok(agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", endpoint.clone()).as_str())
+    Ok(agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/simulate_operation", endpoint.clone()).as_str())
        .send_json(ureq::json!({
             "chain_id": get_chain_id(agent.clone(), endpoint.clone()),
             // "chain_id": "NetXZSsxBpMQeAT",
@@ -178,7 +213,7 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String) -> Result<
         //     ]
         // });
         let counter = get_address_counter(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R".to_string()) + 1;
-        println!("{}", counter);
+        // println!("{}", counter);
         let body = serde_json::json!({
             "branch": branch,
             "contents": [
@@ -201,7 +236,8 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String) -> Result<
         let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", endpoint).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
-        println!("{}", bytes.as_str().unwrap());
+        // println!("{}", bytes.as_str().unwrap());
+        println!("bytes length: {}", bytes.as_str().unwrap().len());
         println!("");
         let sig_info = state.signer().sign_forged_operation_bytes(
             // forged_operation.as_ref(),
@@ -225,20 +261,27 @@ fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoin
 
 fn main() {
     let endpoint = "https://hangzhounet.api.tez.ie";
+    let manual_fee = 0.1;
     let agent = ureq::Agent::new();
     let branch = get_block_hash(agent.clone(), endpoint.to_string());
-    let opres = run_operation(
-        agent.clone(),
-        endpoint.to_string(),
-        // &NewOperationGroup::new(
-        //     BlockHash::from_base58check(get_block_hash(agent.clone(), endpoint.to_string()).as_str()).unwrap(),
-        //     get_block_hash(agent.clone(), endpoint.to_string()))
-        branch.clone()
-    ).unwrap();
-    for i in opres {
-        println!("{}", i.consumed_gas);
-    };
-    let res = sign_operation(agent.clone(), endpoint, branch).unwrap();
+    // let op_res = run_operation(
+    //     agent.clone(),
+    //     endpoint.to_string(),
+    //     // &NewOperationGroup::new(
+    //     //     BlockHash::from_base58check(get_block_hash(agent.clone(), endpoint.to_string()).as_str()).unwrap(),
+    //     //     get_block_hash(agent.clone(), endpoint.to_string()))
+    //     branch.clone()
+    // ).unwrap();
+    // let consumed_gas = op_res[0].consumed_gas;
+    // println!("{}", consumed_gas);
+    let estimated_gas = estimate_gas_consumption(agent.clone(), endpoint.to_string(), branch.clone(), "Implicit").unwrap();
+    println!("***********************************************************");
+    println!("estimated gas for implicit: {}", estimated_gas.transaction.unwrap_or(0));
+    println!("***********************************************************");
+    let estimated_gas1 = estimate_gas_consumption(agent.clone(), endpoint.to_string(), branch.clone(), "Originated").unwrap();
+    println!("estimated gas for originated: {}", estimated_gas1.transaction.unwrap_or(0));
+    println!("***********************************************************");
+    let res = sign_operation(agent.clone(), endpoint, branch.clone()).unwrap();
     // println!("{}", res.operation_hash);
     println!("{}", res.operation_with_signature);
     // println!("{}", res.signature);
