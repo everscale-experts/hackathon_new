@@ -57,11 +57,14 @@ Warning:
   Rpc request failed:  
      - meth: GET  
      - uri: http://localhost:8732/chains/main/blocks/head/protocols  
-     - error: Unable to connect to the node: "Unix.Unix_error(Unix.ECONNREFUSED,   "connect", "")"  
+     - error: Unable to connect to the node: "Unix.Unix_error(Unix.ECONNREFUSED,   "connect", "")"   
 
 Error:  
   Unrecognized command.  
-  Try using the man command to get more information.  
+  Try using the man command to get more information.    
+  Ошибку решил, надо было ввести: $ tezos-client --endpoint https://rpc.hangzhounet.teztnets.xyz config update  
+  Новая ошибка не получается установить stack чтобы его видела WSL   
+
 
 <br>
 
