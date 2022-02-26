@@ -17,43 +17,26 @@ import {
   ProviderRpcClient,
   TvmException
 } from 'everscale-inpage-provider';
-
-TonClient.useBinaryLibrary(libWeb);
-
-/* Temple Wallet Variables */
-
 import { TezosToolkit } from '@taquito/taquito';
 import { BeaconWallet } from '@taquito/beacon-wallet';
-import { TempleWallet } from '@temple-wallet/dapp';
+//import { TempleWallet } from '@temple-wallet/dapp';
+
+TonClient.useBinaryLibrary(libWeb);
+const Tezos = new TezosToolkit("https://mainnet-tezos.giganode.io");
+const wallet = new BeaconWallet({ name: "EVERTEZ Bridge" });
+Tezos.setWalletProvider(wallet);
 
 
+async function logout_beacon(){
+  await wallet.clearActiveAccount();
+  console.log("disconnect");
+}
+window.logout_beacon = logout_beacon;
 
 
 async function login_with_tezos(){
 
-  /*const available = await ThanosWallet.isAvailable();
-  console.log(available);
 
-  const wallet = new TempleWallet('MyAwesomeDapp');
-  const auth = await wallet.connect('hangzhounet');
-  console.log(auth);*/
-
-  //const Tezos = new TezosToolkit('https://testnet-tezos.giganode.io');
-  /*const options = {
-    name: 'EverscaleBridge',
-    iconUrl: 'https://tezostaquito.io/img/favicon.png',
-    preferredNetwork: "hangzhounet",
-    eventHandlers: {
-      PERMISSION_REQUEST_SUCCESS: {
-        handler: async (data) => {
-          console.log('permission data:', data);
-        },
-      },
-    },
-  };
-  console.log(options);*/
-  const wallet = await new BeaconWallet({ name: "Beacon Docs Taquito" });
-  console.log("start");
   const auth = await wallet.requestPermissions({
     network: {
           type: 'mainnet' | 'granadanet' | 'hangzhounet' | 'custom',

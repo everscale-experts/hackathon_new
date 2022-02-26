@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@taquito/taquito": "^11.2.0",
+    "@thanos-wallet/dapp": "^2.2.2",
     "copy-webpack-plugin": "^10.2.4",
     "webpack": "^5.69.1",
     "webpack-cli": "^4.9.2"
@@ -19,7 +21,6 @@
     "@taquito/beacon-wallet": "^11.2.0",
     "@taquito/tezbridge-wallet": "^11.2.0",
     "@temple-wallet/dapp": "^6.1.0",
-    "@thanos-wallet/dapp": "^2.2.2",
     "@tonclient/appkit": "^0.3.0",
     "@tonclient/core": "^1.30.0",
     "@tonclient/lib-web": "^1.30.0",
