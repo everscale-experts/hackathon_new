@@ -33,7 +33,7 @@ Multisig разработанный на хакатоне https://msig.netlify.a
 <br>
 
 ### Multisig от Madfish-solutions  
-Чтобы установить себе надо перейти по ссылке все инструкции там 
+Чтобы установить себе надо перейти по ссылке все инструкции там   
 При запуске Myltisig командой yarn migrate # development возникает ошибка:    
  Error: the LigoLANG compiler  
  Compilation of C:\Project_Bridge\tezos-multisig\contracts\Multisig.ligo failed. See above.
@@ -49,7 +49,7 @@ File "/tmp/tmp-1wYIOW2PtZBw6.ligo", line 40, characters 55-56:
 <br>
 
 ### Multisig TQTezos 
-Чтобы установить себе надо перейти по ссылке все инструкции там 
+Чтобы установить себе надо перейти по ссылке все инструкции там   
 После установки Tezos-client
 Команды Tezos-client не рабатают ошибка:  
 Warning:  
