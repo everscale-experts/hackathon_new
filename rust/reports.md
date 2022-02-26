@@ -1,3 +1,12 @@
+# 26.02.2022  
+### Что сделано  
+Вызвал метод default у контракта KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw (хэш операции: oonQjwY2pM31ykMmJaukq95WFycQGGdakvevqrXWP3RoLd5EjWx)  
+https://hangzhou.tzstats.com/oonQjwY2pM31ykMmJaukq95WFycQGGdakvevqrXWP3RoLd5EjWx  
+https://hangzhou2net.tzkt.io/oonQjwY2pM31ykMmJaukq95WFycQGGdakvevqrXWP3RoLd5EjWx  
+### Трудности  
+Непонятно, почему возникали ошибки `Ill typed data` и `Invalid constant`  
+### Планы  
+
 # 24-25.02.2022  
 ### Что сделано  
 Прочитал про расчёт fee: https://medium.com/aditya-gautam-tech-blog/how-to-calculate-gas-fee-for-a-smart-contract-on-tezos-dee0bd37ca44  

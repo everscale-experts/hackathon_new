@@ -68,19 +68,23 @@ fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
 }
 
 fn get_value(agent: ureq::Agent, endpoint: String, contract: String) -> serde_json::Value {
-    let body = serde_json::json!([
-        {
-          "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
-          "txs": [
-                {
-                "to_": "tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz",
-                "token_id": "1",
-                "amount": "50"
-                }
-            ]
-        }
-    ]);
-    agent.post(format!("{}/v1/contracts/{}/entrypoints/transfer/build", endpoint, contract).as_str())
+    let body = serde_json::json!({
+        "p4": {
+          "p3": {
+            "p2": {
+              "p1": {
+                "nameId": "2",
+                "adressContractToken": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark"
+              },
+              "adresResieerEver": "0:c54a25311764a560d64b70b8c334991462e56da9bd48df0074c3b0ed27f4f4fd"
+            },
+            "amountTz": "9000"
+          },
+          "adresSenderTz": "tz1VcUcuUEcUGSZRcxNcj8JCrCG1xhZVRYt6"
+        },
+        "adresResieverTz": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM"
+      });
+    agent.post(format!("{}/v1/contracts/{}/entrypoints/default/build", endpoint, contract).as_str())
         .send_json(body).unwrap()
         .into_json().unwrap()
 }
@@ -181,15 +185,15 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String) -> Result<
                 {
                     "kind": "transaction",
                     "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
-                    "destination": "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g",
-                    "fee": "1066",
+                    "destination": "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw",
+                    "fee": "2688",
                     "counter": format!("{}", counter),
-                    "gas_limit": "7198",
-                    "storage_limit": "1",
+                    "gas_limit": "5000",
+                    "storage_limit": "100",
                     "amount": "0",
                     "parameters": {
-                        "entrypoint": "transfer",
-                        "value": get_value(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g".to_string())
+                        "entrypoint": "default",
+                        "value": get_value(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw".to_string())
                     }
                 }
             ]
