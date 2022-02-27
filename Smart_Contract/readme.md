@@ -85,6 +85,15 @@ Error:
   Unrecognized command.  
   Did you mean one of the following?  
 
+  <br>
+
+
+### пример создание Multisig
+возникла ошибка:   
+Failed to read a b58check_encoding data (Signature.Public_key): "edpkedpkuS2PP7wumxVKTv9HfyH9L5CWUqJ8EgezaVDgyEDpJMAMmwUb1C"
+
+
+
 
 <br>
 
