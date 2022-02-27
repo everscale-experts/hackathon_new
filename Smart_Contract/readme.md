@@ -27,10 +27,13 @@
 ## Multisig 
 Multisig от Madfish-solutions [тут](https://github.com/madfish-solutions/tezos-multisig)  
 Myltisig от Tezosing  [ссылка](https://github.com/atticlab/tezosign)   
-Myltisig TQTezos [тут](https://wiki.tezos.org.ua/token-contracts-specialized-multisig/2-originate-and-use-multisig-contract)  
+Myltisig TQTezos [ссылка](https://wiki.tezos.org.ua/token-contracts-specialized-multisig/2-originate-and-use-multisig-contract)  
 Multisig разработанный на хакатоне https://msig.netlify.app/ гит хаба нету
 
-Видео по созданию Multisig [тут](https://morioh.com/p/674f718d10ac)  
+пример создание Multisig [ссылка](https://dear-cricket-c83.notion.site/Multisig-9eef3ff65a0e4a3a84109f8d3563a88f)
+
+Видео по созданию Multisig [ссылка](https://morioh.com/p/674f718d10ac) (ошибка компиляции, truffle при компиляции не указывает параметры компиляции)  
+
 
 <br>
 <br>
@@ -66,7 +69,16 @@ Error:
   Unrecognized command.  
   Try using the man command to get more information.    
   Ошибку решил, надо было ввести: $ tezos-client --endpoint https://rpc.hangzhounet.teztnets.xyz config update  
+
   Новая ошибка не получается установить stack чтобы его видела WSL   
+  Ошибку решил
+
+  новая ошибка в tezos-client не получается установить rpc тестнета   
+  Failed to acquire the protocol version from the node  
+  Rpc request failed:  
+     - meth: GET  
+     - uri: https://https%3A%2F%2Frpc.hangzhounet.teztnets.xyz:443/chains/main/blocks/head/protocols  
+     - error: Unable to connect to the node: "TLS to non-TCP currently unsupported:host=https://rpc.hangzhounet.teztnets.xyz endp=(Unknown "name resolution failed")"
 
 
 <br>
