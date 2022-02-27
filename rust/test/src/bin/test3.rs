@@ -51,7 +51,7 @@ fn get_parameters() -> Result<serde_json::Value, Error> {
 }
 
 fn get_value(agent: ureq::Agent, endpoint: String, contract: String) -> Result<serde_json::Value, Error> {
-    Ok(agent.post(format!("{}/v1/contracts/{}/entrypoints/default/build", endpoint, contract).as_str())
+    Ok(agent.post(format!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, get_config_field("entrypoint").unwrap()).as_str())
         .send_json(get_parameters()?).unwrap()
         .into_json().unwrap())
 }
@@ -203,16 +203,6 @@ fn is_mainnet() -> Result<bool, Error> {
                 .clone()
                 .as_bool()
                 .unwrap()
-    )
-}
-
-fn get_config_parameters() -> Result<SerdeValue, Error> {
-    Ok(
-        serde_json::from_str::<SerdeValue>(fs::read_to_string("config.json")
-            .unwrap()
-            .as_str())?
-                .clone()["parameters"]
-                .clone()
     )
 }
 

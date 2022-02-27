@@ -1,22 +1,12 @@
 {
     "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
-    "contract": "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw",
+    "contract": "KT1UW5jNtDJ1m8EQVXGUBDBnNQxeXM8t6sf2",
     "public_key": "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd",
     "private_key": "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R",
     "is_mainnet": false,
-    "entrypoint": "default",
+    "entrypoint": "addition",
     "parameters": {
-        "p4": {
-            "p3": {
-                "p2": {
-                    "p1": {
-                        "nameId": "2",
-                        "adressContractToken": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark"
-                    },
-                    "adresResieerEver": "0:c54a25311764a560d64b70b8c334991462e56da9bd48df0074c3b0ed27f4f4fd"
-                },"amountTz": "9000"
-            },
-            "adresSenderTz": "tz1VcUcuUEcUGSZRcxNcj8JCrCG1xhZVRYt6"
-        },"adresResieverTz": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM"
+        "int_0": "5",
+        "int_1": "4"
     }
 }
