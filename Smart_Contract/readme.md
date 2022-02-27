@@ -78,7 +78,12 @@ Error:
   Rpc request failed:  
      - meth: GET  
      - uri: https://https%3A%2F%2Frpc.hangzhounet.teztnets.xyz:443/chains/main/blocks/head/protocols  
-     - error: Unable to connect to the node: "TLS to non-TCP currently unsupported:host=https://rpc.hangzhounet.teztnets.xyz endp=(Unknown "name resolution failed")"
+     - error: Unable to connect to the node: "TLS to non-TCP currently unsupported:host=https://rpc.hangzhounet.teztnets.xyz endp=(Unknown "name resolution failed")"  
+   Эта решилась  
+
+   новая ошибка Error:  
+  Unrecognized command.  
+  Did you mean one of the following?  
 
 
 <br>
