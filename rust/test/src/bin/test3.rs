@@ -1,15 +1,17 @@
-use lib::api::RunOperationError;
-use lib::api::InjectOperationsResult;
-use rpc_api::api::ProtocolInfo;
-mod common;
-use serde::Deserialize;
+use common::operation_command::exit_with_error_no_wallet_type_selected;
 use common::operation_command::LocalWalletState;
 use lib::signer::OperationSignatureInfo;
-use common::operation_command::exit_with_error_no_wallet_type_selected;
-use types::PublicKey;
+use lib::api::InjectOperationsResult;
+use lib::api::RunOperationError;
+use rpc_api::api::ProtocolInfo;
+use serde::Deserialize;
 use types::PrivateKey;
+use types::PublicKey;
 use ureq::SerdeValue;
+use console::style;
 use hex::FromHex;
+use std::fs;
+mod common;
 
 type Error = Box<dyn std::error::Error>;
 
@@ -44,26 +46,14 @@ fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
     value
 }
 
-fn get_value(agent: ureq::Agent, endpoint: String, contract: String) -> serde_json::Value {
-    let body = serde_json::json!({
-        "p4": {
-          "p3": {
-            "p2": {
-              "p1": {
-                "nameId": "2",
-                "adressContractToken": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark"
-              },
-              "adresResieerEver": "0:c54a25311764a560d64b70b8c334991462e56da9bd48df0074c3b0ed27f4f4fd"
-            },
-            "amountTz": "9000"
-          },
-          "adresSenderTz": "tz1VcUcuUEcUGSZRcxNcj8JCrCG1xhZVRYt6"
-        },
-        "adresResieverTz": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM"
-      });
-    agent.post(format!("{}/v1/contracts/{}/entrypoints/default/build", endpoint, contract).as_str())
-        .send_json(body).unwrap()
-        .into_json().unwrap()
+fn get_parameters() -> Result<serde_json::Value, Error> {
+    Ok(serde_json::from_str::<SerdeValue>(fs::read_to_string("config.json").unwrap().as_str())?.clone()["parameters"].clone())
+}
+
+fn get_value(agent: ureq::Agent, endpoint: String, contract: String) -> Result<serde_json::Value, Error> {
+    Ok(agent.post(format!("{}/v1/contracts/{}/entrypoints/default/build", endpoint, contract).as_str())
+        .send_json(get_parameters()?).unwrap()
+        .into_json().unwrap())
 }
 
 fn get_address_counter(agent: ureq::Agent, endpoint: String, address: String) -> u64 {
@@ -99,12 +89,13 @@ struct OperationResult {
 
 fn run_operation(
     agent: ureq::Agent,
+    rpc: String,
     endpoint: String,
     branch: String,
     contract: String,
 ) -> Result<OperationResult, RunOperationError> {
     let body = ureq::json!({
-        "chain_id": get_chain_id(agent.clone(), endpoint.clone()),
+        "chain_id": get_chain_id(agent.clone(), rpc.clone()),
         // "chain_id": "NetXZSsxBpMQeAT",
         "operation": {
             "branch": branch,
@@ -113,21 +104,21 @@ fn run_operation(
             "signature": "edsigthZLBZKMBUCwHpMCXHkGtBSzwh7wdUxqs7C1LRMk64xpcVU8tyBDnuFuf9CLkdL3urGem1zkHXFV9JbBBabi6k8QnhW4RG",
             "contents": [{
                 "kind": "transaction",
-                "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
+                "source": get_config_field("source").unwrap(),
                 "fee": "100000",
-                "counter": format!("{}", get_address_counter(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R".to_string()) + 1),
+                "counter": format!("{}", get_address_counter(agent.clone(), endpoint.to_string(), get_config_field("source").unwrap()) + 1),
                 "gas_limit": "10300",
                 "storage_limit": "257",
                 "amount": "50",
-                "destination": "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw",
+                "destination": get_config_field("contract").unwrap(),
                 "parameters": {
-                    "entrypoint": "default",
-                    "value": get_value(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), contract.clone())
+                    "entrypoint": get_config_field("entrypoint").unwrap(),
+                    "value": get_value(agent.clone(), endpoint.to_string(), contract.clone()).unwrap()
                 }
             }]
         }
     });
-    let res = &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", endpoint.clone()).as_str())
+    let res = &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone()).as_str())
         .send_json(body.clone()).unwrap()
         .into_json::<serde_json::Value>().unwrap()["contents"][0]["metadata"]["operation_result"];
     Ok(OperationResult{
@@ -136,21 +127,22 @@ fn run_operation(
     })
 }
 
-fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String, contract: String) -> Result<OperationSignatureInfo, Error> {
+fn sign_operation(agent: ureq::Agent, rpc: &str, endpoint: &str, branch: String, contract: String) -> Result<OperationSignatureInfo, Error> {
     let local_state = LocalWalletState {
-        public_key: PublicKey::from_base58check("edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd").unwrap(),
-        private_key: PrivateKey::from_base58check("edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R").unwrap(),
+        public_key: PublicKey::from_base58check(get_config_field("public_key").unwrap().as_str()).unwrap(),
+        private_key: PrivateKey::from_base58check(get_config_field("private_key").unwrap().as_str()).unwrap(),
     };
     if let Some(state) = Some(&local_state) {
         let counter = get_address_counter(
-            agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(),
-            "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R".to_string(),
+            agent.clone(), endpoint.to_string(),
+            get_config_field("source").unwrap(),
         ) + 1;
         let run_op_res = run_operation(
             agent.clone(),
+            rpc.to_string(),
             endpoint.to_string(),
             branch.clone(),
-            "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw".to_string(),
+            get_config_field("contract").unwrap(),
         ).unwrap();
         let gas = run_op_res.consumed_gas.parse::<u64>().unwrap() + 100;
         let storage_size = run_op_res.storage_size.parse::<u64>().unwrap();
@@ -163,7 +155,7 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String, contract: 
             "contents": [
                 {
                     "kind": "transaction",
-                    "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
+                    "source": get_config_field("source").unwrap(),
                     "destination": contract,
                     "fee": format!("{}", fee),
                     "counter": format!("{}", counter),
@@ -171,13 +163,13 @@ fn sign_operation(agent: ureq::Agent, endpoint: &str, branch: String, contract: 
                     "storage_limit": "100",
                     "amount": "0",
                     "parameters": {
-                        "entrypoint": "default",
-                        "value": get_value(agent.clone(), "https://api.hangzhounet.tzkt.io".to_string(), contract)
+                        "entrypoint": get_config_field("entrypoint").unwrap(),
+                        "value": get_value(agent.clone(), endpoint.to_string(), contract).unwrap()
                     }
                 }
             ]
         });
-        let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", endpoint).as_str())
+        let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", rpc).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
         println!("gas: {}", gas);
@@ -202,13 +194,57 @@ fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoin
        .into_json()?)
 }
 
+fn is_mainnet() -> Result<bool, Error> {
+    Ok(
+        serde_json::from_str::<SerdeValue>(fs::read_to_string("config.json")
+            .unwrap()
+            .as_str())?
+                .clone()["is_mainnet"]
+                .clone()
+                .as_bool()
+                .unwrap()
+    )
+}
+
+fn get_config_parameters() -> Result<SerdeValue, Error> {
+    Ok(
+        serde_json::from_str::<SerdeValue>(fs::read_to_string("config.json")
+            .unwrap()
+            .as_str())?
+                .clone()["parameters"]
+                .clone()
+    )
+}
+
+fn get_config_field(field: &str) -> Result<String, Error> {
+    Ok(
+        serde_json::from_str::<SerdeValue>(fs::read_to_string("config.json")
+            .unwrap()
+            .as_str())?
+                .clone()[field]
+                .clone()
+                .as_str()
+                .unwrap()
+                .to_string()
+    )
+}
+
 fn main() {
-    let endpoint = "https://hangzhounet.api.tez.ie";
+    let (rpc, endpoint) = match is_mainnet().unwrap() {
+        true => {
+            println!("{} Mainnet", style("[WARN]").yellow());
+            ("https://hangzhounet.api.tez.ie", "https://api.hangzhounet.tzkt.io")
+        },
+        false => {
+            println!("Hangzhounet");
+            ("https://hangzhounet.api.tez.ie", "https://api.hangzhounet.tzkt.io")
+        },
+    };
     let agent = ureq::Agent::new();
-    let branch = get_block_hash(agent.clone(), endpoint.to_string());
-    let contract = "KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw";
-    let res = sign_operation(agent.clone(), endpoint, branch.clone(), contract.to_string()).unwrap();
-    let inject_res = inject_operations(agent.clone(), res.operation_with_signature.as_str(), endpoint).unwrap();
+    let branch = get_block_hash(agent.clone(), rpc.to_string());
+    let contract = get_config_field("contract").unwrap();
+    let res = sign_operation(agent.clone(), rpc, endpoint, branch.clone(), contract).unwrap();
+    let inject_res = inject_operations(agent.clone(), res.operation_with_signature.as_str(), rpc).unwrap();
     println!("https://hangzhou2net.tzkt.io/{}", inject_res.as_str().unwrap());
     println!("{}", inject_res);
 }
