@@ -1,3 +1,9 @@
+# 27.02.2022  
+### Что сделано  
+Упростил функцию, которая считает газ, теперь она работает верно  
+### Трудности  
+### Планы  
+
 # 26.02.2022  
 ### Что сделано  
 Вызвал метод default у контракта KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw (хэш операции: oonQjwY2pM31ykMmJaukq95WFycQGGdakvevqrXWP3RoLd5EjWx)  
