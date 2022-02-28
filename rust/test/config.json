@@ -1,12 +1,20 @@
 {
     "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
-    "contract": "KT1UW5jNtDJ1m8EQVXGUBDBnNQxeXM8t6sf2",
+    "contract": "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g",
     "public_key": "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd",
     "private_key": "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R",
     "is_mainnet": false,
-    "entrypoint": "addition",
-    "parameters": {
-        "int_0": "5",
-        "int_1": "4"
-    }
+    "entrypoint": "transfer",
+    "parameters": [
+        {
+            "txs": [
+                {
+                    "to_": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark",
+                    "amount": "50",
+                    "token_id": "1"
+                }
+            ],
+            "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM"
+        }
+    ]
 }

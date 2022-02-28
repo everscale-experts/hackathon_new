@@ -1,3 +1,29 @@
+# 28.02.2022  
+### Что сделано  
+Попробовал вызвать метод "transfer" у "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g" с параметрами, как у Макса, но при тестовом запуске операции в ответе получил статус
+```json
+"status": "failed"
+```
+с ошибкой  
+```json 
+"with": {
+  "string": "FA2_NOT_OPERATOR"
+}
+```
+Поискал в интернете, из-за чего может возникать, но так и не понял, как это исправить и вообще моя ли это ошибка или что-то не так с контрактом. Спросил об этом в слаке.  
+https://assets.tqtezos.com/docs/token-contracts/fa2/2-fa2-nft-tutorial/  
+https://github.com/oxheadalpha/smart-contracts/blob/master/shared/fa2/lib/fa2_operator_lib.mligo  
+https://forklog.com/sp/dev-on-tezos/en/nft-issuance/  
+https://gist.github.com/pashius/2d17cb2395a4693d4257e6985a77474f  
+https://gitlab.com/tezos/tzip/-/blob/651b22365fc625782faad188799f217ae5ccea2e/proposals/tzip-12/tzip-12.md  
+В итоге нашел 
+>If the address that invokes a transfer operation is neither a token owner nor one of the permitted operators, the transaction MUST fail with the error mnemonic "FA2_NOT_OPERATOR". If at least  of the transfers in the batch is not permitted, the whole transaction MUST fail.  
+Судя по описанию, адрес, с которого я пытался вызвать метод, отсутствует в списке операторов контракта.
+### Трудности  
+`FA2_NOT_OPERATOR`, написал подробнее об этом выше  
+### Планы  
+Пока неизвестно  
+
 # 27.02.2022  
 ### Что сделано  
 Упростил функцию, которая считает газ, теперь она работает верно  
