@@ -57,10 +57,12 @@ on public keys "unencrypted:edpk..." - публичные ключи подпи�
 
 ## 5.Подписывание транзакции  
 ####  tezos-client sign bytes "0x...." for signer  
+####  tezos-client sign bytes "0x...." for deployer1
 
  "0x...." - строка байтов которую получаем после выполнения пукта 4 
   signer - псевдоним, кем будет подписана транзакция  
-  после подписания транзакции получаем сигнатуру  
+  после подписания транзакции получаем сигнатуру 
+   
 <br>
 
 ## 6.Выполнение транзакции  
@@ -68,10 +70,10 @@ on public keys "unencrypted:edpk..." - публичные ключи подпи�
 ###  tezos-client -E "https://rpc.hangzhounet.teztnets.xyz" run transaction "0x...." on multisig contract "KT1..." on behalf of signer with signatures "edsig..." "edsig..." --burn-cap 0.06425 
 
 "0x...." - строка байтов которую получаем после выполнения пукта 4   
-`on multisig contract "KT1..."` - the address of the multisig;  
+`on multisig contract "KT1..."` - адресс мультисига;  
 `on behalf of signer` -  says that the `signer` will sign the operation;   
 `with signatures "edsig..." "edsig..."` - lists of all signatures.  
-
+signatures "edsig..." "edsig..." - вписываем сигнатуры которые получили из пункта 5
 хэш транзакции мультисига: onsYuxAEEkwgoyTxhVFiC6cbTGx4Vt3rDKV52hrn23x8Kfq7w7Z
  
 
