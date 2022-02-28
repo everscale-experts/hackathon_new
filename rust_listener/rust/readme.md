@@ -2,6 +2,7 @@
 go to rust/listener  
 ```bash  
 rustup override set 1.52.1  
+cargo run --bin listener  
 ```  
 ---  
   
