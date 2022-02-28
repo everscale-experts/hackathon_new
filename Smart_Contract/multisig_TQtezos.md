@@ -29,7 +29,7 @@ tezos-client --endpoint https://rpc.hangzhounet.teztnets.xyz config update
 
 ## 3.создание Multisig
 
-### готовые аккаунты можно взять [тут](accaunt.txt) готовы Multisig: KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM    
+### готовые аккаунты и готовые Multisig можно взять [тут](accaunt.txt)    
 
 `tezos-client --wait none originate contract MultisigNat1 transferring 0 from tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF running "$(stack exec -- lorentz-contract-multisig`     `GenericMultisig \  `
  ` print-specialized --parameterType 'nat' --oneline)"   --init "$(stack exec -- lorentz-contract-multisig GenericMultisig \  `  
@@ -60,14 +60,15 @@ from tz... - адресс создателя контракта
       ###  tezos-client rpc get /chains/main/chain_id  
 
 2. получаем байтовую строку для подписи   
-        `stack exec -- lorentz-contract-multisig GenericMultisig run-multisig   --target-parameterType 'nat' --target-parameter '42'   --target-contract`   `"\"KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM\""   --multisig-contract "KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM" --counter 1 --signatures "Nothing"   --signerKeys "`  ``  [\"edpkvUnVLfHfmdK9jJcoAwSqPy9Qbb2asVJFq18cLJosBs6keoPwVD\",\"edpku6o7mjAwDJptsqRH2R3tt7UKqkB15jbmRx8sPfBzgzJGUnhSnv\"]" --chainId NetXZSsxBpMQeAT  
+        `stack exec -- lorentz-contract-multisig GenericMultisig run-multisig   --target-parameterType 'nat' --target-parameter '42'   --target-contract`   `"\"KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM\""   --multisig-contract "KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM" --counter 1 --signatures "Nothing"   --signerKeys "`  
+        `[\"edpkvUnVLfHfmdK9jJcoAwSqPy9Qbb2asVJFq18cLJosBs6keoPwVD\",\"edpku6o7mjAwDJptsqRH2R3tt7UKqkB15jbmRx8sPfBzgzJGUnhSnv\"]" --chainId NetXZSsxBpMQeAT  `  
 
     --target-parameterType 'nat' - тип параметров которые мы передаем контракту  
     --target-parameter '42' - параметр передаваемый в контракт  
     --target-contract   "\"KT...\"" - вызываемый контракт  
     --multisig-contract "KT..." - контракт мультисига   
     --counter 1 - количество подписей счет с нуля, как в массиве)  
-    --chainId Net... - индефекатор цепочки   
+    --chainId Net... - индефекатор цепочки из пункта 1   
 
 3. Подписываем байтовую строку   
     `tezos-client import secret key alice "unencrypted:edsk..." ` 

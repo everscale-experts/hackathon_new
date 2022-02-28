@@ -33,6 +33,9 @@ Hash: tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM
 Public Key: edpku8Su3XvThSZ2sqecsozXNuGkBCxdDXVnSoaKkvDr3c9HHqREFi
 Secret Key: unencrypted:edsk4SLTW3bL9ke7e3uyR7DvfDZ5SJvo7BfTn4yFESyZzhhLoagLeQ
 
+
+
+                                 Multisig для multisig_tezos-client.md
 С тремя подписями:
 msig: KT1Ha7icjrxubZumUKwS22umtq6EwKqfXM38 (
  edpkuS2PP7wumxVKTv9HfyH9L5CWUqJ8EgezaVDgyEDpJMAMmwUb1C,
@@ -46,6 +49,13 @@ msig1: KT1SgnWsMaQnvGuZTjrYACQP9wVYyUz1mTfH
 (edpkuAPjD8jVpbDUEQBXUdp1v9eNhLLo3JxUBBMTwWdw7Fm9tnHZTL, 
 edpkvZDzWnVqxNCZwX5YQMUg5ZFKD5WTpG8vjNv9WFk3jzh58wEfuk, 
 edpkvUnVLfHfmdK9jJcoAwSqPy9Qbb2asVJFq18cLJosBs6keoPwVD)
+
+                                 Multisig для multisig_TQtez
+
+KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM(
+edpkvUnVLfHfmdK9jJcoAwSqPy9Qbb2asVJFq18cLJosBs6keoPwVD,
+edpku6o7mjAwDJptsqRH2R3tt7UKqkB15jbmRx8sPfBzgzJGUnhSnv)
+
 
 
 
