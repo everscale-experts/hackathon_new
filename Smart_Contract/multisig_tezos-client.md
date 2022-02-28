@@ -67,7 +67,7 @@ on public keys "unencrypted:edpk..." - публичные ключи подпи�
 `on multisig contract "KT1..."` - the address of the multisig;  
 `on behalf of signer` -  says that the `signer` will sign the operation;   
 `with signatures "edsig..." "edsig..."` - lists of all signatures.  
-
+ 
 
 
 
