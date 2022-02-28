@@ -9,10 +9,14 @@
   `mv tezos-client $HOME/.local/bin`  
   `echo 'export PATH="$HOME/.local/bin:$PATH"' >> $HOME/.bashrc`    
   `source $HOME/.bashrc` 
+  
+  `tezos-client --endpoint https://rpc.hangzhounet.teztnets.xyz config update`
 
 ### MacOS
 $ brew tap serokell/tezos-packaging-stable https://github.com/serokell/tezos-packaging-stable.git  
 $ brew install tezos-client  
+
+tezos-client --endpoint https://rpc.hangzhounet.teztnets.xyz config update
 <br>
 
 ## 2.Get the deplorer key. There are 2 options:
@@ -67,6 +71,8 @@ on public keys "unencrypted:edpk..." - публичные ключи подпи�
 `on multisig contract "KT1..."` - the address of the multisig;  
 `on behalf of signer` -  says that the `signer` will sign the operation;   
 `with signatures "edsig..." "edsig..."` - lists of all signatures.  
+
+хэш транзакции мультисига: onsYuxAEEkwgoyTxhVFiC6cbTGx4Vt3rDKV52hrn23x8Kfq7w7Z
  
 
 

@@ -30,9 +30,9 @@ Myltisig от Tezosing  [ссылка](https://github.com/atticlab/tezosign)
 Myltisig TQTezos [ссылка](https://wiki.tezos.org.ua/token-contracts-specialized-multisig/2-originate-and-use-multisig-contract)  
 Multisig разработанный на хакатоне https://msig.netlify.app/ гит хаба нету
 
-пример создание Multisig [ссылка](https://dear-cricket-c83.notion.site/Multisig-9eef3ff65a0e4a3a84109f8d3563a88f)
+пример создание Multisig с Tezos-client [ссылка](https://dear-cricket-c83.notion.site/Multisig-9eef3ff65a0e4a3a84109f8d3563a88f)
 
-Видео по созданию Multisig [ссылка](https://morioh.com/p/674f718d10ac) (ошибка компиляции, truffle при компиляции не указывает параметры компиляции)  
+Видео по созданию Multisig [ссылка](https://morioh.com/p/674f718d10ac) (ошибка компиляции, truffle при компиляции ligo не указывает параметры компиляции)  
 
 
 <br>
