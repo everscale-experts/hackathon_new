@@ -18,14 +18,14 @@ $ brew install tezos-client
 ## 2.Get the deplorer key. There are 2 options:
    
  a. Import the deployer private key  
-####    tezos-client import secret key deployer1 "unencrypted:edsk..."   
-    deployer - это псевдоним которуму мы присваиваем секретный ключ   
+      tezos-client import secret key deployer1 "unencrypted:edsk..."   
+deployer - это псевдоним которуму мы присваиваем секретный ключ   
  
 
  b. Generate new keys  
-####    tezos-client gen keys signer  
-####    tezos-client show address signer -S  
-    siner - это псевдоним которуму мы присваиваем секретный ключ   
+     tezos-client gen keys signer  
+     tezos-client show address signer -S  
+siner - это псевдоним которуму мы присваиваем секретный ключ   
 
 ### готовые аккаунты можно взять [тут](accaunt.txt)
 <br>
