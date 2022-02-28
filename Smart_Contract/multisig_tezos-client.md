@@ -22,9 +22,9 @@ tezos-client --endpoint https://rpc.hangzhounet.teztnets.xyz config update
 ## 2.Get the deplorer key. There are 2 options:
    
  a. Import the deployer private key  
-      tezos-client import secret key deployer1 "unencrypted:edsk..."   
+  ### tezos-client import secret key deployer1 "unencrypted:edsk..."     
 deployer - это псевдоним которуму мы присваиваем секретный ключ   
- 
+"unencrypted:edsk..." - вписываем секретный ключь 
 
  b. Generate new keys  
      tezos-client gen keys signer  
@@ -59,7 +59,7 @@ on public keys "unencrypted:edpk..." - публичные ключи подпи�
 ####  tezos-client sign bytes "0x...." for signer  
 ####  tezos-client sign bytes "0x...." for deployer1
 
- "0x...." - строка байтов которую получаем после выполнения пукта 4 
+ "0x...." - строка байтов которую получаем после выполнения пукта 4  
   signer - псевдоним, кем будет подписана транзакция  
   после подписания транзакции получаем сигнатуру 
    
