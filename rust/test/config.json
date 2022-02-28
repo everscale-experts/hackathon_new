@@ -1,8 +1,12 @@
 {
-    "source": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
+    "source_test": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
+    "contract_test": "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX",
+    "public_test": "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd",
+    "private_test": "edsk4SLTW3bL9ke7e3uyR7DvfDZ5SJvo7BfTn4yFESyZzhhLoagLe",
+    "source": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
     "contract": "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g",
-    "public_key": "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd",
-    "private_key": "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R",
+    "public_key": "edpku8Su3XvThSZ2sqecsozXNuGkBCxdDXVnSoaKkvDr3c9HHqREFi",
+    "private_key": "edsk4SLTW3bL9ke7e3uyR7DvfDZ5SJvo7BfTn4yFESyZzhhLoagLeQ",
     "is_mainnet": false,
     "entrypoint": "transfer",
     "parameters": [

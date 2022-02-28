@@ -124,6 +124,7 @@ fn run_operation(
     fs::write("result.json", &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone()).as_str())
     .send_json(body.clone()).unwrap()
     .into_json::<serde_json::Value>().unwrap().to_string()).unwrap();
+    println!("consumed gas: {}", res["consumed_gas"]);
     Ok(OperationResult{
         consumed_gas: res["consumed_gas"].as_str().unwrap().to_string(),
         storage_size: res["storage_size"].as_str().unwrap().to_string(),

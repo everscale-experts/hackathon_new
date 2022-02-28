@@ -19,6 +19,8 @@ https://gitlab.com/tezos/tzip/-/blob/651b22365fc625782faad188799f217ae5ccea2e/pr
 В итоге нашел 
 >If the address that invokes a transfer operation is neither a token owner nor one of the permitted operators, the transaction MUST fail with the error mnemonic "FA2_NOT_OPERATOR". If at least  of the transfers in the batch is not permitted, the whole transaction MUST fail.  
 Судя по описанию, адрес, с которого я пытался вызвать метод, отсутствует в списке операторов контракта.
+Ответ из slack:  
+>Чтобы всё получилось, пользователь должен предварительно вызвать метод update_operators и указать адрес контракта в качестве оператора  
 ### Трудности  
 `FA2_NOT_OPERATOR`, написал подробнее об этом выше  
 ### Планы  
