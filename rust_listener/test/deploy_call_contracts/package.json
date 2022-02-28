@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@airgap/beacon-sdk": "^2.3.9",
+    "@taquito/signer": "^11.2.0",
+    "@taquito/taquito": "^11.2.0",
+    "@types/minimist": "^1.2.2",
+    "minimist": "^1.2.5",
+    "ts-command-line-args": "^2.2.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.5"
+  }
+}

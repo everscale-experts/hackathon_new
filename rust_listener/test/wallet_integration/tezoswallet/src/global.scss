@@ -1,0 +1,128 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import '~@ionic/angular/css/core.css';
+
+/* Basic CSS for apps built with Ionic */
+@import '~@ionic/angular/css/normalize.css';
+@import '~@ionic/angular/css/structure.css';
+@import '~@ionic/angular/css/typography.css';
+@import '~@ionic/angular/css/display.css';
+
+/* Optional CSS utils that can be commented out */
+@import '~@ionic/angular/css/padding.css';
+@import '~@ionic/angular/css/float-elements.css';
+@import '~@ionic/angular/css/text-alignment.css';
+@import '~@ionic/angular/css/text-transformation.css';
+@import '~@ionic/angular/css/flex-utils.css';
+
+/* sets shadows for cards */
+ion-card {
+  box-shadow: 0 10px 20px 0 rgba(49, 27, 88, 0.12);
+  border: 1px solid rgba(46, 91, 255, 0.08);
+  border-radius: 0;
+}
+/* typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+ion-list-header ion-label {
+  font-weight: 800;
+}
+ion-list-header ion-label {
+  font-size: 22px;
+}
+h1 {
+  font-size: 2em;
+}
+h2 {
+  font-size: 24px;
+  padding-top: 3em;
+}
+h3 {
+  padding-top: 2em;
+}
+ion-button {
+  font-weight: 400;
+}
+ion-menu {
+  margin-top: 56px;
+  ion-item {
+    font-size: 14px;
+  }
+  ion-list-header {
+    font-size: 12px;
+    font-weight: 200;
+  }
+}
+app-root {
+  @media only screen and (max-width: 767px) {
+    .header--menu {
+      left: 56px;
+    }
+    ion-header ion-buttons {
+      margin-right: 56px;
+    }
+  }
+}
+a {
+  text-decoration: none;
+  font-weight: 500;
+}
+/* styling of input fields optimized for desktop */
+ion-item {
+  .label-stacked.sc-ion-label-md-h {
+    width: max-content !important;
+    background-color: white;
+    z-index: 10;
+    margin: 0 8px !important;
+    padding: 8px 6px 0 !important;
+  }
+  .sc-ion-input-md-h,
+  .sc-ion-textarea-md-h {
+    border: 1px solid var(--ion-color-light-shade);
+    border-radius: 4px;
+    --padding-start: 12px !important;
+    --padding-top: 12px !important;
+    --padding-end: 12px !important;
+  }
+  .sc-ion-textarea-md-h {
+    margin: 0;
+  }
+  &.item-has-focus .sc-ion-textarea-md-h,
+  .sc-ion-input-md-h.has-focus {
+    border-color: var(--ion-color-primary);
+  }
+}
+
+app-root {
+  /* Fixes header shadown on mobile */
+  @media only screen and (max-width: 767px) {
+    .header-md:after {
+      display: none !important;
+    }
+    ion-app {
+      .header-md:after {
+        display: initial !important;
+      }
+    }
+  }
+  @media only screen and (min-width: 768px) {
+    ion-app {
+      .header-md:after {
+        display: none !important;
+      }
+    }
+  }
+}
