@@ -1,11 +1,12 @@
 ﻿# Run  
-Go to `rust/test`    
+Go to `rust/test`  
 ```bash  
 cargo run --bin test3  
 ```  
 If not working, try  
 ```bash  
 rustup toolchain install 1.52.1  
+rustup override set 1.52.1  
 ```
 ---  
   

@@ -1,0 +1,47 @@
+{
+  "coin": {
+    "address": "0:12307cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd7047d5d"
+  },
+  "tokens": [
+    {
+      "symbol": "TEST-0001",
+      "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd7040001"
+    },
+    {
+      "symbol": "TEST-0002",
+      "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd7040002"
+    },
+    {
+      "symbol": "TEST-0003",
+      "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd7040003"
+    },
+
+
+    {
+      "symbol": "TEST-0009",
+      "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd7040009"
+    },
+    {
+      "symbol": "TEST-0010",
+      "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd704000a"
+    },
+    {
+      "symbol": "TEST-0011",
+      "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd704000b"
+    },
+    {
+      "symbol": "TEST-0012",
+      "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd704000c"
+    },
+
+
+    {
+      "symbol": "TEST-1999",
+      "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd70407CF"
+    },
+    {
+      "symbol": "TEST-2000",
+      "wallet": "0:12347cc8cac50159ee52a809d44a03f566fee7176ed620e0663a26cbd70407D0"
+    }
+  ]
+}
