@@ -4,6 +4,8 @@ import { Account } from '@tonclient/appkit';
 import contractPackage from './contracts/TONTokenWallet.js';
 import contractPackageRoot from './contracts/RootTokenContract.js';
 import contractPackageSM from './contracts/SafeMultisig.js';
+import contractPackageWallet from './contracts/TIP3Wallet.js';
+
 import {
   signerKeys,
   TonClient,
@@ -24,7 +26,7 @@ import { BeaconWallet } from '@taquito/beacon-wallet';
 TonClient.useBinaryLibrary(libWeb);
 const Tezos = new TezosToolkit("https://mainnet-tezos.giganode.io");
 const wallet = new BeaconWallet({ name: "EVERTEZ Bridge" });
-Tezos.setWalletProvider(wallet);
+//Tezos.setWalletProvider(wallet);
 
 
 async function logout_beacon(){
@@ -35,7 +37,6 @@ window.logout_beacon = logout_beacon;
 
 
 async function login_with_tezos(){
-
 
   const auth = await wallet.requestPermissions({
     network: {
@@ -89,7 +90,9 @@ const TokenRoot = {
   abi: contractPackageRoot.abi,
   tvc:contractPackageRoot.tvc,
 }
-
+const TIP3Wallet = {
+  abi: contractPackageWallet.abi,
+}
 /* Auth in EVERCRYSTAL*/
 
 const ever = new ProviderRpcClient();
@@ -132,6 +135,28 @@ async function send(){
 }
 window.send = send;
 
+async function send_token(){
+  var form = document.querySelector('#myform');
+  var formData = new FormData(form);
+  var address = formData.get('address');
+  const tokenvalue = parseFloat(formData.get('token')) * 1000000000;
+  const send = await ever.contracts.call({
+    address:"0:b95d8f510a029401dda2b1d3b9ec1b656238fa19e96d0b4dbcc41ee82821b6ab",
+    functionCall:{
+      abi:TIP3Wallet.abi,
+      method:"transfer",
+      /*params:{
+        amount:,
+        recipient:,
+        deployWalletValue:,
+        remainingGasTo,
+
+      },*/
+    },
+  })
+}
+window.send_token = send_token;
+
 /* Login in Extraton*/
 
 async function login_extraton(){
@@ -159,7 +184,7 @@ async function login_extraton(){
 window.login_extraton = login_extraton;
 
 
-/* Login in Extraton*/
+/* Login in Everwallet*/
 
 async function send_everwallet(){
   const client = await getTONWeb();
