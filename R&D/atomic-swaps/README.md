@@ -13,7 +13,7 @@
     May 2013, when TIer Nolan provided the first full account of a procedure for atomic swaps. 
   Tier Nolan is widely credited as the inventor of atomic swaps.  
     On September 20, 2017, Decred and Litecoin did the first known successful implementation of the atomic swap.  
-    HTLC - Hashed Timelock Contracts 
+    __HTLC__ - Hashed Timelock Contracts  
     We want to implement On-Chain Atomic Swaps which takes place on either currency’s blockchain. 
     In order to do this though, both currencies must:  
     - Support HTLC  
