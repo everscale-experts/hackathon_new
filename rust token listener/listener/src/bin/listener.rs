@@ -1,11 +1,27 @@
 use ureq::Agent;
 use json::parse;
 use std::fs;
-// use std::thread;
-// use std::time::Duration;
+use serde_json;
+use serde_json::Value;
+
+type Error = Box<dyn std::error::Error>;
+
+fn get_type() -> Result<String, Error> {
+    Ok(
+        serde_json::from_str::<Value>(fs::read_to_string("config.json")
+            .unwrap()
+            .as_str())?
+                .clone()["type"]
+                .clone()
+                .as_str()
+                .unwrap()
+                .to_string()
+    )
+}
+
 fn get() -> json::JsonValue {
     let agent = Agent::new();
-    let path = format!("https://api.hangzhounet.tzkt.io/v1/accounts/{}/operations", parse(fs::read_to_string(PATH)
+    let path = format!("https://api.hangzhou2net.tzkt.io/v1/accounts/{}/operations", parse(fs::read_to_string(PATH)
         .unwrap()
         .as_str())
         .unwrap()["address"]
@@ -23,12 +39,11 @@ fn get() -> json::JsonValue {
 
 const PATH: &str = "config.json";
 fn main() {
-    // println!("listening {}", address);
     let mut last_len = get().len();
     loop {
         let res = get();
         let len = res.len();
-        if len > last_len { // если транзакций стало больше
+        if len > last_len {
             println!("{:#}", res[0]);
             last_len = len;
         }
