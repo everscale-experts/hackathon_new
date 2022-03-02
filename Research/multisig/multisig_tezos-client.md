@@ -1,4 +1,3 @@
-
 # Создание Multisig с tezos-client
 
 ## 1.install tezos-client 
