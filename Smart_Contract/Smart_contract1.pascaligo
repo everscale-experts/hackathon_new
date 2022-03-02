@@ -1,4 +1,4 @@
-//первый способ 
+// первый способ
 // смарт контракт KT1X7DmWgCU4h1V7hbwPpzwGJcXBfoydcgwW
 
 
@@ -25,5 +25,3 @@ function main (const parameter : action ; const _store : storage) :
  | Addition(n1, n2,n3,n4,n5,n6) -> add(n1, n2,n3,n4,n5,n6)
  end;
  } with ((nil : list(operation)), result)
-
-
