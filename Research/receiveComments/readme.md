@@ -8,7 +8,7 @@ npm install --global yarn
 ```
 ## To run  
 ```bash
-cd Smart_Contract
+cd Research/receiveComments
 yarn
 ```
   
