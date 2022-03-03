@@ -1,4 +1,4 @@
-// первая попытка задеплоить мультисиг, возникала ошибка 
+// первая попытка задеплоить мультисиг, возникала ошибка при деплое
 
 // import { Schema } from '@taquito/michelson-encoder/dist/types/schema/storage';
 // import { TezosToolkit } from '@taquito/taquito';
@@ -429,7 +429,7 @@ async function deploy() {
       //значение хранилища
       storage: {
               counter: 0,  // начальное значение счётчика
-              threshold: 1, // количество полписей ля подтвержения транзакции
+              threshold: 1, // количество полписей для подтвержения транзакции
               keys: ['edpkuAPjD8jVpbDUEQBXUdp1v9eNhLLo3JxUBBMTwWdw7Fm9tnHZTL'], // публичные ключи владельцев multisig
             },
     })

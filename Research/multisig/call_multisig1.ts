@@ -31,7 +31,7 @@ export class token_transfer {
         payload:{
             counter:1,
             action:{
-                operation: "transferi",
+                operation: "transfere",
                 change_keys:{
                     treshload: 2,
                     keys:[
