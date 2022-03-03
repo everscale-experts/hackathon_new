@@ -2,8 +2,64 @@
   <head>
     <title>Everscale Bridge</title>
     <script src="main.js"></script>
+<script src="https://everscale-connect.svoi.dev/everscale/index.mjs" type="module"></script>
+<script type="module">
+
+    import {
+        default as getProvider,
+        PROVIDERS,
+        UTILS
+    } from "https://everscale-connect.svoi.dev/everscale/getProvider.mjs";
+    import TIP31Root from "https://everscale-connect.svoi.dev/everscale/contracts/TIP31Root.mjs";
+
+    window.getProvider = getProvider;
+    window.PROVIDERS = PROVIDERS;
+    window.UTILS = UTILS;
 
 
+    const DEFAULT_WALLET = PROVIDERS.EVERWallet;
+
+    let EVER = null;
+    try {
+
+        //Initialize provider
+        EVER = await getProvider({
+
+        }, DEFAULT_WALLET);
+        await EVER.requestPermissions();
+        await EVER.start();
+    } catch (e) {
+        console.log(e);
+        alert('Everscale connection error ' + e.message);
+    }
+    window.EVER = EVER;
+
+    //Ton punks contract
+  /*  let tip31 = await (new TIP31Root(EVER)).init('0:87d795ddc35363a7374eb43a7f2edeca30d79a736470f6ada169bcfc58851a2c');
+    console.log(tip31);
+    window.tip31 = tip31;;
+
+    let tokenInfo = await tip31.getTokenInfo()
+
+    console.log(tokenInfo);
+
+    alert('Token name ' + tokenInfo.name);*/
+    const WHISKEY_TOKEN_ADDRESS = '0:8352386a7ec502bcfe4041edf2f69fe5a40964691cac1712324510cdf0a7333e';
+    const CURRENT_USER_WALLET_ADDRESS = (await EVER.getWallet()).address;
+    let token = await (new TIP31Root(EVER)).init(WHISKEY_TOKEN_ADDRESS);
+    console.log(token);
+    let wallet = await token.getWalletByMultisig(CURRENT_USER_WALLET_ADDRESS);
+    console.log('User balance', await wallet.balance());
+
+    /*let wallet = await tip31.getWalletByMultisig((await EVER.getWallet()).address);
+    if(await wallet.isDeployed()){
+        alert('Wallet is deployed');
+    } else {
+        alert('Wallet is not deployed');
+    }
+*/
+
+</script>
   </head>
   <body>
     <h1 >

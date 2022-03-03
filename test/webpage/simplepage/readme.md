@@ -18,6 +18,11 @@ https://chrome.google.com/webstore/detail/ever-wallet/cgeeodpfagjceefieflmdfphpl
 https://github.com/SVOIcom/ton-provider/tree/main/example
 https://firebasestorage.googleapis.com/v0/b/ton-labs.appspot.com/o/documents%2Fapplication%2Fpdf%2Fwzm8im20x2rkolx1s8i-TONWallet%20document.pdf?alt=media&token=bbd617cf-38ed-4eb3-81ad-8d6435886283
 
+https://github.com/SVOIcom/everscale-connect-backend
+
+# Root адрес нашего тип-3 токена
+0:87d795ddc35363a7374eb43a7f2edeca30d79a736470f6ada169bcfc58851a2c
+
 # Доступные кошельки для теста
 
 0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647

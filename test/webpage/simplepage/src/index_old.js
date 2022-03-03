@@ -136,7 +136,7 @@ async function send(){
 window.send = send;
 
 async function send_token(){
-/*  var form = document.querySelector('#myform');
+  var form = document.querySelector('#myform');
   var formData = new FormData(form);
   var address = formData.get('address');
   const tokenvalue = parseFloat(formData.get('token')) * 1000000000;
@@ -151,10 +151,9 @@ async function send_token(){
         deployWalletValue:,
         remainingGasTo,
 
-      },
+      },*/
     },
-  })*/
-  
+  })
 }
 window.send_token = send_token;
 
@@ -194,7 +193,6 @@ async function send_everwallet(){
   const walletInfo = await client.accounts.getWalletInfo();
   console.log(walletInfo);
   const account = await client.accounts.getAccount();
-  console.log(account);
   var form = document.querySelector('#myform');
   var formData = new FormData(form);
   var address_recepient = formData.get('address');
@@ -209,12 +207,9 @@ async function send_everwallet(){
   );
 
   console.log(send);
-
   //const signer = await provider.getSigner();
 }
 window.send_everwallet = send_everwallet;
-
-
 
 
 
