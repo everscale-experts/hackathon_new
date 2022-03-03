@@ -6,12 +6,12 @@ use serde_json::Value;
 
 type Error = Box<dyn std::error::Error>;
 
-fn get_type() -> Result<String, Error> {
+fn get_value(field: &str) -> Result<String, Error> {
     Ok(
-        serde_json::from_str::<Value>(fs::read_to_string("config.json")
+        serde_json::from_str::<Value>(fs::read_to_string(PATH)
             .unwrap()
             .as_str())?
-                .clone()["type"]
+                .clone()[field]
                 .clone()
                 .as_str()
                 .unwrap()
@@ -21,13 +21,7 @@ fn get_type() -> Result<String, Error> {
 
 fn get() -> json::JsonValue {
     let agent = Agent::new();
-    let path = format!("https://api.hangzhou2net.tzkt.io/v1/accounts/{}/operations", parse(fs::read_to_string(PATH)
-        .unwrap()
-        .as_str())
-        .unwrap()["address"]
-        .as_str()
-        .unwrap()
-    );
+    let path = format!("https://api.hangzhou2net.tzkt.io/v1/accounts/{}/operations", get_value("contract").unwrap());
     let res = agent.get(&path)
         .call()
         .unwrap()
@@ -40,11 +34,14 @@ fn get() -> json::JsonValue {
 const PATH: &str = "config.json";
 fn main() {
     let mut last_len = get().len();
+    let wallet = get_value("wallet").unwrap();
     loop {
         let res = get();
         let len = res.len();
-        if len > last_len {
-            println!("{:#}", res[0]);
+        let txs = &res[0]["parameter"]["value"][0]["txs"][0];
+        if len > last_len && txs["to_"].as_str().unwrap_or("") == wallet {
+            println!("{:#}", txs);
+            // println!("{:#}", res[0]);
             last_len = len;
         }
     }
