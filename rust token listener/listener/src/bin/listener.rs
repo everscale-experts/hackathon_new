@@ -40,7 +40,7 @@ fn main() {
         let len = res.len();
         let txs = &res[0]["parameter"]["value"][0]["txs"][0];
         if len > last_len && txs["to_"].as_str().unwrap_or("") == wallet {
-            println!("{:#}", txs);
+            println!("{:#?}", txs);
             // println!("{:#}", res[0]);
             last_len = len;
         }
