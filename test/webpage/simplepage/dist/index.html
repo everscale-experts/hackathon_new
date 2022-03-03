@@ -2,7 +2,6 @@
   <head>
     <title>Everscale Bridge</title>
     <script src="main.js"></script>
-<script src="https://everscale-connect.svoi.dev/everscale/index.mjs" type="module"></script>
 <script type="module">
 
     import {
@@ -44,12 +43,21 @@
     console.log(tokenInfo);
 
     alert('Token name ' + tokenInfo.name);*/
-    const WHISKEY_TOKEN_ADDRESS = '0:8352386a7ec502bcfe4041edf2f69fe5a40964691cac1712324510cdf0a7333e';
+    const WHISKEY_TOKEN_ADDRESS = '0:b95d8f510a029401dda2b1d3b9ec1b656238fa19e96d0b4dbcc41ee82821b6ab';
     const CURRENT_USER_WALLET_ADDRESS = (await EVER.getWallet()).address;
     let token = await (new TIP31Root(EVER)).init(WHISKEY_TOKEN_ADDRESS);
     console.log(token);
     let wallet = await token.getWalletByMultisig(CURRENT_USER_WALLET_ADDRESS);
-    console.log('User balance', await wallet.balance());
+    console.log(wallet);
+    console.log('User balance', await wallet.getBalance());
+
+    const AMOUNT = 1;
+    const DESTINATION_MULTISIG = '0:129dc05b739d8ab9161ac710b92e1e3dcfb32e284a509ed8180e978554b1e16b';
+    const DESTINATION_WALLET = await token.getWalletAddressByMultisig(DESTINATION_MULTISIG);
+    let transferPayload = await wallet.transferPayload(DESTINATION_WALLET, AMOUNT);
+    await EVER.walletTransfer(wallet.address, 1e9, transferPayload, true);
+
+
 
     /*let wallet = await tip31.getWalletByMultisig((await EVER.getWallet()).address);
     if(await wallet.isDeployed()){
