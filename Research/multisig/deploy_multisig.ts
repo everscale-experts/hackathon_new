@@ -30,6 +30,13 @@
 
 
 // второй способ развертывания смарт контракта, все работает 
+
+// для того чтобы пользоватся кодом пишем в командной строке 
+//1) npm install -g yarn
+//2) yarn
+//3) npx ts-node deploy_multisig.ts
+
+
 import { TezosToolkit } from '@taquito/taquito'
 import { importKey } from '@taquito/signer'
 
@@ -421,9 +428,9 @@ async function deploy() {
            `,
       //значение хранилища
       storage: {
-              counter: 0,
-              threshold: 1,
-              keys: ['edpkuAPjD8jVpbDUEQBXUdp1v9eNhLLo3JxUBBMTwWdw7Fm9tnHZTL'],
+              counter: 0,  // начальное значение счётчика
+              threshold: 1, // количество полписей ля подтвержения транзакции
+              keys: ['edpkuAPjD8jVpbDUEQBXUdp1v9eNhLLo3JxUBBMTwWdw7Fm9tnHZTL'], // публичные ключи владельцев multisig
             },
     })
 
@@ -431,8 +438,8 @@ async function deploy() {
     console.log('Awaiting confirmation...')
     const contract = await op.contract()
     //отчет о развертывании: количество использованного газа, значение хранилища
-    console.log('Gas Used', op.consumedGas)
-    console.log('Storage', await contract.storage())
+    console.log('Adress contract', op.contractAddress)
+    
     //хеш операции, по которому можно найти контракт в блокчейн-обозревателе
     console.log('Operation hash:', op.hash)
   } catch (ex) {
