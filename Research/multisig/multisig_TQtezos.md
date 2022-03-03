@@ -83,7 +83,7 @@ from tz... - адресс создателя контракта
     unencrypted:edsk... - вместо edsk... надо записать приватный ключ  
 
 4. подписание транзакции  
-   `tezos-client --wait none transfer 0 from $BOB_ADDRESS to $MULTISIG_NAT_ADDRESS   --arg "$(stack exec -- lorentz-contract-multisig \`  
+   `tezos-client --wait none transfer 0 from tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF to KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM   --arg "$(stack exec -- lorentz-contract-multisig \`  
   `GenericMultisig run-multisig --target-parameterType 'nat' \`  
   `--target-parameter '42' --target-contract "\"KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM\"" \ ` 
   `--multisig-contract "KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM" --counter 1 \ ` 
@@ -91,9 +91,11 @@ from tz... - адресс создателя контракта
  ` --signerKeys "[\"edpku6o7mjAwDJptsqRH2R3tt7UKqkB15jbmRx8sPfBzgzJGUnhSnv)\",\"$(edpkvUnVLfHfmdK9jJcoAwSqPy9Qbb2asVJFq18cLJosBs6keoPwVD)\"]" \ ` 
   `--chainId )" --burn-cap 0.000001`
 
-    "Just[Just\"edsig...\",Just\"edsig...\"]" - вписываем сигнатуры которые получили из пункта 3  
-    Если мы укажем --caunter 0 то вместо Just\"edsig...\" надо писать Nothing
-
+    "Just[Just\"edsig...\",Just\"edsig...\"]" - вписываем сигнатуры которые получили из пункта 3    
+    Если мы укажем --caunter 0 то вместо Just\"edsig...\" то вместо несуществущей сигнатуры надо писать Nothing  
+    from tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF - адресс создателя multisig 
+    остальные пояснения такие же, как и в пункте 2  
+  
 
 
 
