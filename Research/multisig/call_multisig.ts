@@ -5,10 +5,7 @@ const acc = require('./Account.json')
 
    const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz'
 const CONTRACT = 'KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM' //адрес опубликованного контракта
-const SENDER = 'tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM' //публичный адрес отправителя — возьмите его из accaunt1.json
-const RECEIVER = 'tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz' //публичный адрес получателя — возьмите его из кошелька Tezos, который вы создали
-const AMOUNT = 12 //количество токенов для отправки. Можете ввести другое число
-const ID=1
+
 
 
 export class token_transfer {
@@ -24,7 +21,7 @@ export class token_transfer {
       this.tezos.setSignerProvider(InMemorySigner.fromFundraiser(acc.email, acc.password, acc.mnemonic.join(' ')))
 
     }
-    public async transfer(contract1: string, sender: string, receiver: string, amount: number, id:number ) {
+    public async transfer(contract1: string) {
       
       const contract = await this.tezos.wallet.at(contract1)
       const batch = await this.tezos.wallet.batch()
@@ -55,16 +52,7 @@ export class token_transfer {
 
 
       ))
-    //   .withContractCall(contract.methods.transfer([{
-    //     from_: sender,
-    //     txs:[
-    //       {
-    //         to_:receiver,
-    //         token_id: id,
-    //         amount: amount
-    //       }
-    //     ]
-    //   }]))
+  
       
 
 
@@ -86,6 +74,6 @@ export class token_transfer {
 
 
 
-new token_transfer(RPC_URL).transfer(CONTRACT, SENDER, RECEIVER, AMOUNT, ID)
+new token_transfer(RPC_URL).transfer(CONTRACT)
   
 

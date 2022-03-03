@@ -4,7 +4,7 @@ import { KeyToken } from '@taquito/michelson-encoder/dist/types/tokens/key'
 const acc = require('./Account.json')
 
    const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz'
-const CONTRACT = 'KT1SgnWsMaQnvGuZTjrYACQP9wVYyUz1mTfH' //адрес опубликованного контракта
+const CONTRACT = 'KT1WbMJxxzUMbT1uQz3QoyfCxCgTDRuA95ry' //адрес опубликованного контракта
 
 
 
@@ -26,38 +26,49 @@ export class token_transfer {
       const contract = await this.tezos.wallet.at(contract1)
       const batch = await this.tezos.wallet.batch()
 
-      .withContractCall(contract.methods.main({
-          
-        payload:{
-            counter:1,
-            action:{
-                operation: "transferi",
-                change_keys:{
-                    treshload: 2,
-                    keys:[
-                        "edpkuAPjD8jVpbDUEQBXUdp1v9eNhLLo3JxUBBMTwWdw7Fm9tnHZTL",
-                        "edpkvZDzWnVqxNCZwX5YQMUg5ZFKD5WTpG8vjNv9WFk3jzh58wEfuk",
-                        "edpkvUnVLfHfmdK9jJcoAwSqPy9Qbb2asVJFq18cLJosBs6keoPwVD",
-                    ]
+      .withContractCall(contract.methods.main_parameter({
+          counter: 0,
+          or:{
+              LLLL:{
+                  to: 'address',
+                  value: 'mutez',
+              },
+              delegation:'key_hash',
+              transferFA:{
+                  address:'address',
+                  or:{
+                      transferFA1_2:{
+                          address_0:'address',
+                          address_1:'address',
+                          nat:"nat",
+                      },
+                      transferFA2_0:[{
+                          from:'address',
+                          txs:[{
+                              to_:'address',
+                              token_id:'nat',
+                              amount:'nat',
 
-                }
-            }
-        },
-        sigs:[
-            "Nothing"
-        ],
-      }
+                          }]
+                      }]
+                  }
+              }
 
+          },
+          LLRR:{
+              vesting:'address',
+              or:{
+                  setDelegate:'key_hash',
+                  vest:'nat',
+              }
+          },
+          sigs:[
+              'signature',
+          ]
 
-
-      ))
-  
+      }))
+   
       
-
-
-
-
-
         batch.send()
         
         
