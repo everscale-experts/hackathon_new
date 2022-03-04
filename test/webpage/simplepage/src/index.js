@@ -154,7 +154,7 @@ async function send_token(){
       },
     },
   })*/
-  
+
 }
 window.send_token = send_token;
 
