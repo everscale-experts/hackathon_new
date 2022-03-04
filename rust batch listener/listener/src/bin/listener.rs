@@ -31,18 +31,38 @@ fn get() -> json::JsonValue {
     res_json
 }
 
+fn check_batch(hash: String) -> (bool, json::JsonValue) {
+    let agent = Agent::new();
+    let path = format!("https://api.hangzhou.tzstats.com/explorer/op/{}", hash);
+    let res = agent.get(&path)
+        .call()
+        .unwrap()
+        .into_string()
+        .unwrap();
+    let res_json = parse(res.as_str()).unwrap();
+    (
+        res_json[0]["is_batch"].as_bool().unwrap_or(false),
+        res_json,
+    )
+}
+
 const PATH: &str = "config.json";
 fn main() {
     let mut last_len = get().len();
-    let wallet = get_value("wallet").unwrap();
-    loop {
-        let res = get();
-        let len = res.len();
-        let txs = &res[0]["parameter"]["value"][0]["txs"][0];
-        if len > last_len && txs["to_"].as_str().unwrap_or("") == wallet {
-            println!("{:#?}", txs);
-            // println!("{:#}", res[0]);
-            last_len = len;
-        }
+    let res = get();
+    // std::fs::write("result.json", format!("{:#}", is_batch));
+    for i in 0..last_len {
+        let (is_batch, value) = check_batch(res[i]["hash"].as_str().unwrap().to_string());
+        println!("is batch: {}\nhash: {}\n", is_batch, res[i]["hash"]);
     }
+    // loop {
+    //     let res = get();
+    //     let len = res.len();
+    //     let is_batch = &res[0]["is_batch"];
+    //     if len > last_len {
+    //         println!("{:#?}", is_batch);
+    //         // println!("{:#}", res[0]);
+    //         last_len = len;
+    //     }
+    // }
 }
