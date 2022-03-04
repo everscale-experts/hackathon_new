@@ -49,11 +49,16 @@ fn check_batch(hash: String) -> (bool, json::JsonValue) {
 const PATH: &str = "config.json";
 fn main() {
     let mut last_len = get().len();
+    // Это тест, чтобы посмотреть, как будет выведен результат в консоль  
+    // Результат теста можно увидеть в файле result.json  
     // let res = get();
-    // std::fs::write("result.json", format!("{:#}", is_batch));
     // for i in 0..last_len {
     //     let (is_batch, value) = check_batch(res[i]["hash"].as_str().unwrap().to_string());
-    //     println!("is batch: {}\nhash: {}\n", is_batch, res[i]["hash"]);
+    //     if is_batch {
+    //         println!("is batch: {}\nhash: {}\n", is_batch, res[i]["hash"]);
+    //         std::fs::write("result.json", format!("{:#}", value));
+    //         break;
+    //     }
     // }
     loop {
         let res = get();
