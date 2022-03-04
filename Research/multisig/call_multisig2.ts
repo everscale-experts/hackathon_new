@@ -1,10 +1,27 @@
 import { BatchOperation, TezosToolkit } from '@taquito/taquito'
 import { InMemorySigner } from '@taquito/signer'
 import { KeyToken } from '@taquito/michelson-encoder/dist/types/tokens/key'
+import { b58cencode, char2Bytes, Prefix, prefix } from '@taquito/utils';
 const acc = require('./Account.json')
 
    const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz'
-const CONTRACT = 'KT1WbMJxxzUMbT1uQz3QoyfCxCgTDRuA95ry' //адрес опубликованного контракта
+const CONTRACT = 'KT1SYmWUEZu13tycy5cLEaYuDtoG6Zf6DsxL' //адрес опубликованного multisig
+
+
+
+
+const bytes= char2Bytes("0, LLLL:{adresss:'tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz', value:'10'},Nothing") // создаем строку ддля подписи
+console.log(bytes)
+
+// присваиваем переменным обьект с помощью которого будем подписывать строку 
+const signer =new InMemorySigner('edsk31hLYrJqTeHqsLPdo1Ab5SKw7PUXUuWBt95UBFkLj3KrW1Dt6x');  
+
+
+
+// подписыаем строку и получаем сигнатуры
+const signature = signer.sign(bytes)
+
+console.log(signature)
 
 
 
@@ -21,62 +38,15 @@ export class token_transfer {
       this.tezos.setSignerProvider(InMemorySigner.fromFundraiser(acc.email, acc.password, acc.mnemonic.join(' ')))
 
     }
-    public async transfer(contract1: string) {
+    public async transfer(contract1: string,) {
       
-      const contract = await this.tezos.wallet.at(contract1)
-      const batch = await this.tezos.wallet.batch()
+       const contract = await this.tezos.wallet.at(contract1)
+       // вызываем метод контракта и пописываем сигнатурами
+       const op = await contract.methods.main_parameter(0 ,[(await signature).prefixSig]).send()
+       
+       await op.confirmation()
+        console.log(op.opHash)
 
-      .withContractCall(contract.methods.main_parameter({
-          counter: 0,
-          or:{
-              LLLL:{
-                  to: 'address',
-                  value: 'mutez',
-              },
-              delegation:'key_hash',
-              transferFA:{
-                  address:'address',
-                  or:{
-                      transferFA1_2:{
-                          address_0:'address',
-                          address_1:'address',
-                          nat:"nat",
-                      },
-                      transferFA2_0:[{
-                          from:'address',
-                          txs:[{
-                              to_:'address',
-                              token_id:'nat',
-                              amount:'nat',
-
-                          }]
-                      }]
-                  }
-              }
-
-          },
-          LLRR:{
-              vesting:'address',
-              or:{
-                  setDelegate:'key_hash',
-                  vest:'nat',
-              }
-          },
-          sigs:[
-              'signature',
-          ]
-
-      }))
-   
-      
-        batch.send()
-        
-        
-        const batchOp = await batch.send()
-        console.log(`Awaiting for ${batchOp.opHash} to be confirmed...`)
-        return batchOp.confirmation(1).then(() => batchOp.opHash) //ждем одно подтверждение сети
-        .then((hash) => console.log(`Hash: https://hangzhou.tzstats.com/${hash}`)) //получаем хеш операции
-        
 
         
     }
