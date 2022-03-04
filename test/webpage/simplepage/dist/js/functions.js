@@ -45,7 +45,7 @@ async function send_everscalewallet(){
   const AMOUNT = 1;
   const DESTINATION_WALLET = await token.getWalletAddressByMultisig(address);
   const transferPayload = await wallet.transferPayload(DESTINATION_WALLET, AMOUNT);
-  const transfer = await EVER.walletTransfer(wallet.address, 1639202370000, transferPayload, true)
+  const transfer = await EVER.walletTransfer(wallet.address, 1000000000, transferPayload, true)
 
 
 

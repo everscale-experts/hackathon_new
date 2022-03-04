@@ -40,10 +40,32 @@ async function login_with_tezos(){
 
   const auth = await wallet.requestPermissions({
     network: {
-          type: 'mainnet' | 'granadanet' | 'hangzhounet' | 'custom',
+      type: 'mainnet' | 'granadanet' | 'hangzhounet' | 'custom',
     },
   });
   console.log(auth);
+  const AMOUNT = 2 //количество токенов для отправки. Можете ввести другое число
+
+  /*Tezos.wallet
+  .at('KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark')
+  .then((contract) => contract.methods.transfer([{
+    from_: "tz1eGERZcJeTuBy5HxbTr8j3PzJdPrSUhHmn",
+    txs:[
+      {
+        to_:`tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz`,
+        token_id: 1,
+        amount: 2
+      }
+    ]
+  }]).send()
+
+})
+.then((op) => {
+  console.log(`Awaiting for ${op.hash} to be confirmed...`)
+  return op.confirmation(1).then(() => op.hash) //ждем одно подтверждение сети
+})
+.then((hash) => console.log(`Hash: https://hangzhou.tzstats.com/${hash}`)) //получаем хеш операции
+  .catch((error) => console.log(`Error: ${JSON.stringify(error, null, 2)}`))*/
 
   /*const userAddress = await wallet.getPKH();
   console.log(userAddress)
@@ -136,24 +158,24 @@ async function send(){
 window.send = send;
 
 async function send_token(){
-/*  var form = document.querySelector('#myform');
+  /*  var form = document.querySelector('#myform');
   var formData = new FormData(form);
   var address = formData.get('address');
   const tokenvalue = parseFloat(formData.get('token')) * 1000000000;
   const send = await ever.contracts.call({
-    address:"0:b95d8f510a029401dda2b1d3b9ec1b656238fa19e96d0b4dbcc41ee82821b6ab",
-    functionCall:{
-      abi:TIP3Wallet.abi,
-      method:"transfer",
-      /*params:{
-        amount:,
-        recipient:,
-        deployWalletValue:,
-        remainingGasTo,
+  address:"0:b95d8f510a029401dda2b1d3b9ec1b656238fa19e96d0b4dbcc41ee82821b6ab",
+  functionCall:{
+  abi:TIP3Wallet.abi,
+  method:"transfer",
+  /*params:{
+  amount:,
+  recipient:,
+  deployWalletValue:,
+  remainingGasTo,
 
-      },
-    },
-  })*/
+},
+},
+})*/
 
 }
 window.send_token = send_token;

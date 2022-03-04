@@ -23,6 +23,12 @@ https://github.com/SVOIcom/everscale-connect-backend
 # Root адрес нашего тип-3 токена
 0:87d795ddc35363a7374eb43a7f2edeca30d79a736470f6ada169bcfc58851a2c
 
+# TIP3 BRIDGE
+https://raw.githubusercontent.com/broxus/ton-assets/master/manifest.json
+https://github.com/SVOIcom/browser-extension/blob/main/modules/const/TokenList.mjs
+https://token-indexer.broxus.com/v1/swagger.yaml
+https://hackmd.io/@zCycas2WRPSvkCBaPAx6KA/SklrcLQnK
+
 # Доступные кошельки для теста
 
 0:fac2714d40492bf96ed0ff4231a41d274af3b2a36283debce112434a9ceb9647
