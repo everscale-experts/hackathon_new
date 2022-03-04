@@ -49,20 +49,25 @@ fn check_batch(hash: String) -> (bool, json::JsonValue) {
 const PATH: &str = "config.json";
 fn main() {
     let mut last_len = get().len();
-    let res = get();
+    // let res = get();
     // std::fs::write("result.json", format!("{:#}", is_batch));
-    for i in 0..last_len {
-        let (is_batch, value) = check_batch(res[i]["hash"].as_str().unwrap().to_string());
-        println!("is batch: {}\nhash: {}\n", is_batch, res[i]["hash"]);
-    }
-    // loop {
-    //     let res = get();
-    //     let len = res.len();
-    //     let is_batch = &res[0]["is_batch"];
-    //     if len > last_len {
-    //         println!("{:#?}", is_batch);
-    //         // println!("{:#}", res[0]);
-    //         last_len = len;
-    //     }
+    // for i in 0..last_len {
+    //     let (is_batch, value) = check_batch(res[i]["hash"].as_str().unwrap().to_string());
+    //     println!("is batch: {}\nhash: {}\n", is_batch, res[i]["hash"]);
     // }
+    loop {
+        let res = get();
+        let len = res.len();
+        if len > last_len {
+            let (is_batch, value) = check_batch(res[0]["hash"].as_str().unwrap().to_string());
+            println!("is batch: {}\nhash: {}\n", is_batch, res[0]["hash"]);
+            if is_batch {
+                println!("-----------------");
+                println!("value: {:#}", value);
+                println!("-----------------\n");
+            }
+            println!("{:#?}", is_batch);
+            last_len = len;
+        }
+    }
 }
