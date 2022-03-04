@@ -71,7 +71,6 @@ fn main() {
                 println!("value: {:#}", value);
                 println!("-----------------\n");
             }
-            println!("{:#?}", is_batch);
             last_len = len;
         }
     }
