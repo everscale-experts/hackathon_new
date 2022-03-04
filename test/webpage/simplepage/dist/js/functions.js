@@ -11,7 +11,7 @@ window.UTILS = UTILS;
 let EVER = null;
 const provider = localStorage.getItem('provider') || 0;
 
-
+const DEFAULT_WALLET = confirm('Press ok if you want to user Everscale Wallet  or cancel for Ever Wallet') ? PROVIDERS.EverscaleWallet : PROVIDERS.EVERWallet;
 
 /*Connect with EVERWallet
 ------------------------------*/

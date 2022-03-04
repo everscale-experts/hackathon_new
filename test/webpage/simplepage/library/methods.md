@@ -6,7 +6,7 @@ curl -X 'POST' \
   "limit": 10,
   "offset": 0,
   "ordering": "amountdescending",
-  "ownerAddress": "0:c19b003394bef654680b0304b632728f264a85bba9a85b84f8090e1cd39df021"
+  "ownerAddress": "0:8b8e726e75e532c004cda463ed7c40d726c0f67bb57e229c7e0d32c209ee5a2f"
 }'
 
 curl -X 'POST' \
