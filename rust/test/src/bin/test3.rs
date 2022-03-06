@@ -14,7 +14,6 @@ use std::fs;
 mod common;
 
 type Error = Box<dyn std::error::Error>;
-
 const BASE_FEE: u64 = 100;
 const MIN_NTEZ_PER_GAS: u64 = 100;
 const MIN_NTEZ_PER_BYTE: u64 = 1000;
@@ -46,13 +45,15 @@ fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
     value
 }
 
-fn get_parameters() -> Result<serde_json::Value, Error> {
-    Ok(serde_json::from_str::<SerdeValue>(fs::read_to_string("config.json").unwrap().as_str())?.clone()["parameters"].clone())
-}
-
-fn get_value(agent: ureq::Agent, endpoint: String, contract: String) -> Result<serde_json::Value, Error> {
-    Ok(agent.post(format!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, get_config_field("entrypoint").unwrap()).as_str())
-        .send_json(get_parameters()?).unwrap()
+fn get_value(
+    agent: ureq::Agent,
+    endpoint: String,
+    contract: String,
+    entrypoint: String,
+    parameters: serde_json::Value,
+) -> Result<serde_json::Value, Error> {
+    Ok(agent.post(format!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint).as_str())
+        .send_json(parameters).unwrap()
         .into_json().unwrap())
 }
 
@@ -63,8 +64,8 @@ fn get_address_counter(agent: ureq::Agent, endpoint: String, address: String) ->
 }
 
 pub fn estimate_operation_fee(
-    estimated_gas: u64,
-    estimated_bytes: u64
+    estimated_gas: &u64,
+    estimated_bytes: &u64
 ) -> u64 {
     // add 32 bytes for the branch block hash.
     let estimated_bytes = estimated_bytes + 32;
@@ -102,20 +103,7 @@ fn run_operation(
             // this is necessary to be valid signature for this call
             // to work, but doesn't need to match the actual operation signature.
             "signature": "edsigthZLBZKMBUCwHpMCXHkGtBSzwh7wdUxqs7C1LRMk64xpcVU8tyBDnuFuf9CLkdL3urGem1zkHXFV9JbBBabi6k8QnhW4RG",
-            "contents": [{
-                "kind": "transaction",
-                "source": get_config_field("source").unwrap(),
-                "fee": "100000",
-                "counter": format!("{}", get_address_counter(agent.clone(), endpoint.to_string(), get_config_field("source").unwrap()) + 1),
-                "gas_limit": "10300",
-                "storage_limit": "257",
-                "amount": "50",
-                "destination": get_config_field("contract").unwrap(),
-                "parameters": {
-                    "entrypoint": get_config_field("entrypoint").unwrap(),
-                    "value": get_value(agent.clone(), endpoint.to_string(), contract.clone()).unwrap()
-                }
-            }]
+            "contents": get_group(rpc.as_str(), endpoint.as_str(), branch.clone(), contract.as_str(), true)
         }
     });
     let res = &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone()).as_str())
@@ -130,56 +118,84 @@ fn run_operation(
     })
 }
 
+fn get_transactions_vec() -> Result<serde_json::Value, Error> {
+    Ok(
+        serde_json::from_str::<SerdeValue>(fs::read_to_string("config.json")
+            .unwrap()
+            .as_str())?
+                .clone()["transactions"]
+                .clone()
+    )
+}
+
+fn get_group(rpc: &str, endpoint: &str, branch: String, contract: &str, test: bool) -> Vec<serde_json::Value> {
+    let mut group = Vec::<serde_json::Value>::new();
+    let counter = get_address_counter(
+        ureq::Agent::new(),
+        endpoint.to_string(),
+        get_config_field("source").unwrap(),
+    ) + 1;
+    let run_op_res = if test {
+        OperationResult{
+            consumed_gas: "10300".to_string(),
+            storage_size: "257".to_string(),
+        }
+    } else {
+        run_operation(
+            ureq::Agent::new(),
+            rpc.to_string(),
+            endpoint.to_string(),
+            branch.clone(),
+            get_config_field("contract").unwrap(),
+        ).unwrap()
+    };
+    let transactions = get_transactions_vec().unwrap();
+    for i in 0..transactions.as_array().unwrap().len() {
+        group.push(serde_json::json!({
+            "kind": "transaction",
+            "source": get_config_field("source").unwrap(),
+            "destination": contract,
+            "fee": if test { "100000".to_string() } else {
+                format!("{}", estimate_operation_fee(
+                    &run_op_res.consumed_gas.parse::<u64>().unwrap(),
+                    &run_op_res.storage_size.parse::<u64>().unwrap(),
+                ))
+            },
+            "counter": format!("{}", counter + i as u64),
+            "gas_limit": if test { "10300".to_string() } else {
+                format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100)
+            },
+            "storage_limit": "100",
+            "amount": "0",
+            "parameters": {
+                "entrypoint": transactions[i].clone()["entrypoint"].clone(),
+                "value": get_value(
+                    ureq::Agent::new(),
+                    endpoint.to_string(),
+                    contract.to_string(),
+                    transactions[i].clone()["entrypoint"].clone().as_str().unwrap().to_string(),
+                    transactions[i].clone()["parameters"].clone(),
+                ).unwrap()
+            }
+        }));
+    }
+    group
+}
+
 fn sign_operation(agent: ureq::Agent, rpc: &str, endpoint: &str, branch: String, contract: String) -> Result<OperationSignatureInfo, Error> {
     let local_state = LocalWalletState {
         public_key: PublicKey::from_base58check(get_config_field("public_key").unwrap().as_str()).unwrap(),
         private_key: PrivateKey::from_base58check(get_config_field("private_key").unwrap().as_str()).unwrap(),
     };
     if let Some(state) = Some(&local_state) {
-        let counter = get_address_counter(
-            agent.clone(), endpoint.to_string(),
-            get_config_field("source").unwrap(),
-        ) + 1;
-        let run_op_res = run_operation(
-            agent.clone(),
-            rpc.to_string(),
-            endpoint.to_string(),
-            branch.clone(),
-            get_config_field("contract").unwrap(),
-        ).unwrap();
-        let gas = run_op_res.consumed_gas.parse::<u64>().unwrap() + 100;
-        let storage_size = run_op_res.storage_size.parse::<u64>().unwrap();
-        let fee = estimate_operation_fee(
-            run_op_res.consumed_gas.parse::<u64>().unwrap(),
-            run_op_res.storage_size.parse::<u64>().unwrap(),
-        );
         let body = serde_json::json!({
             "branch": branch,
-            "contents": [
-                {
-                    "kind": "transaction",
-                    "source": get_config_field("source").unwrap(),
-                    "destination": contract,
-                    "fee": format!("{}", fee),
-                    "counter": format!("{}", counter),
-                    "gas_limit": format!("{}", gas),
-                    "storage_limit": "100",
-                    "amount": "0",
-                    "parameters": {
-                        "entrypoint": get_config_field("entrypoint").unwrap(),
-                        "value": get_value(agent.clone(), endpoint.to_string(), contract).unwrap()
-                    }
-                }
-            ]
+            "contents": get_group(rpc, endpoint, branch, contract.as_str(), false)
         });
         let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", rpc).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
-        println!("gas: {}", gas);
-        println!("storage: {}", storage_size);
-        println!("fee: {}", fee);
-        println!("bytes length: {}", bytes.as_str().unwrap().len());
-        println!("");
+        println!("bytes length: {}\n", bytes.as_str().unwrap().len());
         let sig_info = state.signer().sign_forged_operation_bytes(
             &Vec::from_hex(bytes.as_str().unwrap()).unwrap()[..],
         );

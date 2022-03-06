@@ -1,24 +1,54 @@
 {
-    "source_test": "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R",
-    "contract_test": "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX",
-    "public_test": "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd",
-    "private_test": "edsk4SLTW3bL9ke7e3uyR7DvfDZ5SJvo7BfTn4yFESyZzhhLoagLe",
     "source": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
-    "contract": "KT1RnxeahHnkuyR5Yx4xJc5ECrASvsByVC2g",
     "public_key": "edpku8Su3XvThSZ2sqecsozXNuGkBCxdDXVnSoaKkvDr3c9HHqREFi",
     "private_key": "edsk4SLTW3bL9ke7e3uyR7DvfDZ5SJvo7BfTn4yFESyZzhhLoagLeQ",
+    "contract": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark",
     "is_mainnet": false,
-    "entrypoint": "transfer",
-    "parameters": [
+    "transactions": [
         {
-            "txs": [
+            "entrypoint": "transfer",
+            "parameters": [
                 {
-                    "to_": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark",
-                    "amount": "50",
-                    "token_id": "1"
+                    "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
+                    "txs": [
+                        {
+                            "to_": "tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz",
+                            "token_id": "1",
+                            "amount": "1"
+                        }
+                    ]
                 }
-            ],
-            "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM"
+            ]
+        },
+        {
+            "entrypoint": "transfer",
+            "parameters": [
+                {
+                    "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
+                    "txs": [
+                        {
+                            "to_": "tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz",
+                            "token_id": "1",
+                            "amount": "2"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "entrypoint": "transfer",
+            "parameters": [
+                {
+                    "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
+                    "txs": [
+                        {
+                            "to_": "tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz",
+                            "token_id": "1",
+                            "amount": "3"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }
