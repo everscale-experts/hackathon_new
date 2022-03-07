@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@taquito/local-forging": "^11.2.0",
+    "@taquito/remote-signer": "^11.2.0",
+    "@taquito/signer": "^11.2.0",
+    "@taquito/taquito": "^11.2.0"
+  }
+}
