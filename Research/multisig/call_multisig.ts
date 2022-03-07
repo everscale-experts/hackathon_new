@@ -34,24 +34,13 @@ export class token_transfer {
                   nat:12,
                   contract: "KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM",
               },
-              R:{
-                threshold: 42,
-                  keys:[
-                      "edpkvUnVLfHfmdK9jJcoAwSqPy9Qbb2asVJFq18cLJosBs6keoPwVD",
-                      "edpku6o7mjAwDJptsqRH2R3tt7UKqkB15jbmRx8sPfBzgzJGUnhSnv",
-                      
-                  ]
-              }
+              
           },
           sigs:[
               "Nothing"
           ]
 
-      },
-
-
-
-      ))
+      }))
   
       
 

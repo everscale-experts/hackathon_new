@@ -102,4 +102,79 @@ Did you mean one of the following?
 спросил у разработчика о том как найти гитхаб, жду ответа 
   
 
-  
+
+# Работа с Myltisig с помощью taquito
+
+1. Задеплоить Multisig получилось без проблем
+2. Подписывать байтовую строку получается без проблем
+3. Вызывать методы Multisig вызывает проблемы:
+    1. Непонятно как передовать аргуметы в метод контракта  
+    спосил у тех менторов один ответил, но он предложил методы передачи которые не работают, сейчас жду пока ответит другой ментор
+    
+
+Какими способами я пытался передавть аргументы:  
+1. 
+ ```brash   
+ const op=await contract.methods.main({
+      schema:{
+         payload: {
+             counter: "0",
+             action: {
+                 operation: bytes,
+                 
+             }
+         },
+         sigs: [
+             (await signature).prefixSig,
+             (await signature1).prefixSig,
+         ]
+     }}).send()
+```
+Ошибка caunter не может быть типа [object, object]   
+2. 
+```brash
+ const op = await contract.methods.main('0x05070707070a000000046252be4f0a0000001601c6958d8e2af23b566c14105fa16526dec49d02c10007070001050502000000350320053d036d0743035d0a00000015003a0f681de989b300fab38bd867439115ac622cbf031e0743036a0080dac409034f034d031b',
+ [(await signature).prefixSig, (await signature1).prefixSig]).send();
+
+```
+Ошибка 400, биайтовую строку получал с помощью tezos-client,  
+
+3. 
+```brach 
+const op = await contract.methods.main('0',[(await signature).prefixSig, (await signature1).prefixSig], '0x05070707070a000000046252be4f0a0000001601c6958d8e2af23b566c14105fa16526dec49d02c10007070001050502000000350320053d036d0743035d0a00000015003a0f681de989b300fab38bd867439115ac622cbf031e0743036a0080dac409034f034d031b').send();
+
+```
+ошибка 400
+
+4. 
+```brach 
+contract.methods.default(
+   1,
+   {
+      '1':{'1': 12, '2': 'Contract'}
+   },
+   [signature]
+
+)
+```
+ошибка: [sigs] Value must be an array 
+Еще была похожая ошибка с caunter
+
+
+Чтобы кодировать строку надо пользоватся sdk https://netezos.dev/  
+
+Ссылки которые я смотрел:  
+https://netezos.dev/docs/get-started.html  
+https://netezos.dev/docs/tezos-forging.html  
+https://wiki.tezos.org.ua/token-contracts-specialized-multisig/2-originate-and-use-multisig-contract  
+https://dear-cricket-c83.notion.site/Multisig-9eef3ff65a0e4a3a84109f8d3563a88f  
+https://tezos.gitlab.io/introduction/howtouse.html  
+https://news.tezoscommons.org/examples-of-netezos-usage-b6c24be3ce8a  
+https://www.nuget.org/packages/Netezos  
+https://github.com/baking-bad/netezos    
+https://tezostaquito.io/docs/smartcontracts/  
+https://tezostaquito.io/typedoc/interfaces/_taquito_taquito.forger.html    
+
+
+
+
