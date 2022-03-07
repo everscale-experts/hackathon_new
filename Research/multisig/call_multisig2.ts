@@ -2,6 +2,7 @@ import { BatchOperation, TezosToolkit } from '@taquito/taquito';
 import { InMemorySigner } from '@taquito/signer';
 import { KeyToken } from '@taquito/michelson-encoder/dist/types/tokens/key';
 import { b58cencode, char2Bytes, Prefix, prefix } from '@taquito/utils';
+
 const acc = require('./Account.json');
 
    const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz';
