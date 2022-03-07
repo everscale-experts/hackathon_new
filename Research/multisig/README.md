@@ -174,6 +174,8 @@ https://www.nuget.org/packages/Netezos
 https://github.com/baking-bad/netezos    
 https://tezostaquito.io/docs/smartcontracts/  
 https://tezostaquito.io/typedoc/interfaces/_taquito_taquito.forger.html    
+https://medium.com/airgap-it/js-library-to-locally-forge-and-unforge-reveal-and-spend-operations-for-tezos-9fed9db956cc  
+(в ней нету тех методов, которые описаны в статье)
 
 
 
