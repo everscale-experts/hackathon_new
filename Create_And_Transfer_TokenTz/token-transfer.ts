@@ -23,13 +23,23 @@ export class token_transfer {
   // 3) receiver — адрес получателя;
   // 4) amount — количество токенов для отправки.
 
-  public transfer(contract: string, sender: string, receiver: string, amount: number) {
+  public transfer(contract: string, sender: string, receiver: string, amount: number, id:number) {
     this.tezos.contract
       .at(contract) //обращаемся к контракту по адресу
       .then((contract) => {
         console.log(`Sending ${amount} from ${sender} to ${receiver}...`)
         //обращаемся к точке входа transfer, передаем ей адреса отправителя и получателя, а также количество токенов для отправки.
-        return contract.methods.transfer(sender, receiver, amount).send()
+        return contract.methods.transfer([{
+          from_: sender,
+          txs:[
+            {
+              to_:receiver,
+              token_id: id,
+              amount: amount
+            }
+          ]
+        }]).send()
+        
       })
       .then((op) => {
         console.log(`Awaiting for ${op.hash} to be confirmed...`)

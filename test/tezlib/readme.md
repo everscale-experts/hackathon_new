@@ -16,14 +16,17 @@ yarn
 
 Также, в папке ```tests``` некоторое количество тестовых файлов, демонстрирующих ту часть функционала, которую красноречиво описывает их название. Вызывайте их так же, как описано для основной версии.
 
-## Мост
+## Мост (режим отслеживания)
 
-Запустите файл bridge.ts для отслеживания поступления токенов на указанные в конфиге адреса (```everscale_token_listener``` для Everscale и ```tezos_token_listener``` для Tezos)
+Запустите файл listener.ts для отслеживания поступления токенов на указанные в конфиге адреса.
 
 Для симуляции отправки токенов запускайте файлы ```transfer_everscale_token.ts``` и ```transfer_tezos_token.ts```
 
 Если в Everscale на адресе отправителя токенов закончились Эверы, запустите файл ```refill_ever_balance.ts```
 
-```transfer_everscale_token.ts``` – Отправляет сумму токенов, указанную в ```everscale_token_sender.amount``` с аккаунта, ключи которого указаны в ```everscale_token_sender.keys```
+# Конфигурация
+Конфиг отправки токенов в сети Tezos – ```tezos_transfer.config.json```
 
-```transfer_tezos_token.ts``` – Отправляет сумму токенов, указанную в ```tezos_token_sender.amount``` с аккаунта, ключи которого указаны в ```tezos_token_sender.keys```
+Конфиг отправки токенов в сети Everscale – ```everscale_transfer.config.json```
+
+Конфиг Моста – ```listener.config.json```
