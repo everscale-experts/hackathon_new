@@ -5,6 +5,37 @@ import {
 } from "https://everscale-connect.svoi.dev/everscale/getProvider.mjs";
 import TIP31Root from "https://everscale-connect.svoi.dev/everscale/contracts/TIP31Root.mjs";
 
+
+/* Dropdown token */
+var data = {
+  "tokens": {
+    "EVRTEZ": {
+      "symbol": "EVRTEZ",
+      "decimals": 9,
+      "address": "0:87d795ddc35363a7374eb43a7f2edeca30d79a736470f6ada169bcfc58851a2c",
+    },
+
+    "EVRTEZ20": {
+      "symbol": "EVRTEZ20",
+      "decimals": 9,
+      "address": "0:f6e485ceca3205267a2e5fb32a15a159d9ba2d8f6567d197a71b30c72a0beca0",
+    },
+    "EVRTEZ21": {
+      "symbol": "EVRTEZ21",
+      "decimals": 9,
+      "address": "0:1ccf6eecfd287f6422c4b7bbff6d7561046917464e223e33cc9470a14c06004a",
+    }
+  }
+};
+console.log(data);
+var result=[];
+for (let key in data.tokens) {
+ var ele = document.getElementById('tokens');
+  result.push({key:key,value:data.tokens[key]})
+   ele.innerHTML += '<option value="' + key + '">' + data.tokens[key]["symbol"] + '</option>';
+}
+
+
 window.getProvider = getProvider;
 window.PROVIDERS = PROVIDERS;
 window.UTILS = UTILS;
