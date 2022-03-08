@@ -21,19 +21,11 @@
             ]
         },
         {
-            "entrypoint": "transfer",
-            "parameters": [
-                {
-                    "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
-                    "txs": [
-                        {
-                            "to_": "tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz",
-                            "token_id": "1",
-                            "amount": "2"
-                        }
-                    ]
-                }
-            ]
+            "entrypoint": "mint_more_tokens",
+            "parameters":  {
+                "token_id": "1",
+                "tokens_to_mint": "40"
+            }
         },
         {
             "entrypoint": "transfer",
