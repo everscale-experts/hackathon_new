@@ -5,6 +5,7 @@
 Givers balance
 "0:2bb4a0e8391e7ea8877f4825064924bd41ce110fce97e939d3323999e1efbb13": "0x58d0b98b265cb24"
 ```
+Прочитал документацию https://github.com/tonlabs/TON-SDK#how-to-use-library  
 ### Трудности  
 Непонятно, как получить информацию о любом аккаунте, а не только о givers  
 ### Планы  
