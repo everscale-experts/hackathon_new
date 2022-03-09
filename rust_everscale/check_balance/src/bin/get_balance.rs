@@ -27,5 +27,9 @@ fn get_info(endpoint: &str, address: &str) -> sjs::Value {
 fn main() {
     let endpoint = get_config_field("endpoint").unwrap();
     let address = get_config_field("address").unwrap();
-    println!("{:#}", get_info(endpoint.as_str(), address.as_str()));
+    println!(
+        "balance of {}: {}",
+        address,
+        get_info(endpoint.as_str(), address.as_str())["result"]["balance"]
+    );
 }
