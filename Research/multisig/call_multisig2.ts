@@ -35,7 +35,7 @@ export class token_transfer {
 
      }
      public async transfer(contract1: string,) {
-        console.log("Transaction strated")
+        console.log("Transaction started")
         
         const contract = await this.tezos.contract.at(contract1);
          
@@ -58,7 +58,7 @@ export class token_transfer {
            args: [
              { "int": "0" },
              {
-               prim: 'LR',
+               prim: 'Left',
                args: [MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 0.5)]
              }
            ]
