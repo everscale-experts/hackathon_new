@@ -43,7 +43,8 @@ async fn main() {
 
     println!("Givers balance");
     for giver in giver_balance.result {
-        println!("{}: {}", giver["id"], giver["balance"]);
+        // println!("{}: {}", giver["id"], giver["balance"]);
+        println!("{}", giver);
     }
 
     // transaction subscription
