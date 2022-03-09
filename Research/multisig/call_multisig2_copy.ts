@@ -7,12 +7,12 @@ const acc = require('./Account.json');
 
    const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz';
 //const CONTRACT = 'KT1SYmWUEZu13tycy5cLEaYuDtoG6Zf6DsxL'; //адрес опубликованного multisig
-const CONTRACT = 'KT1SgnWsMaQnvGuZTjrYACQP9wVYyUz1mTfH'
+const CONTRACT = 'KT1M1Y1bw52xydrn2q2zQ64qDc1zFbn8UEBZ'
 
 
 // присваиваем переменным обьект с помощью которого будем подписывать строку 
 const signer =new InMemorySigner('edsk31hLYrJqTeHqsLPdo1Ab5SKw7PUXUuWBt95UBFkLj3KrW1Dt6x');
-const signer1 = new InMemorySigner('edsk3fa8S4vFkgbgb77iozSS1AJTUg8XMbGV14wqqjHko86ACHkHtn')  
+//const signer1 = new InMemorySigner('edsk3fa8S4vFkgbgb77iozSS1AJTUg8XMbGV14wqqjHko86ACHkHtn')  
 // // байтовая уже зашифрованная строка, получил с помощью tezos-client
 //const bytes = '0x05070707070a000000046252be4f0a0000001601c6958d8e2af23b566c14105fa16526dec49d02c10007070001050502000000340320053d036d0743035d0a00000015003a0f681de989b300fab38bd867439115ac622cbf031e0743036a0080897a034f034d031b'
 
@@ -60,10 +60,10 @@ export class token_transfer {
         data: {
           prim: 'Pair',
           args: [
-            { int: "1" },
+            { int: "2" },
             {
               prim: 'Left',
-              args: [MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 0)]
+              args: [MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 0.5)]
             }
           ]
         } as any,
@@ -116,20 +116,20 @@ export class token_transfer {
         }
       }, contract1))
        
-      const signature1 = signer1.sign(packed, new Uint8Array())
+     // const signature1 = signer1.sign(packed, new Uint8Array())
        const signature = signer.sign(packed, new Uint8Array())
        console.log(packed)
 
 
    const op = await contract.methods.main(
       // Counter
-      '1',
+      '2',
       // Sub function
       'operation',
       // Action
-      MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 0),
+      MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 0.5),
       // Signature list
-      [ (await signature1).prefixSig,(await signature).prefixSig,null]
+      [(await signature).prefixSig]
     ).send()
       console.log("Awaiting confirmation...")
       await op.confirmation();
