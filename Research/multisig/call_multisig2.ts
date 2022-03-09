@@ -10,19 +10,15 @@ const CONTRACT = 'KT1SgnWsMaQnvGuZTjrYACQP9wVYyUz1mTfH'; //адрес опубл
 
 
 
-
-//const bytes= char2Bytes("0, LLLL:{adresss:'tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz', value:'10'},Nothing") // создаем строку ддля подписи
-//console.log(bytes)
-
 // присваиваем переменным обьект с помощью которого будем подписывать строку 
-const signer =new InMemorySigner('edsk31hLYrJqTeHqsLPdo1Ab5SKw7PUXUuWBt95UBFkLj3KrW1Dt6x');
-const signer1 = new InMemorySigner('edsk3fa8S4vFkgbgb77iozSS1AJTUg8XMbGV14wqqjHko86ACHkHtn')  
+const signer =new InMemorySigner('edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i');
+  
 // // байтовая уже зашифрованная строка, получил с помощью tezos-client
-// const bytes = '0x05070707070a000000046252be4f0a0000001601c6958d8e2af23b566c14105fa16526dec49d02c10007070001050502000000350320053d036d0743035d0a00000015003a0f681de989b300fab38bd867439115ac622cbf031e0743036a0080dac409034f034d031b'
+const bytes = '05070707070a000000046252be4f0a0000001601885097fd0367dfdfc6946c1dea5c4f758841bb9e0007070000050502000000320320053d036d0743035d0a00000015003a0f681de989b300fab38bd867439115ac622cbf031e0743036a0000034f034d031b'
 
 // подписыаем строку и получаем сигнатуры
-// const signature = signer.sign(bytes);
-// const signature1 = signer1.sign(bytes);
+const signature = signer.sign(bytes, new Uint8Array());
+
 
 
 export class token_transfer {
@@ -35,97 +31,292 @@ export class token_transfer {
       this.rpcUrl = rpcUrl;
   
       //считываем почту, пароль и мнемоническую фразу, из которой можно получить приватный ключ
-      this.tezos.setSignerProvider(InMemorySigner.fromFundraiser(acc.email, acc.password, acc.mnemonic.join(' ')));
+      this.tezos.setSignerProvider(signer);
 
-    }
-    public async transfer(contract1: string,) {
-      
-       const contract = await this.tezos.contract.at(contract1);
-
-       const pair = ({ data, type }: any, value: any) => {
-         return {
-           data: {
-             prim: 'Pair',
-             args: [{ "string": value }, data]
-           },
-           type: {
-             prim: 'pair',
-             args: [{ prim: "address" }, type]
-           }
-         }
-       }
-       const { packed } = await this.tezos.rpc.packData(pair({
-         data: {
-           prim: 'Pair',
-           args: [
-             { "int": "0" },
-             {
-               prim: 'Left',
-               args: [MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 1)]
-             }
-           ]
-         } as any,
-         type: {
-           "prim": "pair",
-           "args":
-             [{
-               "prim": "nat",
-               "annots": ["%counter"]
-             },
-             {
-               "prim": "or",
-               "args":
-                 [{
-                   "prim": "lambda",
-                   "args":
-                     [{ "prim": "unit" },
-                     {
-                       "prim": "list",
-                       "args":
-                         [{
-                           "prim":
-                             "operation"
-                         }]
-                     }],
-                   "annots":
-                     ["%operation"]
-                 },
-                 {
-                   "prim": "pair",
-                   "args":
-                     [{
-                       "prim": "nat",
-                       "annots":
-                         ["%threshold"]
-                     },
-                     {
-                       "prim": "list",
-                       "args":
-                         [{ "prim": "key" }],
-                       "annots":
-                         ["%keys"]
-                     }],
-                   "annots":
-                     ["%change_keys"]
-                 }],
-               "annots": [":action"]
-             }],
-           "annots": [":payload"]
-         }
-       }, contract.address))
-       const signature = signer.sign(packed, new Uint8Array())
-       const signature1 = signer1.sign(packed, new Uint8Array())
+     }
+     public async transfer(contract1: string,) {
+        console.log("Transaction strated")
+        console.log((await signature).prefixSig)
+        const contract = await this.tezos.contract.at(contract1);
+         
+   //     const pair = ({ data, type }: any, value: any) => {
+   //       return {
+   //         data: {
+   //           prim: 'Pair',
+   //           args: [{ "string": value }, data]
+   //         },
+   //         type: {
+   //           prim: 'pair',
+   //           args: [{ prim: "address" }, type]
+   //         }
+   //       }
+   //     }
+   //     const { packed } = await this.tezos.rpc.packData(pair({
+   //       data: {
+   //      main_parameter:{
+   //         prim: 'Pair',
+   //         args: [
+   //           { "int": "0" },
+   //           {
+   //             prim: 'LR',
+   //             args: [MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 0)]
+   //           }
+   //         ]}
+   //       } as any,
+   //       type: {
+            
+            
+   //            prim: "pair",
+   //            args: [
+   //              {
+   //                prim: "pair",
+   //                args: [
+   //                  {
+   //                    prim: "nat",
+   //                    annots: [
+   //                      ":counter"
+   //                    ]
+   //                  },
+   //                  {
+   //                    prim: "or",
+   //                    args: [
+   //                      {
+   //                        prim: "or",
+   //                        args: [
+   //                          {
+   //                            prim: "or",
+   //                            args: [
+   //                              {
+   //                                prim: "or",
+   //                                args: [
+   //                                  {
+   //                                    prim: "pair",
+   //                                    args: [
+   //                                      {
+   //                                        prim: "address",
+   //                                        annots: [
+   //                                          "%to"
+   //                                        ]
+   //                                      },
+   //                                      {
+   //                                        prim: "mutez",
+   //                                        annots: [
+   //                                          "%value"
+   //                                        ]
+   //                                      }
+   //                                    ]
+   //                                  },
+   //                                  {
+   //                                    prim: "option",
+   //                                    args: [
+   //                                      {
+   //                                        prim: "key_hash"
+   //                                      }
+   //                                    ],
+   //                                    annots: [
+   //                                      "%delegation"
+   //                                    ]
+   //                                  }
+   //                                ],
+   //                                annots: [
+   //                                  "%direct_action"
+   //                                ]
+   //                              },
+   //                              {
+   //                                prim: "or",
+   //                                args: [
+   //                                  {
+   //                                    prim: "pair",
+   //                                    args: [
+   //                                      {
+   //                                        prim: "address"
+   //                                      },
+   //                                      {
+   //                                        prim: "or",
+   //                                        args: [
+   //                                          {
+   //                                            prim: "pair",
+   //                                            args: [
+   //                                              {
+   //                                                prim: "address"
+   //                                              },
+   //                                              {
+   //                                                prim: "address"
+   //                                              },
+   //                                              {
+   //                                                prim: "nat"
+   //                                              }
+   //                                            ],
+   //                                            annots: [
+   //                                              "%transferFA1.2"
+   //                                            ]
+   //                                          },
+   //                                          {
+   //                                            prim: "list",
+   //                                            args: [
+   //                                              {
+   //                                                prim: "pair",
+   //                                                args: [
+   //                                                  {
+   //                                                    prim: "address",
+   //                                                    annots: [
+   //                                                      "%from_"
+   //                                                    ]
+   //                                                  },
+   //                                                  {
+   //                                                    prim: "list",
+   //                                                    args: [
+   //                                                      {
+   //                                                        prim: "pair",
+   //                                                        args: [
+   //                                                          {
+   //                                                            prim: "address",
+   //                                                            annots: [
+   //                                                              "%to_"
+   //                                                            ]
+   //                                                          },
+   //                                                          {
+   //                                                            prim: "nat",
+   //                                                            annots: [
+   //                                                              "%token_id"
+   //                                                            ]
+   //                                                          },
+   //                                                          {
+   //                                                            prim: "nat",
+   //                                                            annots: [
+   //                                                              "%amount"
+   //                                                            ]
+   //                                                          }
+   //                                                        ]
+   //                                                      }
+   //                                                    ],
+   //                                                    annots: [
+   //                                                      "%txs"
+   //                                                    ]
+   //                                                  }
+   //                                                ]
+   //                                              }
+   //                                            ],
+   //                                            annots: [
+   //                                              "%transferFA2"
+   //                                            ]
+   //                                          }
+   //                                        ]
+   //                                      }
+   //                                    ],
+   //                                    annots: [
+   //                                      "%transferFA"
+   //                                    ]
+   //                                  },
+   //                                  {
+   //                                    prim: "pair",
+   //                                    args: [
+   //                                      {
+   //                                        prim: "address",
+   //                                        annots: [
+   //                                          "%vesting"
+   //                                        ]
+   //                                      },
+   //                                      {
+   //                                        prim: "or",
+   //                                        args: [
+   //                                          {
+   //                                            prim: "option",
+   //                                            args: [
+   //                                              {
+   //                                                prim: "key_hash"
+   //                                              }
+   //                                            ],
+   //                                            annots: [
+   //                                              "%setDelegate"
+   //                                            ]
+   //                                          },
+   //                                          {
+   //                                            prim: "nat",
+   //                                            annots: [
+   //                                              "%vest"
+   //                                            ]
+   //                                          }
+   //                                        ]
+   //                                      }
+   //                                    ]
+   //                                  }
+   //                                ]
+   //                              }
+   //                            ],
+   //                            annots: [
+   //                              ":action"
+   //                            ]
+   //                          },
+   //                          {
+   //                            prim: "lambda",
+   //                            args: [
+   //                              {
+   //                                prim: "unit"
+   //                              },
+   //                              {
+   //                                prim: "list",
+   //                                args: [
+   //                                  {
+   //                                    prim: "operation"
+   //                                  }
+   //                                ]
+   //                              }
+   //                            ]
+   //                          }
+   //                        ],
+   //                        annots: [
+   //                          "%actions"
+   //                        ]
+   //                      },
+   //                      {
+   //                        prim: "pair",
+   //                        args: [
+   //                          {
+   //                            prim: "nat",
+   //                            annots: [
+   //                              "%threshold"
+   //                            ]
+   //                          },
+   //                          {
+   //                            prim: "list",
+   //                            args: [
+   //                              {
+   //                                prim: "key"
+   //                              }
+   //                            ],
+   //                            annots: [
+   //                              "%keys"
+   //                            ]
+   //                          }
+   //                        ]
+   //                      }
+   //                    ]
+   //                  }
+   //                ]
+   //              }
+   //            ]
+          
+         
+   //    }  
+         
+           
+         
+   //     }, contract.address))
+   //     console.log(packed)
+   //     const signature = signer.sign(packed, new Uint8Array())
+   //     console.log(signature)
 
 
    const op = await contract.methods.main(
       // Counter
-      "0",
+      '0',
       // Sub function
       'operation',
       // Action
-      MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 1),
+      MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 0),
       // Signature list
-      [(await signature).prefixSig,(await signature1).prefixSig, null]
+      [(await signature).prefixSig]
     ).send()
 
       await op.confirmation();
