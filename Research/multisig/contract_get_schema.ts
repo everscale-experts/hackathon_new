@@ -31,7 +31,7 @@ async function example() {
         const schema = await contract.entrypoints.entrypoints
         // выводим схему в json формате
         console.log(JSON.stringify(schema, null, 2))
-        
+
         
        
         const schem1= {
