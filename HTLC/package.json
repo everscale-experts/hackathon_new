@@ -1,0 +1,13 @@
+{
+  "name": "htlc",
+  "version": "1.0.0",
+  "description": "Hash Time Locked Contract for Everscale",
+  "main": "index.js",
+  "scripts": {
+    "compile": "everdev sol compile contract.sol -c",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Everanger <mail@everanger.com> (http://everanger.com)",
+  "license": "ISC"
+}
