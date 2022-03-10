@@ -8,6 +8,8 @@ npm install light-server
 npx light-server -s dist
 ```
 
+Поставить https://everscalewallet.com
+
 ## Проверить localhost или что у вас там)) на порту 4000
 
 ## Ссылки
