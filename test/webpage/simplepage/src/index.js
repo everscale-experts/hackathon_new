@@ -5,6 +5,7 @@ import contractPackage from './contracts/TONTokenWallet.js';
 import contractPackageRoot from './contracts/RootTokenContract.js';
 import contractPackageSM from './contracts/SafeMultisig.js';
 import contractPackageWallet from './contracts/TIP3Wallet.js';
+import acc from './contracts/Account.js'
 
 import {
   signerKeys,
@@ -19,68 +20,108 @@ import {
   ProviderRpcClient,
   TvmException
 } from 'everscale-inpage-provider';
-import { TezosToolkit } from '@taquito/taquito';
 import { BeaconWallet } from '@taquito/beacon-wallet';
+import { TezosToolkit } from '@taquito/taquito'
+import { InMemorySigner } from '@taquito/signer'
 //import { TempleWallet } from '@temple-wallet/dapp';
 
 TonClient.useBinaryLibrary(libWeb);
 const Tezos = new TezosToolkit("https://mainnet-tezos.giganode.io");
 const wallet = new BeaconWallet({ name: "EVERTEZ Bridge" });
 //Tezos.setWalletProvider(wallet);
+const contract = "KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1";
+const amount = 10;
+const sender = "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM";
+const receiver = 'tz1KfoG6WnXeeRxipcmvod34BQX2KUu34VFY';
 
 
-async function logout_beacon(){
-  await wallet.clearActiveAccount();
-  console.log("disconnect");
-}
-window.logout_beacon = logout_beacon;
 
 
-async function login_with_tezos(){
+async function send_with_tezos(){
+  const tezos = new TezosToolkit('https://hangzhounet.api.tez.ie');
+  console.log(tezos);
+  tezos.setSignerProvider(InMemorySigner.fromFundraiser(acc.email, acc.password, acc.mnemonic.join(' ')))
+  tezos.contract
+  .at(contract) //обращаемся к контракту по адресу
+  .then((contract) => {
+    console.log(`Sending ${amount} from ${sender} to ${receiver}...`)
+    //обращаемся к точке входа transfer, передаем ей адреса отправителя и получателя, а также количество токенов для отправки.
+    return contract.methods.transfer([{
+      from_: sender,
+      txs:[
+        {
+          to_:receiver,
+          token_id: 1,
+          amount: amount
+        }
+      ]
+    }]).send()
 
-  const auth = await wallet.requestPermissions({
-    network: {
-      type: 'mainnet' | 'granadanet' | 'hangzhounet' | 'custom',
-    },
-  });
-  console.log(auth);
-  const AMOUNT = 2 //количество токенов для отправки. Можете ввести другое число
+  })
+  .then((op) => {
+    console.log(`Awaiting for ${op.hash} to be confirmed...`)
+    return op.confirmation(1).then(() => op.hash) //ждем одно подтверждение сети
+  })
+  .then((hash) => console.log(`Hash: https://hangzhou.tzstats.com/${hash}`)) //получаем хеш операции
+    .catch((error) => console.log(`Error: ${JSON.stringify(error, null, 2)}`))
+  }
 
-  /*Tezos.wallet
-  .at('KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark')
-  .then((contract) => contract.methods.transfer([{
+  window.send_with_tezos = send_with_tezos;
+
+
+
+  async function logout_beacon(){
+    await wallet.clearActiveAccount();
+    console.log("disconnect");
+  }
+  window.logout_beacon = logout_beacon;
+
+
+  async function login_with_tezos(){
+
+    const auth = await wallet.requestPermissions({
+      network: {
+        type: 'mainnet' | 'granadanet' | 'hangzhounet' | 'custom',
+      },
+    });
+    console.log(auth);
+    //const AMOUNT = 2 //количество токенов для отправки. Можете ввести другое число
+
+    /*Tezos.wallet
+    .at('KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark')
+    .then((contract) => contract.methods.transfer([{
     from_: "tz1eGERZcJeTuBy5HxbTr8j3PzJdPrSUhHmn",
     txs:[
-      {
-        to_:`tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz`,
-        token_id: 1,
-        amount: 2
-      }
-    ]
-  }]).send()
+    {
+    to_:`tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz`,
+    token_id: 1,
+    amount: 2
+  }
+]
+}]).send()
 
 })
 .then((op) => {
-  console.log(`Awaiting for ${op.hash} to be confirmed...`)
-  return op.confirmation(1).then(() => op.hash) //ждем одно подтверждение сети
+console.log(`Awaiting for ${op.hash} to be confirmed...`)
+return op.confirmation(1).then(() => op.hash) //ждем одно подтверждение сети
 })
 .then((hash) => console.log(`Hash: https://hangzhou.tzstats.com/${hash}`)) //получаем хеш операции
-  .catch((error) => console.log(`Error: ${JSON.stringify(error, null, 2)}`))*/
+.catch((error) => console.log(`Error: ${JSON.stringify(error, null, 2)}`))*/
 
-  /*const userAddress = await wallet.getPKH();
-  console.log(userAddress)
-  Tezos.setWalletProvider(wallet);*/
-  /*Tezos.wallet
-  .transfer({ to: 'tz1NhNv9g7rtcjyNsH8Zqu79giY5aTqDDrzB', amount: 0.2 })
-  .send()
-  .then((op) => {
-  println(`Hash: ${op.opHash}`);
+/*const userAddress = await wallet.getPKH();
+console.log(userAddress)
+Tezos.setWalletProvider(wallet);*/
+/*Tezos.wallet
+.transfer({ to: 'tz1NhNv9g7rtcjyNsH8Zqu79giY5aTqDDrzB', amount: 0.2 })
+.send()
+.then((op) => {
+println(`Hash: ${op.opHash}`);
 
-  op.confirmation()
-  .then((result) => {
-  console.log(result);
-  if (result.completed) {
-  println('Transaction correctly processed!');
+op.confirmation()
+.then((result) => {
+console.log(result);
+if (result.completed) {
+println('Transaction correctly processed!');
 } else {
 println('An error has occurred');
 }
@@ -157,28 +198,7 @@ async function send(){
 }
 window.send = send;
 
-async function send_token(){
-  /*  var form = document.querySelector('#myform');
-  var formData = new FormData(form);
-  var address = formData.get('address');
-  const tokenvalue = parseFloat(formData.get('token')) * 1000000000;
-  const send = await ever.contracts.call({
-  address:"0:b95d8f510a029401dda2b1d3b9ec1b656238fa19e96d0b4dbcc41ee82821b6ab",
-  functionCall:{
-  abi:TIP3Wallet.abi,
-  method:"transfer",
-  /*params:{
-  amount:,
-  recipient:,
-  deployWalletValue:,
-  remainingGasTo,
 
-},
-},
-})*/
-
-}
-window.send_token = send_token;
 
 /* Login in Extraton*/
 

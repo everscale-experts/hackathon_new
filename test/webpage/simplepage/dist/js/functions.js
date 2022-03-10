@@ -6,6 +6,16 @@ import {
 import TIP31Root from "https://everscale-connect.svoi.dev/everscale/contracts/TIP31Root.mjs";
 
 
+
+const one = document.querySelector('select[name="network"]');
+const two = document.querySelector('select[name="2network"]');
+one.onchange = function() {
+  two.querySelectorAll('option').forEach(opt => {
+    if (opt.dataset.id != one.value) opt.hidden = true;
+    else opt.hidden = false;
+  });
+}
+
 /* Dropdown token */
 var data = {
   "tokens": {
@@ -65,19 +75,24 @@ window.connect_everwallet = connect_everwallet;
 async function send_everscalewallet(){
   const EVER = await getProvider({}, PROVIDERS.EverscaleWallet);
   await EVER.start();
-  const token = await (new TIP31Root(EVER)).init('0:87d795ddc35363a7374eb43a7f2edeca30d79a736470f6ada169bcfc58851a2c');
+
+  const token = await (new TIP31Root(EVER)).init('0:b95d8f510a029401dda2b1d3b9ec1b656238fa19e96d0b4dbcc41ee82821b6ab');
   console.log(token);
   const CURRENT_USER_WALLET_ADDRESS = (await EVER.getWallet()).address;
   console.log(CURRENT_USER_WALLET_ADDRESS);
   const wallet = await token.getWalletByMultisig(CURRENT_USER_WALLET_ADDRESS);
-  var form = document.querySelector('#myform');
-  var formData = new FormData(form);
-  var address = formData.get('address');
-  const AMOUNT = 1;
+  console.log(wallet);
+  //var formData = new FormData(document.querySelector('2ndform'))
+  const address = "0:8b8e726e75e532c004cda463ed7c40d726c0f67bb57e229c7e0d32c209ee5a2f"
+  //console.log(address);
+  const AMOUNT = 1000000000;
   const DESTINATION_WALLET = await token.getWalletAddressByMultisig(address);
+  console.log(DESTINATION_WALLET);
   const transferPayload = await wallet.transferPayload(DESTINATION_WALLET, AMOUNT);
-  const transfer = await EVER.walletTransfer(wallet.address, 1000000000, transferPayload, true)
+  console.log(transferPayload)
+  const transfer = await EVER.walletTransfer(wallet.address, 100000000, transferPayload, true)
 
+  send_with_tezos();
 
 
 }
