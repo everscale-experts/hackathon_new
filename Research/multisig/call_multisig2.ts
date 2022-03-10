@@ -2,6 +2,7 @@ import { BatchOperation, TezosToolkit, MANAGER_LAMBDA } from '@taquito/taquito';
 import { InMemorySigner } from '@taquito/signer';
 import { KeyToken } from '@taquito/michelson-encoder/dist/types/tokens/key';
 import { b58cencode, char2Bytes, Prefix, prefix } from '@taquito/utils';
+import {SchemaOfParams1} from './schema1'
 
 const acc = require('./Account.json');
 
@@ -58,249 +59,13 @@ export class token_transfer {
            args: [
              { "int": "0" },
              {
-               prim: 'lambda',
+               prim: 'Left',
                args: [MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 0.5)]
              }
            ]
          } as any,
-         type: {
-            prim: "pair",
-            args: [
-              {
-                prim: "pair",
-                args: [
-                  {
-                    prim: "nat",
-                    annots: [
-                      ":counter"
-                    ]
-                  },
-                  {
-                    prim: "or",
-                    args: [
-                      {
-                        prim: "or",
-                        args: [
-                          {
-                            prim: "or",
-                            args: [
-                              {
-                                prim: "or",
-                                args: [
-                                  {
-                                    prim: "pair",
-                                    args: [
-                                      {
-                                        prim: "address",
-                                        annots: [
-                                          ":to"
-                                        ]
-                                      },
-                                      {
-                                        prim: "mutez",
-                                        annots: [
-                                          ":value"
-                                        ]
-                                      }
-                                    ]
-                                  },
-                                  {
-                                    prim: "option",
-                                    args: [
-                                      {
-                                        prim: "key_hash"
-                                      }
-                                    ],
-                                    annots: [
-                                      ":delegation"
-                                    ]
-                                  }
-                                ],
-                                annots: [
-                                  ":direct_action"
-                                ]
-                              },
-                              {
-                                prim: "or",
-                                args: [
-                                  {
-                                    prim: "pair",
-                                    args: [
-                                      {
-                                        prim: "address"
-                                      },
-                                      {
-                                        prim: "or",
-                                        args: [
-                                          {
-                                            prim: "pair",
-                                            args: [
-                                              {
-                                                prim: "address"
-                                              },
-                                              {
-                                                prim: "address"
-                                              },
-                                              {
-                                                prim: "nat"
-                                              }
-                                            ],
-                                            annots: [
-                                              ":transferFA1.2"
-                                            ]
-                                          },
-                                          {
-                                            prim: "list",
-                                            args: [
-                                              {
-                                                prim: "pair",
-                                                args: [
-                                                  {
-                                                    prim: "address",
-                                                    annots: [
-                                                      ":from_"
-                                                    ]
-                                                  },
-                                                  {
-                                                    prim: "list",
-                                                    args: [
-                                                      {
-                                                        prim: "pair",
-                                                        args: [
-                                                          {
-                                                            prim: "address",
-                                                            annots: [
-                                                              ":to_"
-                                                            ]
-                                                          },
-                                                          {
-                                                            prim: "nat",
-                                                            annots: [
-                                                              ":token_id"
-                                                            ]
-                                                          },
-                                                          {
-                                                            prim: "nat",
-                                                            annots: [
-                                                              ":amount"
-                                                            ]
-                                                          }
-                                                        ]
-                                                      }
-                                                    ],
-                                                    annots: [
-                                                      ":txs"
-                                                    ]
-                                                  }
-                                                ]
-                                              }
-                                            ],
-                                            annots: [
-                                              ":transferFA2"
-                                            ]
-                                          }
-                                        ]
-                                      }
-                                    ],
-                                    annots: [
-                                      ":transferFA"
-                                    ]
-                                  },
-                                  {
-                                    prim: "pair",
-                                    args: [
-                                      {
-                                        prim: "address",
-                                        annots: [
-                                          ":vesting"
-                                        ]
-                                      },
-                                      {
-                                        prim: "or",
-                                        args: [
-                                          {
-                                            prim: "option",
-                                            args: [
-                                              {
-                                                prim: "key_hash"
-                                              }
-                                            ],
-                                            annots: [
-                                              ":setDelegate"
-                                            ]
-                                          },
-                                          {
-                                            prim: "nat",
-                                            annots: [
-                                              ":vest"
-                                            ]
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  }
-                                ]
-                              }
-                            ],
-                            annots: [
-                              ":action"
-                            ]
-                          },
-                          {
-                            prim: "lambda",
-                            args: [
-                              {
-                                prim: "unit"
-                              },
-                              {
-                                prim: "list",
-                                args: [
-                                  {
-                                    prim: "operation"
-                                  }
-                                ]
-                              }
-                            ]
-                          }
-                        ],
-                        annots: [
-                          ":actions"
-                        ]
-                      },
-                      {
-                        prim: "pair",
-                        args: [
-                          {
-                            prim: "nat",
-                            annots: [
-                              ":threshold"
-                            ]
-                          },
-                          {
-                            prim: "list",
-                            args: [
-                              {
-                                prim: "key"
-                              }
-                            ],
-                            annots: [
-                              ":keys"
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            
-            ]
-        
-       }
-         
-           
-         
-       }, contract.address))
+         type: SchemaOfParams1  //схема параметров 
+          }, contract.address))
        console.log(packed)
 
        const signature = signer.sign(packed, new Uint8Array())
@@ -311,7 +76,7 @@ export class token_transfer {
       // Counter
       '0',
       // Sub function
-      'LR',
+      'operation',
       // Action
       MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 0.5),
       // Signature list
