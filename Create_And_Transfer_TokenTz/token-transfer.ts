@@ -11,11 +11,11 @@ export class token_transfer {
   constructor(rpcUrl: string) {
     this.tezos = new TezosToolkit(rpcUrl)
     this.rpcUrl = rpcUrl
-
+    const signer =new InMemorySigner('edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj');//приватный ключ отправителя токенов
     //считываем почту, пароль и мнемоническую фразу, из которой можно получить приватный ключ
-    this.tezos.setSignerProvider(InMemorySigner.fromFundraiser(acc.email, acc.password, acc.mnemonic.join(' ')))
+    this.tezos.setSignerProvider(signer)
   }
-
+  
   // объявляем метод transfer, который принимает параметры:
   //
   // 1) contract — адрес контракта;
@@ -48,8 +48,6 @@ export class token_transfer {
       .then((hash) => console.log(`Hash: https://hangzhou.tzstats.com/${hash}`)) //получаем хеш операции
       .catch((error) => console.log(`Error: ${JSON.stringify(error, null, 2)}`))
   }
-
-
 }
 
 

@@ -23,26 +23,7 @@ async function example() {
   const tezos = new TezosToolkit(provider)
   await importKey(
     tezos,
-    "rzfxnqsg.skbbgtec@teztnets.xyz", //почта
-    "6Uvib1sHKC", //пароль
-    [
-      "gas",
-		"travel",
-		"scissors",
-		"lab",
-		"choose",
-		"auction",
-		"false",
-		"upon",
-		"icon",
-		"mom",
-		"proof",
-		"dismiss",
-		"name",
-		"custom",
-		"meat",
-    ].join(' '),
-    "f3d1c92086b49db7e51ed8727facc129d419e499"
+    'edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj'//приватный ключ создателя контракта
   );
   
   try {
@@ -53,18 +34,25 @@ async function example() {
 			const ledger = new MichelsonMap();
 			ledger.set(
 				{
-					owner: 'tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM',//адресс кошелька владельца 
+					owner: 'tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF',//адресс кошелька владельца 
 					token_id: 1
 				},
-				10000000,// количество токенов в сатошинах(меньших единиц токена)
+				990000000000000000,// количество токенов в сатошинах
 				
 			);
 			ledger.set(
 				{
-					owner: 'tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM',
-					token_id: 2
+					owner: 'tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF',
+					token_id: 2,
 				},
-				990000000// количество токенов 
+				990000000000000000,
+			);
+			ledger.set(
+				{
+					owner: 'tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF',
+					token_id: 3,
+				},
+				990000000000000000,
 			);
 
 			const url = 'https://storage.googleapis.com/tzip-16/fa2-token-factory.json';
@@ -76,55 +64,69 @@ async function example() {
 
 			const token_admins = new MichelsonMap();
 			token_admins.set('1', {
-				0: 'tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM',
+				0: 'tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF',
 				1: true
 			});
 			token_admins.set('2', {
-				0: 'tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM',
+				0: 'tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF',
+				1: true
+			});
+			token_admins.set('3', {
+				0: 'tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF',
 				1: true
 			});
 
 			const token_metadata = new MichelsonMap();
 			const token1 = new MichelsonMap();
-			token1.set('name', char2Bytes('Slonik'));
-			token1.set('symbol', char2Bytes('SLN'));
-			token1.set('decimals', '36');
-			token1.set("icon", char2Bytes('https://icon-library.com/images/194204.svg.svg'))//ссылка на иконку
+			token1.set('name', char2Bytes('wrap tea'));
+			token1.set('symbol', char2Bytes('wTEA'));
+			token1.set('decimals', '39');
+			// token1.set("icon", char2Bytes('https://icon-library.com/images/194204.svg.svg'))//ссылка на иконку
 			const token2 = new MichelsonMap();
-			token2.set('name', char2Bytes('AliceToken'));
-			token2.set('symbol', char2Bytes('CSD'));
-			token2.set('decimals', '30');
+			token2.set('name', char2Bytes('wrap ever'));
+			token2.set('symbol', char2Bytes('wEVER'));
+			token2.set('decimals', '39');
+            const token3 = new MichelsonMap();
+			token3.set('name', char2Bytes('wrap bridge'));
+			token3.set('symbol', char2Bytes('wBRIDGE'));
+			token3.set('decimals', '39');
+
 			token_metadata.set('1', {
 				token_id: '1',
-				token_info: token1
+				token_info: token1,
 			});
 			token_metadata.set('2', {
 				token_id: '2',
-				token_info: token2
+				token_info: token2,
+			});
+			token_metadata.set('3', {
+				token_id: '3',
+				token_info: token3,
 			});
 
 			const token_total_supply = new MichelsonMap();
-			token_total_supply.set('1', '30000');
-			token_total_supply.set('2', '50000');
+			token_total_supply.set('1', '990000000000000000');
+			token_total_supply.set('2', '990000000000000000');
+			token_total_supply.set('3', '9900000000000000002');
 
 			const op = await tezos.contract.originate({
 				code: fa2TokenFactory,
 				storage: {
 					admin: await tezos.signer.publicKeyHash(),
 					exchange_address: 'KT1DGRPQUwLJyCZnM8WKtwDGiKDSMv4hftk4',
-					last_token_id: '2',
+					last_token_id: '3',
 					ledger,
 					metadata,
 					operators,
 					token_admins,
 					token_metadata,
-					token_total_supply
+					token_total_supply,
 				}
 			});
 
     console.log('Awaiting confirmation...');
     const contract = await op.contract();
-    console.log('Contract address',contract.address)
+    console.log('Contract address',contract.address);
     console.log('Gas Used', op.consumedGas);
     console.log('Operation hash:', op.hash, 'Included in block level:', op.includedInBlock);
   } catch (ex) {
