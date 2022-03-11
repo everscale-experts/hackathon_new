@@ -1,0 +1,724 @@
+.version sol 0.58.1
+
+.macro constructor
+DROP
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7_with_init_storage$
+}
+GETGLOB 6
+THROWIF 51
+ENDS
+.loc HelloWallet.sol, 26
+GETGLOB 2
+THROWIFNOT 101
+.loc HelloWallet.sol, 29
+GETGLOB 5
+DUP
+ISNULL
+PUSHCONT {
+	DROP
+	PUSHINT 0
+}
+IF
+GETGLOB 2
+EQUAL
+THROWIFNOT 102
+.loc HelloWallet.sol, 33
+ACCEPT
+.loc HelloWallet.sol, 35
+NOW
+SETGLOB 10
+.loc HelloWallet.sol, 0
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro renderHelloWorld
+DROP
+GETGLOB 6
+THROWIFNOT 76
+.loc HelloWallet.sol, 38
+ENDS
+.loc HelloWallet.sol, 0
+CALLREF {
+	CALL $renderHelloWorld_internal_macro$
+}
+OVER
+PUSHCONT {
+	PUSH S3
+	CTOS
+	LDU 2
+	LDMSGADDR
+	DROP
+	NIP
+	NEWC
+	STSLICECONST xc
+	STSLICE
+	PUSHINT 2268343370
+	STUR 130
+	STREF
+	ENDC
+	PUSHINT 0
+	SENDRAWMSG
+}
+PUSHCONT {
+	DROP
+}
+IFELSE
+IFREF {
+	CALL $upd_only_time_in_c4$
+}
+THROW 0
+
+.globl	renderHelloWorld_internal
+.type	renderHelloWorld_internal, @function
+CALL $renderHelloWorld_internal_macro$
+
+.macro renderHelloWorld_internal_macro
+.loc HelloWallet.sol, 39
+PUSHREF {
+	.blob x68656c6c6f576f726c64
+}
+.loc HelloWallet.sol, 0
+
+.macro touch
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc HelloWallet.sol, 43
+ENDS
+.loc HelloWallet.sol, 0
+CALLREF {
+	CALL $touch_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.macro touch_internal_macro
+.loc HelloWallet.sol, 48
+ACCEPT
+.loc HelloWallet.sol, 50
+NOW
+SETGLOB 10
+.loc HelloWallet.sol, 0
+
+.macro getTimestamp
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc HelloWallet.sol, 54
+ENDS
+.loc HelloWallet.sol, 0
+CALLREF {
+	CALL $getTimestamp_internal_macro$
+}
+OVER
+PUSHCONT {
+	PUSH S3
+	CTOS
+	LDU 2
+	LDMSGADDR
+	DROP
+	NIP
+	NEWC
+	STSLICECONST xc
+	STSLICE
+	PUSHINT 2677892227
+	STUR 130
+	STU 256
+	ENDC
+	PUSHINT 0
+	SENDRAWMSG
+}
+PUSHCONT {
+	DROP
+}
+IFELSE
+IFREF {
+	CALL $upd_only_time_in_c4$
+}
+THROW 0
+
+.globl	getTimestamp_internal
+.type	getTimestamp_internal, @function
+CALL $getTimestamp_internal_macro$
+
+.macro getTimestamp_internal_macro
+.loc HelloWallet.sol, 55
+GETGLOB 10
+.loc HelloWallet.sol, 0
+
+.macro sendValue
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc HelloWallet.sol, 59
+OVER
+PUSHCONT {
+	LDREF
+	ENDS
+	CTOS
+}
+IF
+LDMSGADDR
+LDU 128
+LDI 1
+ENDS
+.loc HelloWallet.sol, 0
+CALLREF {
+	CALL $sendValue_internal_macro$
+}
+IFREF {
+	CALL $upd_only_time_in_c4$
+}
+THROW 0
+
+.globl	sendValue_internal
+.type	sendValue_internal, @function
+CALL $sendValue_internal_macro$
+
+.macro sendValue_internal_macro
+.loc HelloWallet.sol, 60
+GETGLOB 5
+DUP
+ISNULL
+PUSHCONT {
+	DROP
+	PUSHINT 0
+}
+IF
+GETGLOB 2
+EQUAL
+THROWIFNOT 102
+.loc HelloWallet.sol, 61
+ACCEPT
+.loc HelloWallet.sol, 63
+XCHG S1, S2
+NEWC
+STSLICECONST x6_
+STI 1
+STSLICECONST x1_
+STSLICE
+SWAP
+STGRAMS
+PUSHINT 107
+STZEROES
+ENDC
+PUSHINT 0
+SENDRAWMSG
+.loc HelloWallet.sol, 0
+
+.globl	receiveCoins_internal
+.type	receiveCoins_internal, @function
+CALL $receiveCoins_internal_macro$
+
+.macro receiveCoins_internal_macro
+.loc HelloWallet.sol, 85
+DEPTH
+ADDCONST -2
+PICK
+PUSHINT 1000000000
+GREATER
+THROWIFNOT 100
+.loc HelloWallet.sol, 86
+PUSH S2
+GETGLOB 11
+PUSHINT 267
+DICTGET
+NULLSWAPIFNOT
+NIP
+THROWIF 100
+.loc HelloWallet.sol, 88
+GETGLOB 9
+PUSH S3
+ROLL 3
+DEPTH
+ADDCONST -2
+PICK
+PUSHINT 100000000
+SUB
+UFITS 128
+NOW
+ROLL 5
+ADD
+UFITS 32
+TUPLE 5
+.loc HelloWallet.sol, 95
+CALLREF {
+	UNTUPLE 5
+	REVERSE 5, 0
+	NEWC
+	STSLICE
+	ROLLREV 4
+	NEWC
+	STSLICE
+	STU 256
+	STU 128
+	STU 32
+	STBREFR
+}
+ENDC
+OVER
+GETGLOB 11
+PUSHINT 267
+DICTADDREF
+SWAP
+SETGLOB 11
+.loc HelloWallet.sol, 97
+PUSHCONT {
+	.loc HelloWallet.sol, 98
+	PUSHREF {
+		.blob x546865206c6f636b2069732061646465642e
+	}
+	CTOS
+	STRDUMP
+	DROP
+	.loc HelloWallet.sol, 99
+	DUP
+	PUSHSLICE xc00000000000000000000000006a856a06
+	NEWC
+	STSLICE
+	STSLICE
+	ENDC
+	PUSHINT 0
+	SENDRAWMSG
+	.loc HelloWallet.sol, 0
+}
+IF
+.loc HelloWallet.sol, 0
+DROP
+
+.macro receiveTokens
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc HelloWallet.sol, 104
+LDU 256
+ENDS
+.loc HelloWallet.sol, 0
+CALLREF {
+	CALL $receiveTokens_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.globl	receiveTokens_internal
+.type	receiveTokens_internal, @function
+CALL $receiveTokens_internal_macro$
+
+.macro receiveTokens_internal_macro
+.loc HelloWallet.sol, 104
+DROP
+.loc HelloWallet.sol, 0
+
+.macro verifySecret
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc HelloWallet.sol, 107
+OVER
+PUSHCONT {
+	LDREF
+	ENDS
+	CTOS
+}
+IF
+LDMSGADDR
+LDREF
+ENDS
+.loc HelloWallet.sol, 0
+CALLREF {
+	CALL $verifySecret_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
+.globl	verifySecret_internal
+.type	verifySecret_internal, @function
+CALL $verifySecret_internal_macro$
+
+.macro verifySecret_internal_macro
+.loc HelloWallet.sol, 108
+DUP
+CTOS
+STRDUMP
+DROP
+.loc HelloWallet.sol, 110
+OVER
+GETGLOB 11
+PUSHINT 267
+DICTGETREF
+NULLSWAPIFNOT
+IFREF {
+	CTOS
+	CALLREF {
+		LDMSGADDR
+		LDREF
+		ENDS
+		CTOS
+		LDMSGADDR
+		LDU 256
+		LDU 128
+		LDU 32
+		ENDS
+		TUPLE 5
+	}
+}
+.loc HelloWallet.sol, 111
+DUP
+ISNULL
+THROWIF 100
+.loc HelloWallet.sol, 112
+DUP
+ISNULL
+THROWIF 63
+.loc HelloWallet.sol, 113
+NOW
+OVER
+INDEX 4
+GREATER
+PUSHCONT {
+	.loc HelloWallet.sol, 114
+	ACCEPT
+	.loc HelloWallet.sol, 116
+	DUP
+	INDEX 3
+	OVER
+	FIRST
+}
+PUSHCONT {
+	.loc HelloWallet.sol, 118
+	DUP
+	THIRD
+	PUSH S2
+	HASHCU
+	EQUAL
+	THROWIFNOT 100
+	.loc HelloWallet.sol, 119
+	ACCEPT
+	.loc HelloWallet.sol, 121
+	OVER
+	PUSHSLICE xc00000000000000000000000007299a642
+	NEWC
+	STSLICE
+	STREF
+	ENDC
+	PUSHINT 0
+	SENDRAWMSG
+	.loc HelloWallet.sol, 122
+	DUP
+	INDEX 3
+	OVER
+	SECOND
+}
+IFELSE
+NEWC
+STSLICECONST x62_
+STSLICE
+SWAP
+STGRAMS
+PUSHINT 107
+STZEROES
+ENDC
+PUSHINT 0
+SENDRAWMSG
+.loc HelloWallet.sol, 124
+DROP2
+GETGLOB 11
+PUSHINT 267
+DICTDEL
+DROP
+SETGLOB 11
+.loc HelloWallet.sol, 0
+
+.macro c4_to_c7
+PUSHROOT
+CTOS
+LDU 256 ; pubkey c4
+LDU 64 ; pubkey timestamp c4
+LDU 1 ; ctor flag
+NIP
+LDU 32
+LDDICT
+ENDS
+SETGLOB 11
+SETGLOB 10
+SETGLOB 3
+SETGLOB 2
+
+.macro c4_to_c7_with_init_storage
+PUSHROOT
+CTOS
+SBITS
+GTINT 1
+PUSHCONT {
+	PUSHINT 0
+	PUSHROOT
+	CTOS
+	PLDDICT ; D
+	PUSHINT 0
+	NEWDICT
+	SETGLOB 11
+	SETGLOB 10
+	PUSHINT 64
+	DICTUGET
+	THROWIFNOT 61
+	PLDU 256
+	SETGLOB 2
+	PUSHINT 0 ; timestamp
+	SETGLOB 3
+}
+IFREFELSE {
+	CALL $c4_to_c7$
+}
+
+.macro c7_to_c4
+GETGLOB 11
+GETGLOB 10
+GETGLOB 3
+GETGLOB 2
+NEWC
+STU 256
+STU 64
+STONE
+STU 32
+STDICT
+ENDC
+POPROOT
+
+.macro upd_only_time_in_c4
+PUSHROOT
+CTOS
+LDU 256
+LDU 64
+NIP
+GETGLOB 3
+ROT
+NEWC
+STU 256
+STU 64
+STSLICE
+ENDC
+POPROOT
+
+.internal-alias :main_internal, 0
+.internal :main_internal
+PUSHROOT
+CTOS
+SBITS
+NEQINT 1
+SETGLOB 6
+PUSH S2
+CTOS
+LDU 4 ; bounced tail
+LDMSGADDR ; bounced src tail
+DROP
+SETGLOB 9
+MODPOW2 1
+IFRET
+OVER
+SEMPTY ; isEmpty
+IFJMPREF {
+	GETGLOB 6
+	THROWIFNOT 76
+}
+OVER
+LDUQ 32  ; [funcId] body' ok
+THROWIFNOT 60
+OVER
+IFNOTJMPREF {
+	GETGLOB 6
+	THROWIFNOT 76
+}
+SWAP
+CALLREF {
+	CALL $public_function_selector$
+}
+THROW 60
+
+.internal-alias :main_external, -1
+.internal :main_external
+PUSHROOT
+CTOS
+SBITS
+NEQINT 1
+SETGLOB 6
+PUSHSLICE x8000000000000000000000000000000000000000000000000000000000000000001_
+SETGLOB 9
+OVER
+CALLREF {
+	CALL $c4_to_c7_with_init_storage$
+}
+LDU 1 ; haveSign msgSlice
+SWAP
+PUSHCONT {
+	PUSHINT 512
+	LDSLICEX ; signatureSlice msgSlice
+	DUP
+	HASHSU ; signatureSlice msgSlice hashMsgSlice
+	ROT
+	GETGLOB 2
+	DUP
+	SETGLOB 5
+	CHKSIGNU ; msgSlice isSigned
+	THROWIFNOT 40
+}
+IF
+LDU 64 ; timestamp msgSlice
+SWAP
+CALL $replay_protection_macro$
+LDU 32 ; expireAt msgSlice
+SWAP
+NOW ; msgSlice expireAt now
+GREATER ; msgSlice expireAt>now
+THROWIFNOT 57
+LDU 32 ; funcId body
+SWAP
+CALLREF {
+	CALL $public_function_selector$
+}
+THROW 60
+
+.macro timestamp
+DROP
+ENDS
+CALLREF {
+	CALL $c4_to_c7$
+}
+GETGLOB 10
+OVER
+PUSHCONT {
+	PUSHSLICE xc0000000000000000000000000e817e535
+	NEWC
+	STSLICE
+	STU 32
+	ENDC
+	PUSHINT 0
+	SENDRAWMSG
+}
+IF
+THROW 0
+
+.macro locker
+DROP
+ENDS
+CALLREF {
+	CALL $c4_to_c7$
+}
+GETGLOB 11
+OVER
+PUSHCONT {
+	PUSHSLICE xc00000000000000000000000009b788411
+	NEWC
+	STSLICE
+	STDICT
+	ENDC
+	PUSHINT 0
+	SENDRAWMSG
+}
+IF
+THROW 0
+
+.macro public_function_selector
+DUP
+PUSHINT 530408579
+LEQ
+IFJMPREF {
+	DUP
+	PUSHINT 50978776
+	EQUAL
+	IFJMPREF {
+		CALL $verifySecret$
+	}
+	DUP
+	PUSHINT 120859722
+	EQUAL
+	IFJMPREF {
+		CALL $renderHelloWorld$
+	}
+	DUP
+	PUSHINT 460882961
+	EQUAL
+	IFJMPREF {
+		CALL $locker$
+	}
+	DUP
+	PUSHINT 530408579
+	EQUAL
+	IFJMPREF {
+		CALL $getTimestamp$
+	}
+}
+DUP
+PUSHINT 1746396469
+LEQ
+IFJMPREF {
+	DUP
+	PUSHINT 925969989
+	EQUAL
+	IFJMPREF {
+		CALL $touch$
+	}
+	DUP
+	PUSHINT 996398206
+	EQUAL
+	IFJMPREF {
+		CALL $sendValue$
+	}
+	DUP
+	PUSHINT 1229211062
+	EQUAL
+	IFJMPREF {
+		CALL $receiveTokens$
+	}
+	DUP
+	PUSHINT 1746396469
+	EQUAL
+	IFJMPREF {
+		CALL $timestamp$
+	}
+}
+DUP
+PUSHINT 1756716863
+EQUAL
+IFJMPREF {
+	CALL $constructor$
+}
+

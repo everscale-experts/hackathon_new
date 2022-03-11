@@ -1,8 +1,8 @@
-const { Account } = require("@tonclient/appkit");
-const { TonClient, signerKeys } = require("@tonclient/core");
-const { libNode } = require("@tonclient/lib-node");
+import { Account } from "@tonclient/appkit";
+import { TonClient, signerKeys } from "@tonclient/core";
+import { libNode } from "@tonclient/lib-node";
 
-const { HelloWallet } = require("./HelloWallet.js")
+import { HelloWallet } from "./HelloWallet.js";
 
 // Link the platform-dependable TON-SDK binary with the target Application in Typescript
 // This is a Node.js project, so we link the application with `libNode` binary
@@ -40,14 +40,14 @@ async function main(client) {
     console.log(`Contract run transaction with output ${response.decoded.output}, ${response.transaction.id}`);
 
     // Read local variable `timestamp` with a get method `getTimestamp`
-    // This can be done with `runLocal` function. The execution of runLocal is performed off-chain and does not 
+    // This can be done with `runLocal` function. The execution of runLocal is performed off-chain and does not
     // cost any gas.
     response = await helloAcc.runLocal("getTimestamp", {});
     console.log("Contract reacted to your getTimestamp:", response.decoded.output)
 
     // Send some money to the random address
-    const randomAddress = 
-        "0:" + 
+    const randomAddress =
+        "0:" +
         Buffer.from(
             (await client.crypto.generate_random_bytes({length: 32})).bytes,
             "base64"
