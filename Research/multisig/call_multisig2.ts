@@ -39,6 +39,7 @@ export class token_transfer {
         
         const contract = await this.tezos.contract.at(contract1);
         console.log("Packing started...")
+
        const pair = ({ data, type }: any, value: any) => {
          return {
            data: {
@@ -54,10 +55,10 @@ export class token_transfer {
        
        const { packed } = await this.tezos.rpc.packData(pair({
          data: {
-         prim: 'Pair',
+         prim: 'Pair', // передача пары аргументов 
                 args: [
-                    {"int": "0"},
-                    {
+                    {"int": "0"},//счетчик 
+                    {  // выбираем какое из двух значений or выбирать
                         prim: 'Left',
                         args: [{
                            prim:'Left',
@@ -66,37 +67,47 @@ export class token_transfer {
                               args:[{
                                  prim:'Left',
                                  args:[{
-                                    prim:'Pair',
+                                    prim:'Pair',// передача пары аргументов 
                                     args:[
-                                       {'string':'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
+                                       {'string':'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'}, //адресс контракта токенов 
                                     {
                                        
-                                       prim:'Left',
-                                       args:[{   
-                                          // до этого момента работает      
+                                       prim:'Right', // если надо transferFA1.2 - Left, если transferFA2 то пишем Right
+                                       args:[    
+                                             [
+                                                {
+                                                   prim:'Pair',
+                                                   args:[
+                                                      {
+                                                         string:'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1',
+                                                      },
+                                                      [
+                                                         {
+                                                            prim:'Pair',
+                                                            args:[
+                                                               {
+                                                                  string:'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'
+                                                               },
+                                                               {
+                                                                  prim:'Pair',
+                                                                  args:[
+                                                                     {int:'1'},
+                                                                     {int:'2300'}
+                                                                  ]
+                                                               }
+                                                            ]
+                                                         }
+                                                      ]
+                                                   ]
+                                                }
+                                             ]
+                                                        
+                                                          
+                                                        
+                                                      
                                           
                                              
-                                               
-                                                 "prim": "pair",
-                                                 "args": [
-                                                   {string:'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
-                                                   [{
-                                                     
-                                                       
-                                                         "prim": "pair",
-                                                         "args": [
-                                                           {string:'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
-                                                           { "prim": "pair", 
-                                                           "args": [ {int:'1'}, { int:'10000'} ] }
-                                                         ]
-                                                       
-                                                     
-                                                     
-                                                   }]
-                                                 ]
-                                               
-                                              
-
+                                             
                                              // пересылка токенов стандарта FA1.2
                                              // prim:'Pair',
                                              // args:[
@@ -109,7 +120,7 @@ export class token_transfer {
                                              //       ]
                                              //    }
                                              // ]
-                                       }]
+                                       ]
                                        
                                     }
                                     ]
