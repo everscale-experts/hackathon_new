@@ -5,19 +5,9 @@ import { fa2TokenFactory } from './fa2-token-factory';
 
 const provider = 'https://rpc.hangzhounet.teztnets.xyz'
 
-const nodeCrypto = require('crypto');
 
-async function createAddress() {
-  const tezos = new TezosToolkit(provider)
 
-  const keyBytes = Buffer.alloc(32);
-  nodeCrypto.randomFillSync(keyBytes)
 
-  const key = b58cencode(new Uint8Array(keyBytes), prefix[Prefix.P2SK]);
-  await importKey(tezos, key);
-
-  return tezos;
-}
 
 async function example() {
   const tezos = new TezosToolkit(provider)
