@@ -3,9 +3,12 @@ import { signerKeys, TonClient } from '@tonclient/core';
 import { libNode } from '@tonclient/lib-node';
 
 import HelloWallet from './HelloWallet';
-import { KeyPair } from '@tonclient/core/dist/modules';
+import SafeMultisigWallet from '../safemultisig/SafeMultisigWallet';
+
+import { ClientError, KeyPair } from '@tonclient/core/dist/modules';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ContractPackage } from '@tonclient/appkit/dist/account';
 
 const keysFilename = 'keys.json';
 const keysPath = path.resolve(__dirname, keysFilename);
@@ -30,12 +33,24 @@ async function readKeysFromFileOrGenerateAndSave(keysPath: string): Promise<KeyP
                 .then(() => keys)));
 }
 
+async function deployContract(client: TonClient, SafeMultisigWallet: ContractPackage) {
+    const keys = await readKeysFromFileOrGenerateAndSave(keysPath);
+    console.log(`deployContract`);
+    const account = new Account(SafeMultisigWallet, {
+        signer: signerKeys(keys),
+        client,
+    });
+    console.log(`account=`, account);
+}
+
+
+
 /**
  *
  * @param client {TonClient}
  * @returns {Promise<void>}
  */
-async function main(client) {
+async function main(client: TonClient) {
     const keys = await readKeysFromFileOrGenerateAndSave(keysPath);
 
     const helloAcc = new Account(HelloWallet, {
@@ -61,13 +76,13 @@ async function main(client) {
 
     // Call `touch` function
     let response = await helloAcc.run('touch', {});
-    console.log(`Contract run transaction with output ${response.decoded.output}, ${response.transaction.id}`);
+    console.log(`Contract run transaction with output ${response.decoded?.output}, ${response.transaction?.id}`);
 
     // Read local variable `timestamp` with a get method `getTimestamp`
     // This can be done with `runLocal` function. The execution of runLocal is performed off-chain and does not
     // cost any gas.
     response = await helloAcc.runLocal('getTimestamp', {});
-    console.log('Contract reacted to your getTimestamp:', response.decoded.output)
+    console.log('Contract reacted to your getTimestamp:', response.decoded?.output)
 
     // Send some money to the random address
     const randomAddress =
@@ -93,10 +108,13 @@ async function main(client) {
     });
     try {
         console.log('Hello localhost TON!');
+        deployContract(client, SafeMultisigWallet);
+        process.exit(0);
+
         await main(client);
         process.exit(0);
     } catch (error) {
-        if (error.code === 504) {
+        if (error && (<ClientError>error).code === 504) {
             console.error(`Network is inaccessible. You have to start TON OS SE using \`everdev se start\`.\n` +
                 `If you run SE on another port or ip, replace http://localhost ` +
                 `endpoint with http://localhost:port or http://ip:port in index.js file.`);
