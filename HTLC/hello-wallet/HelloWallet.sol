@@ -81,7 +81,7 @@ contract HelloWallet {
 
     mapping(address => Lock) public locker;
 
-    function createLockWithCoins(address dest, uint256 hash, uint32 timeout) internal {
+    function createLockWithCoins(address dest, uint256 hash, uint32 timeout) public {
         require(msg.value > 1 Ever);    // Min value should be more than 1 Ever
         require(!locker.exists(dest));  // to avoid broke existing lock
 

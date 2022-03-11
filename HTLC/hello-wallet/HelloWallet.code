@@ -229,6 +229,37 @@ PUSHINT 0
 SENDRAWMSG
 .loc HelloWallet.sol, 0
 
+.macro createLockWithCoins
+DROP
+GETGLOB 6
+THROWIFNOT 76
+GETGLOB 2
+ISNULL
+IFREF {
+	CALL $c4_to_c7$
+}
+.loc HelloWallet.sol, 84
+OVER
+PUSHCONT {
+	LDREF
+	ENDS
+	CTOS
+}
+IF
+LDMSGADDR
+LDU 256
+LDU 32
+ENDS
+.loc HelloWallet.sol, 0
+CALLREF {
+	CALL $createLockWithCoins_internal_macro$
+}
+DROP
+CALLREF {
+	CALL $c7_to_c4$
+}
+THROW 0
+
 .globl	createLockWithCoins_internal
 .type	createLockWithCoins_internal, @function
 CALL $createLockWithCoins_internal_macro$
@@ -658,7 +689,7 @@ THROW 0
 
 .macro public_function_selector
 DUP
-PUSHINT 530408579
+PUSHINT 481731188
 LEQ
 IFJMPREF {
 	DUP
@@ -666,6 +697,12 @@ IFJMPREF {
 	EQUAL
 	IFJMPREF {
 		CALL $renderHelloWorld$
+	}
+	DUP
+	PUSHINT 290854114
+	EQUAL
+	IFJMPREF {
+		CALL $createLockWithCoins$
 	}
 	DUP
 	PUSHINT 460882961
@@ -679,17 +716,17 @@ IFJMPREF {
 	IFJMPREF {
 		CALL $openLock$
 	}
+}
+DUP
+PUSHINT 1358283324
+LEQ
+IFJMPREF {
 	DUP
 	PUSHINT 530408579
 	EQUAL
 	IFJMPREF {
 		CALL $getTimestamp$
 	}
-}
-DUP
-PUSHINT 1746396469
-LEQ
-IFJMPREF {
 	DUP
 	PUSHINT 925969989
 	EQUAL
@@ -708,17 +745,22 @@ IFJMPREF {
 	IFJMPREF {
 		CALL $createLockWithTokens$
 	}
+}
+DUP
+PUSHINT 1756716863
+LEQ
+IFJMPREF {
 	DUP
 	PUSHINT 1746396469
 	EQUAL
 	IFJMPREF {
 		CALL $timestamp$
 	}
-}
-DUP
-PUSHINT 1756716863
-EQUAL
-IFJMPREF {
-	CALL $constructor$
+	DUP
+	PUSHINT 1756716863
+	EQUAL
+	IFJMPREF {
+		CALL $constructor$
+	}
 }
 

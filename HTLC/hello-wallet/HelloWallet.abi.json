@@ -44,6 +44,16 @@
 			]
 		},
 		{
+			"name": "createLockWithCoins",
+			"inputs": [
+				{"name":"dest","type":"address"},
+				{"name":"hash","type":"uint256"},
+				{"name":"timeout","type":"uint32"}
+			],
+			"outputs": [
+			]
+		},
+		{
 			"name": "createLockWithTokens",
 			"inputs": [
 				{"name":"hash","type":"uint256"}
