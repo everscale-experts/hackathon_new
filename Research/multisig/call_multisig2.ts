@@ -36,10 +36,9 @@ export class token_transfer {
 
      }
      public async transfer(contract1: string,) {
-        console.log("Transaction started")
         
         const contract = await this.tezos.contract.at(contract1);
-         
+        console.log("Packing started...")
        const pair = ({ data, type }: any, value: any) => {
          return {
            data: {
@@ -55,36 +54,6 @@ export class token_transfer {
        
        const { packed } = await this.tezos.rpc.packData(pair({
          data: {
-        
-         // вариант передачи не работает
-         // prim:'Pair',
-         // args:[
-         //    {'int':'0'},
-         //    {
-         //       prim:'Pair',
-         //       args:[
-         //             {'address':'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
-         //             {
-         //                prim:'Right',
-         //                args:[{
-         //                   prim:'list',
-         //                   args:[
-         //                      {'address':'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1'},
-         //                   {
-         //                      prim:'list',
-         //                      args:[
-         //                         {'address':'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'},
-         //                         {'int':'1'},
-         //                         {'int':'10000'}
-         //                      ]
-                           
-         //                }
-         //                   ]
-         //             }]}
-         //          ]   
-         //    }
-         // ]
-         
          prim: 'Pair',
                 args: [
                     {"int": "0"},
@@ -102,47 +71,44 @@ export class token_transfer {
                                        {'string':'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
                                     {
                                        
-                                       prim:'Right',
+                                       prim:'Left',
                                        args:[{   
                                           // до этого момента работает      
-                                         prim:'list',
-                                         args:[{
-                                             prim:'Pair',
-                                             args:[
-                                                {'string':'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1'},
-                                                {
-                                                   prim:'list',
-                                                   args:[{
-                                                   
-                                                      prim:'Pair',
-                                                      args:[
-                                                         {'string':'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'},
-                                                         {
-                                                            prim:'Pair',
-                                                            args:[
-                                                               {'int':'1'},
-                                                               {'int':'2000'}
-                                                            ]
-                                                         }
-                                                      ]
-                                                   
-                                                }]
-                                                }
-                                             ]
-                                          }]
-
-                                             
-                                                // {'string':'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1'},
-                                                // {
-                                                //    prim:'list',
-                                                //    args:[
-                                                //       {'string':'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'},
-                                                //       {'int':'1'},
-                                                //       {'int':'2000'}
-                                                //    ]
-                                                // }
-                                             
                                           
+                                             
+                                               
+                                                 "prim": "pair",
+                                                 "args": [
+                                                   {string:'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
+                                                   [{
+                                                     
+                                                       
+                                                         "prim": "pair",
+                                                         "args": [
+                                                           {string:'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
+                                                           { "prim": "pair", 
+                                                           "args": [ {int:'1'}, { int:'10000'} ] }
+                                                         ]
+                                                       
+                                                     
+                                                     
+                                                   }]
+                                                 ]
+                                               
+                                              
+
+                                             // пересылка токенов стандарта FA1.2
+                                             // prim:'Pair',
+                                             // args:[
+                                             //    {string:'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
+                                             //    {
+                                             //       prim:'Pair',
+                                             //       args:[
+                                             //          {string:'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
+                                             //          {int:'100'}
+                                             //       ]
+                                             //    }
+                                             // ]
                                        }]
                                        
                                     }
@@ -154,7 +120,6 @@ export class token_transfer {
                     }
                 ]
                 
-//{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address","annots":[":to_"]},{"prim":"nat","annots":[":token_id"]},{"prim":"nat","annots":[":amount"]}]}],"annots":[":txs"]}]}]
 
          //передача данных в лямбда функцию (работает)
          // prim: 'Pair',
@@ -175,7 +140,7 @@ export class token_transfer {
 
        const signature = signer.sign(packed, new Uint8Array())
 
-
+   console.log('Transaction started...')
    const op = await contract.methods.main_parameter(
       // Counter
       '0',
@@ -215,7 +180,7 @@ new token_transfer(RPC_URL).transfer(CONTRACT);
 
 
 // параметры которые можно указывать в PAIR
-// '    At /prim, unexpected string value "Pir" instead of "ABS" , "IF" , "SENDER" , "VOTING_POWER" , "False" , "NEVER" , "DUG" , "chest" , "BLAKE2B" ,
+// '    "ABS" , "IF" , "SENDER" , "VOTING_POWER" , "False" , "NEVER" , "DUG" , "chest" , "BLAKE2B" ,
 //  "map" , "bls12_381_g2" , "Pair" , "INT" , "option" , "bls12_381_g1" , "storage" , "SIZE" , "view" , "SHA256" , "AND" , "VIEW" , "mutez" , "NIL" , "big_map" 
 //  , "SUB" , "SAPLING_VERIFY_UPDATE" , "CHECK_SIGNATURE" , "TOTAL_VOTING_POWER" , "address" , "MAP" , "or" , "ticket" , "ADD" , "IMPLICIT_ACCOUNT" , "SHA512" , "key" 
 //  , "LSL" , "bls12_381_fr" , "chest_key" , "sapling_state" , "COMPARE" , "TRANSFER_TOKENS" , "STEPS_TO_QUOTA" , "DROP" , "set" , "BALANCE" , "CONCAT" , "MUL" , "FAILWITH" 

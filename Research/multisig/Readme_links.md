@@ -6,3 +6,8 @@ https://hangzhou2net.tzkt.io/KT19DgJEiULkUAuvixiGtN9PBHHjP4kvRsii/entrypoints - 
 https://madfish-solutions.github.io/sol2ligo/ - компилятор из Solidity в Ligo  
   
   
+https://github.com/atticlab/tezosign/blob/master/services/contract/path.go#L12 - передача параметров на golange
+https://tezos.gitlab.io/active/michelson.html- документация michelson
+
+
+
