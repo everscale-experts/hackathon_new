@@ -52,63 +52,109 @@ export class token_transfer {
            }
          }
        }
+       
        const { packed } = await this.tezos.rpc.packData(pair({
          data: {
-         // передача данных в transferFA2(не работает)
-         //   prim: 'Pair',
-         //   args: [
-         //     { "int": "0" },
-         //     {
-         //       prim: 'address',
-         //       args: [
-         //          {'address':'KT1WhqQJyuznPdGD3JM3iqMpaRveeUuVSz9k'},
-         //             {prim: 'list',
-         //             args:[[{'address':'KT19DgJEiULkUAuvixiGtN9PBHHjP4kvRsii'},
-         //             {
-         //                prim:'txs',
-         //                args:[[{'address':'tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF'},
-         //                   {'int':'123'},
-         //                   {'int':'1'},
-         //                ]],
-         //             }]]
-                  
-
-         //          }]
-         //     }
-         //   ]
-         
-         // второй вариант передачи не работает
+        
+         // вариант передачи не работает
          // prim:'Pair',
          // args:[
          //    {'int':'0'},
          //    {
          //       prim:'Pair',
-         //       args:[{
-         //          prim:'address',
-         //          args:[
+         //       args:[
          //             {'address':'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
          //             {
-         //                prim:'list',
+         //                prim:'Right',
          //                args:[{
-         //                   prim:'Pair',
+         //                   prim:'list',
          //                   args:[
          //                      {'address':'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1'},
-         //                      {
-         //                         prim:'list',
-         //                         args:[
-         //                            {'address':'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'},
-         //                            {'int':'1'},
-         //                            {'amount':'10000'}
-         //                         ]
-         //                      }
-
+         //                   {
+         //                      prim:'list',
+         //                      args:[
+         //                         {'address':'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'},
+         //                         {'int':'1'},
+         //                         {'int':'10000'}
+         //                      ]
+                           
+         //                }
          //                   ]
-         //                }]
-         //             }
-         //          ]
-         //       }]
+         //             }]}
+         //          ]   
          //    }
          // ]
+         
+         prim: 'Pair',
+                args: [
+                    {"int": "0"},
+                    {
+                        prim: 'Left',
+                        args: [{
+                           prim:'Left',
+                           args:[{
+                              prim:'Right',
+                              args:[{
+                                 prim:'Left',
+                                 args:[{
+                                    prim:'Pair',
+                                    args:[
+                                       {'string':'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
+                                    {
+                                       
+                                       prim:'Right',
+                                       args:[{   
+                                          // до этого момента работает      
+                                         prim:'list',
+                                         args:[{
+                                             prim:'Pair',
+                                             args:[
+                                                {'string':'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1'},
+                                                {
+                                                   prim:'list',
+                                                   args:[{
+                                                   
+                                                      prim:'Pair',
+                                                      args:[
+                                                         {'string':'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'},
+                                                         {
+                                                            prim:'Pair',
+                                                            args:[
+                                                               {'int':'1'},
+                                                               {'int':'2000'}
+                                                            ]
+                                                         }
+                                                      ]
+                                                   
+                                                }]
+                                                }
+                                             ]
+                                          }]
+
+                                             
+                                                // {'string':'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1'},
+                                                // {
+                                                //    prim:'list',
+                                                //    args:[
+                                                //       {'string':'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'},
+                                                //       {'int':'1'},
+                                                //       {'int':'2000'}
+                                                //    ]
+                                                // }
+                                             
+                                          
+                                       }]
+                                       
+                                    }
+                                    ]
+                                 }]
+                              }]
+                           }]
+                        }]
+                    }
+                ]
+                
+//{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address","annots":[":to_"]},{"prim":"nat","annots":[":token_id"]},{"prim":"nat","annots":[":amount"]}]}],"annots":[":txs"]}]}]
 
          //передача данных в лямбда функцию (работает)
          // prim: 'Pair',

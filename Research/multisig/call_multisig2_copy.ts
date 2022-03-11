@@ -61,7 +61,7 @@ export class token_transfer {
             data: {
                 prim: 'Pair',
                 args: [
-                    {"int": "1"}, //счетчик после каждого вызова увеличиваем на один 
+                    {int: '2'}, //счетчик после каждого вызова увеличиваем на один 
                     {
                         prim: 'Left',
                         args: [MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 1)]// количество токенов указывается в сатошинах, точность 6 знаков
