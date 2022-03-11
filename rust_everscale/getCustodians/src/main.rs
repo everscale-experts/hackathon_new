@@ -107,12 +107,7 @@ async fn main() {
                 },
             },
             address: Some(address.to_owned()),
-            deploy_set: Some(DeploySet {
-                tvc: "".to_owned(),
-                workchain_id: None,
-                initial_data: None,
-                initial_pubkey: None,
-            }),
+            deploy_set: None,
             call_set: Some(CallSet {
                 function_name: "getCustodians".to_owned(),
                 header: None,
