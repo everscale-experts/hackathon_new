@@ -121,9 +121,8 @@ async function send_with_tezos(){
       },
     });
     console.log(auth);
-    //const AMOUNT = 2 //количество токенов для отправки. Можете ввести другое число
 
-    /*Tezos.wallet
+    Tezos.wallet
     .at('KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark')
     .then((contract) => contract.methods.transfer([{
     from_: "tz1eGERZcJeTuBy5HxbTr8j3PzJdPrSUhHmn",
