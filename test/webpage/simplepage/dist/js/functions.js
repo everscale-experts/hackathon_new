@@ -3,7 +3,7 @@ import {
   PROVIDERS,
   UTILS
 } from "https://everscale-connect.svoi.dev/everscale/getProvider.mjs";
-import TIP31Root from "https://everscale-connect.svoi.dev/everscale/contracts/TIP31Root.mjs";
+import TIP31Root from "./TIP31Root.mjs";
 
 
 
@@ -86,13 +86,14 @@ async function send_everscalewallet(){
   const address = "0:8b8e726e75e532c004cda463ed7c40d726c0f67bb57e229c7e0d32c209ee5a2f"
   //console.log(address);
   const AMOUNT = 1000000000;
+  const MESSAGE = "te6ccgEBAgEALgABCAAAAAABAEp0ejFLZm9HNlduWGVlUnhpcGNtdm9kMzRCUVgyS1V1MzRWRlkh";
   const DESTINATION_WALLET = await token.getWalletAddressByMultisig(address);
   console.log(DESTINATION_WALLET);
-  const transferPayload = await wallet.transferPayload(DESTINATION_WALLET, AMOUNT);
+  const transferPayload = await wallet.transferPayload(DESTINATION_WALLET, AMOUNT, MESSAGE);
   console.log(transferPayload)
   const transfer = await EVER.walletTransfer(wallet.address, 100000000, transferPayload, true)
 
-  send_with_tezos();
+  //send_with_tezos();
 
 
 }
