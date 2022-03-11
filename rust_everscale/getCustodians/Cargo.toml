@@ -1,0 +1,13 @@
+[package]
+name = "getCustodians"
+version = "0.1.0"
+authors = ["javaharlalnehru <grechanichenkos@yandex.ru>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde_json = "1.0.41"
+tokio = { features = [ "rt-threaded", "macros", "sync" ], version = "*" }
+ton_client = { git = "https://github.com/tonlabs/TON-SDK" }
+ureq = { version = "2.4.0", features = ["json"] }
