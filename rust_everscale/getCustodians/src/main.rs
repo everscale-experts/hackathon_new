@@ -60,52 +60,7 @@ async fn main() {
     let res = ton_client::abi::encode_message(
         context.clone(),
         ParamsOfEncodeMessage{
-            abi: Abi::Contract{
-                0: AbiContract{
-                    obsolete_abi_version: 2,
-                    abi_version: 2,
-                    version: None,
-                    header: vec!["pubkey".to_owned(), "time".to_owned(), "expire".to_owned()],
-                    functions: vec![AbiFunction{
-                        name: "getCustodians".to_owned(),
-                        inputs: vec![],
-                        outputs: vec![
-                            AbiParam {
-                                name: "custodians".to_owned(),
-                                param_type: "tuple[]".to_owned(),
-                                components: vec![
-                                    AbiParam {
-                                        name: "index".to_owned(),
-                                        param_type: "uint8".to_owned(),
-                                        components: Default::default(),
-                                    },
-                                    AbiParam {
-                                        name: "pubkey".to_owned(),
-                                        param_type: "uint256".to_owned(),
-                                        components: Default::default(),
-                                    },
-                                ],
-                            }
-                        ],
-                        id: Default::default(),
-                    }],
-                    events: vec![
-                        AbiEvent {
-                            name: "TransferAccepted".to_owned(),
-                            inputs: vec![
-                                AbiParam {
-                                    name: "payload".to_owned(),
-                                    param_type: "bytes".to_owned(),
-                                    components: vec![],
-                                },
-                            ],
-                            id: Default::default(),
-                        },
-                    ],
-                    data: vec![],
-                    fields: vec![],
-                },
-            },
+            abi: /* ... */,
             address: Some(address.to_owned()),
             deploy_set: None,
             call_set: Some(CallSet {
