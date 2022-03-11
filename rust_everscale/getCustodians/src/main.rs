@@ -123,7 +123,7 @@ async fn main() {
         },
     ).await.unwrap();
 
-    // println!("{}", res);
+    println!("{}", res.message);
     // for giver in boc.result {
     //     println!("{}", giver["boc"]);
     // }
