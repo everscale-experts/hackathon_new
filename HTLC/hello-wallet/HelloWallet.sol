@@ -81,7 +81,7 @@ contract HelloWallet {
 
     mapping(address => Lock) public locker;
 
-    function receiveCoins(address dest, uint256 hash, uint32 timeout) internal {
+    function createLockWithCoins(address dest, uint256 hash, uint32 timeout) internal {
         require(msg.value > 1 Ever);    // Min value should be more than 1 Ever
         require(!locker.exists(dest));  // to avoid broke existing lock
 
@@ -101,10 +101,10 @@ contract HelloWallet {
     }
 
     // this method should be called by tip3 account, so the notification for account should be set up
-    function receiveTokens(uint256 hash) public {
+    function createLockWithTokens(uint256 hash) public {
     }
 
-    function verifySecret(address dest, string secret) public {
+    function openLock(address dest, string secret) public {
         tvm.log(secret);
 
         optional(Lock) lockInfo = locker.fetch(dest);
