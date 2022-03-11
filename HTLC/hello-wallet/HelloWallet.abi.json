@@ -44,7 +44,7 @@
 			]
 		},
 		{
-			"name": "receiveTokens",
+			"name": "createLockWithTokens",
 			"inputs": [
 				{"name":"hash","type":"uint256"}
 			],
@@ -52,7 +52,7 @@
 			]
 		},
 		{
-			"name": "verifySecret",
+			"name": "openLock",
 			"inputs": [
 				{"name":"dest","type":"address"},
 				{"name":"secret","type":"string"}

@@ -229,11 +229,11 @@ PUSHINT 0
 SENDRAWMSG
 .loc HelloWallet.sol, 0
 
-.globl	receiveCoins_internal
-.type	receiveCoins_internal, @function
-CALL $receiveCoins_internal_macro$
+.globl	createLockWithCoins_internal
+.type	createLockWithCoins_internal, @function
+CALL $createLockWithCoins_internal_macro$
 
-.macro receiveCoins_internal_macro
+.macro createLockWithCoins_internal_macro
 .loc HelloWallet.sol, 85
 DEPTH
 ADDCONST -2
@@ -309,7 +309,7 @@ IF
 .loc HelloWallet.sol, 0
 DROP
 
-.macro receiveTokens
+.macro createLockWithTokens
 DROP
 GETGLOB 6
 THROWIFNOT 76
@@ -323,7 +323,7 @@ LDU 256
 ENDS
 .loc HelloWallet.sol, 0
 CALLREF {
-	CALL $receiveTokens_internal_macro$
+	CALL $createLockWithTokens_internal_macro$
 }
 DROP
 CALLREF {
@@ -331,16 +331,16 @@ CALLREF {
 }
 THROW 0
 
-.globl	receiveTokens_internal
-.type	receiveTokens_internal, @function
-CALL $receiveTokens_internal_macro$
+.globl	createLockWithTokens_internal
+.type	createLockWithTokens_internal, @function
+CALL $createLockWithTokens_internal_macro$
 
-.macro receiveTokens_internal_macro
+.macro createLockWithTokens_internal_macro
 .loc HelloWallet.sol, 104
 DROP
 .loc HelloWallet.sol, 0
 
-.macro verifySecret
+.macro openLock
 DROP
 GETGLOB 6
 THROWIFNOT 76
@@ -362,7 +362,7 @@ LDREF
 ENDS
 .loc HelloWallet.sol, 0
 CALLREF {
-	CALL $verifySecret_internal_macro$
+	CALL $openLock_internal_macro$
 }
 DROP
 CALLREF {
@@ -370,11 +370,11 @@ CALLREF {
 }
 THROW 0
 
-.globl	verifySecret_internal
-.type	verifySecret_internal, @function
-CALL $verifySecret_internal_macro$
+.globl	openLock_internal
+.type	openLock_internal, @function
+CALL $openLock_internal_macro$
 
-.macro verifySecret_internal_macro
+.macro openLock_internal_macro
 .loc HelloWallet.sol, 108
 DUP
 CTOS
@@ -662,12 +662,6 @@ PUSHINT 530408579
 LEQ
 IFJMPREF {
 	DUP
-	PUSHINT 50978776
-	EQUAL
-	IFJMPREF {
-		CALL $verifySecret$
-	}
-	DUP
 	PUSHINT 120859722
 	EQUAL
 	IFJMPREF {
@@ -678,6 +672,12 @@ IFJMPREF {
 	EQUAL
 	IFJMPREF {
 		CALL $locker$
+	}
+	DUP
+	PUSHINT 481731188
+	EQUAL
+	IFJMPREF {
+		CALL $openLock$
 	}
 	DUP
 	PUSHINT 530408579
@@ -703,10 +703,10 @@ IFJMPREF {
 		CALL $sendValue$
 	}
 	DUP
-	PUSHINT 1229211062
+	PUSHINT 1358283324
 	EQUAL
 	IFJMPREF {
-		CALL $receiveTokens$
+		CALL $createLockWithTokens$
 	}
 	DUP
 	PUSHINT 1746396469
