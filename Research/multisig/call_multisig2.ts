@@ -54,7 +54,7 @@ export class token_transfer {
        }
        const { packed } = await this.tezos.rpc.packData(pair({
          data: {
-       
+         // передача данных в transferFA2(не работает)
          //   prim: 'Pair',
          //   args: [
          //     { "int": "0" },
@@ -76,17 +76,19 @@ export class token_transfer {
          //          }]
          //     }
          //   ]
-         prim: 'Pair',
-                args: [
-                    {"int": "0"},
-                    {
-                        prim: 'Left',
-                        args: [{
-                           prim:'Right',
-                           args:[MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 1)]
-                        }]
-                    }
-                ]
+
+         //передача данных в лямбда функцию (работает)
+         // prim: 'Pair',
+         //        args: [
+         //            {"int": "0"},
+         //            {
+         //                prim: 'Left',
+         //                args: [{
+         //                   prim:'Right',
+         //                   args:[MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 1)]
+         //                }]
+         //            }
+         //        ]
          } as any,
          type: SchemaOfParams1  //схема параметров 
           }, contract.address))
@@ -100,7 +102,7 @@ export class token_transfer {
       '0',
       // вызов метода трансфера токенов 
       'transferFA',
-      'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1',
+      'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1',//адресс контракта токена 
       'transferFA2',
       [{
          from_:'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1',
@@ -111,6 +113,11 @@ export class token_transfer {
          }]
       }],
       
+      //'1' чтобы добраться до LLLL
+      //'3' чтобы добраться до R
+
+
+
       // Signature list
       [(await signature).prefixSig]
     ).send()
