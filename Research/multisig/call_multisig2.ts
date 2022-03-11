@@ -76,6 +76,39 @@ export class token_transfer {
          //          }]
          //     }
          //   ]
+         
+         // второй вариант передачи не работает
+         // prim:'Pair',
+         // args:[
+         //    {'int':'0'},
+         //    {
+         //       prim:'Pair',
+         //       args:[{
+         //          prim:'address',
+         //          args:[
+         //             {'address':'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'},
+         //             {
+         //                prim:'list',
+         //                args:[{
+         //                   prim:'Pair',
+         //                   args:[
+         //                      {'address':'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1'},
+         //                      {
+         //                         prim:'list',
+         //                         args:[
+         //                            {'address':'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'},
+         //                            {'int':'1'},
+         //                            {'amount':'10000'}
+         //                         ]
+         //                      }
+
+         //                   ]
+         //                }]
+         //             }
+         //          ]
+         //       }]
+         //    }
+         // ]
 
          //передача данных в лямбда функцию (работает)
          // prim: 'Pair',
