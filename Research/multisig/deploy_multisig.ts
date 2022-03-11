@@ -73,10 +73,10 @@ async function deploy() {
   try {
     const op = await tezos.contract.originate({
       //код смарт-контракта
-      code: genericMultisig,
+      code: TokenMultisig,
       //значение хранилища
       storage: {
-              stored_counter: 0,  // начальное значение счётчика
+              counter: 0,  // начальное значение счётчика
               threshold: 1, // количество полписей для подтвержения транзакции
               keys: ['edpkuS2PP7wumxVKTv9HfyH9L5CWUqJ8EgezaVDgyEDpJMAMmwUb1C'], // публичные ключи владельцев multisig
             },

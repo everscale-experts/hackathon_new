@@ -7,12 +7,12 @@ import {SchemaOfParams1} from './schema1'
 const acc = require('./Account.json');
 
    const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz';
-const CONTRACT = 'KT19DgJEiULkUAuvixiGtN9PBHHjP4kvRsii'; //адрес опубликованного multisig
+const CONTRACT = 'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1'; //адрес опубликованного multisig
 
 
 
 // присваиваем переменным обьект с помощью которого будем подписывать строку 
-const signer =new InMemorySigner('edsk31hLYrJqTeHqsLPdo1Ab5SKw7PUXUuWBt95UBFkLj3KrW1Dt6x');
+const signer =new InMemorySigner('edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i');
   
 // // байтовая уже зашифрованная строка, получил с помощью tezos-client
 //const bytes = '05070707070a000000046252be4f0a0000001601885097fd0367dfdfc6946c1dea5c4f758841bb9e0007070001050502000000340320053d036d0743035d0a00000015003a0f681de989b300fab38bd867439115ac622cbf031e0743036a00a0843d034f034d031b'
@@ -83,7 +83,7 @@ export class token_transfer {
                         prim: 'Left',
                         args: [{
                            prim:'Right',
-                           args:[MANAGER_LAMBDA.transferImplicit("tz1eY5Aqa1kXDFoiebL28emyXFoneAoVg1zh", 1)]
+                           args:[MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 1)]
                         }]
                     }
                 ]
@@ -98,6 +98,19 @@ export class token_transfer {
    const op = await contract.methods.main_parameter(
       // Counter
       '0',
+      // вызов метода трансфера токенов 
+      'transferFA',
+      'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1',
+      'transferFA2',
+      [{
+         from_:'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1',
+         txs:[{
+            to_:'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7',
+            token_id:'1',
+            amount:'7000',
+         }]
+      }],
+      
       // Signature list
       [(await signature).prefixSig]
     ).send()
