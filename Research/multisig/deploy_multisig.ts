@@ -40,6 +40,7 @@
 import { TezosToolkit } from '@taquito/taquito'
 import { importKey } from '@taquito/signer'
 import { TokenMultisig } from './TokenMultisig';
+import {genericMultisig} from '././multisig_example_in_taquito/multisig'
 
 const provider = 'https://rpc.hangzhounet.teztnets.xyz'
 
@@ -72,12 +73,12 @@ async function deploy() {
   try {
     const op = await tezos.contract.originate({
       //код смарт-контракта
-      code: TokenMultisig,
+      code: genericMultisig,
       //значение хранилища
       storage: {
-              counter: 0,  // начальное значение счётчика
+              stored_counter: 0,  // начальное значение счётчика
               threshold: 1, // количество полписей для подтвержения транзакции
-              keys: ['edpkuAPjD8jVpbDUEQBXUdp1v9eNhLLo3JxUBBMTwWdw7Fm9tnHZTL'], // публичные ключи владельцев multisig
+              keys: ['edpkuS2PP7wumxVKTv9HfyH9L5CWUqJ8EgezaVDgyEDpJMAMmwUb1C'], // публичные ключи владельцев multisig
             },
     })
 

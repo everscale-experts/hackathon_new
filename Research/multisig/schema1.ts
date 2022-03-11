@@ -1,4 +1,4 @@
-export const SchemaOfParams1 = [{
+export const SchemaOfParams1 = {
     "prim": "pair",
     "args": [
       { "prim": "nat", "annots": [ ":counter" ] },
@@ -90,4 +90,4 @@ export const SchemaOfParams1 = [{
         ]
       }
     ]
-  }];
+  };
