@@ -791,7 +791,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "getCustodians"
+name = "get_custodians"
 version = "0.1.0"
 dependencies = [
  "serde_json",
