@@ -1,11 +1,12 @@
 import { Account, AccountType } from '@tonclient/appkit';
 import { signerKeys, TonClient } from '@tonclient/core';
 import { libNode } from '@tonclient/lib-node';
-import { ClientError, KeyPair } from '@tonclient/core/dist/modules';
+import { ClientError, CryptoModule, KeyPair } from '@tonclient/core/dist/modules';
 import { ContractPackage } from '@tonclient/appkit/dist/account';
 
 import HelloWallet from './HelloWallet';
 import SafeMultisigWallet from '../safemultisig/SafeMultisigWallet';
+import { encodePayload } from './encodePayload';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -73,6 +74,7 @@ async function deployContract(
  * @returns {Promise<void>}
  */
 async function main(client: TonClient) {
+    const cryptoModule = new CryptoModule(client);
     const keys = await readKeysFromFileOrGenerateAndSave(keysPath);
 
     const helloAcc = new Account(HelloWallet, {
@@ -96,8 +98,45 @@ async function main(client: TonClient) {
     }
 
 
+    const multisig = await deployContract(client, SafeMultisigWallet, keys);
+
+// 0xdde8c89505d9ec23cb0e0b2f6fb32b96f4945852c2f48f7b1e0dffed179dfa4c
+    const hash = await cryptoModule
+        .sha256({
+            data: Buffer
+                .from('0000000000123456789012345678901234567890123456789012345678901234', 'binary')
+                .toString('ascii'),
+        })
+        .then(resultOfHash => `0x` + resultOfHash.hash);
+    console.log(`hash=`, hash);
+
+    // sendTransaction - for 1 custodian only;
+    // submitTransaction - for
+    let response = await multisig.run('submitTransaction', {
+        dest: address,
+        value: 1_700_000_000,
+        bounce: true,
+        allBalance: false,
+        payload: await encodePayload(client, {
+            function_name: 'createLockWithCoins',
+            input: {
+                dest: '0:0000000000123456789012345678901234567890123456789012345678901234',
+                hash,
+                timeout: 600,
+            }
+        }),
+    }, {
+        signer: signerKeys(keys),
+    });
+    console.log('Contract reacted to your submitTransaction(),' +
+        'target address will recieve:', response.fees.total_output);
+    // console.log(response);
+    // process.exit(0);
+    return;
+
+
     // Call `touch` function
-    let response = await helloAcc.run('touch', {});
+    response = await helloAcc.run('touch', {});
     console.log(`Contract run transaction with output ${response.decoded?.output}, ${response.transaction?.id}`);
 
     // Read local variable `timestamp` with a get method `getTimestamp`
@@ -128,26 +167,8 @@ async function main(client: TonClient) {
             endpoints: ['http://localhost']
         }
     });
-    console.log('Hello localhost TON!');
-    const keys = await readKeysFromFileOrGenerateAndSave(keysPath);
     try {
-        const multisig = await deployContract(client, SafeMultisigWallet, keys);
-
-        // sendTransaction - for 1 custodian only;
-        // submitTransaction - for
-        const response = await multisig.run('submitTransaction', {
-            dest: await multisig.getAddress(),
-            value: 1_500_000_000,
-            bounce: true,
-            allBalance: false,
-            payload: '',    // TODO: await this.encodePayload(payload)
-        }, {
-            signer: signerKeys(keys),
-        });
-        console.log('Contract reacted to your submitTransaction(),' +
-            'target address will recieve:', response.fees.total_output);
-        // console.log(response);
-        process.exit(0);
+        console.log('Hello localhost TON!');
 
         await main(client);
         process.exit(0);

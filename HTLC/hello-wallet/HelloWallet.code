@@ -349,7 +349,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc HelloWallet.sol, 104
+.loc HelloWallet.sol, 105
 LDU 256
 ENDS
 .loc HelloWallet.sol, 0
@@ -367,7 +367,7 @@ THROW 0
 CALL $createLockWithTokens_internal_macro$
 
 .macro createLockWithTokens_internal_macro
-.loc HelloWallet.sol, 104
+.loc HelloWallet.sol, 105
 DROP
 .loc HelloWallet.sol, 0
 
@@ -380,7 +380,7 @@ ISNULL
 IFREF {
 	CALL $c4_to_c7$
 }
-.loc HelloWallet.sol, 107
+.loc HelloWallet.sol, 108
 OVER
 PUSHCONT {
 	LDREF
@@ -406,12 +406,12 @@ THROW 0
 CALL $openLock_internal_macro$
 
 .macro openLock_internal_macro
-.loc HelloWallet.sol, 108
+.loc HelloWallet.sol, 109
 DUP
 CTOS
 STRDUMP
 DROP
-.loc HelloWallet.sol, 110
+.loc HelloWallet.sol, 111
 OVER
 GETGLOB 11
 PUSHINT 267
@@ -432,39 +432,39 @@ IFREF {
 		TUPLE 5
 	}
 }
-.loc HelloWallet.sol, 111
-DUP
-ISNULL
-THROWIF 100
 .loc HelloWallet.sol, 112
 DUP
 ISNULL
-THROWIF 63
+THROWIF 100
 .loc HelloWallet.sol, 113
+DUP
+ISNULL
+THROWIF 63
+.loc HelloWallet.sol, 114
 NOW
 OVER
 INDEX 4
 GREATER
 PUSHCONT {
-	.loc HelloWallet.sol, 114
+	.loc HelloWallet.sol, 115
 	ACCEPT
-	.loc HelloWallet.sol, 116
+	.loc HelloWallet.sol, 117
 	DUP
 	INDEX 3
 	OVER
 	FIRST
 }
 PUSHCONT {
-	.loc HelloWallet.sol, 118
+	.loc HelloWallet.sol, 119
 	DUP
 	THIRD
 	PUSH S2
 	HASHCU
 	EQUAL
 	THROWIFNOT 100
-	.loc HelloWallet.sol, 119
+	.loc HelloWallet.sol, 120
 	ACCEPT
-	.loc HelloWallet.sol, 121
+	.loc HelloWallet.sol, 122
 	OVER
 	PUSHSLICE xc00000000000000000000000007299a642
 	NEWC
@@ -473,7 +473,7 @@ PUSHCONT {
 	ENDC
 	PUSHINT 0
 	SENDRAWMSG
-	.loc HelloWallet.sol, 122
+	.loc HelloWallet.sol, 123
 	DUP
 	INDEX 3
 	OVER
@@ -490,7 +490,7 @@ STZEROES
 ENDC
 PUSHINT 0
 SENDRAWMSG
-.loc HelloWallet.sol, 124
+.loc HelloWallet.sol, 125
 DROP2
 GETGLOB 11
 PUSHINT 267
