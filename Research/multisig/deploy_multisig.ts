@@ -48,26 +48,7 @@ async function deploy() {
   const tezos = new TezosToolkit(provider)
   await importKey(
     tezos,
-    'exvxiwgu.etyqlkwu@teztnets.xyz', //почта
-    'P5XPyxzZLY', //пароль
-    [
-        "gather",
-		"spawn",
-		"purity",
-		"clock",
-		"filter",
-		"nothing",
-		"dress",
-		"arrange",
-		"bamboo",
-		"decade",
-		"suffer",
-		"reject",
-		"exile",
-		"door",
-		"innocent"
-    ].join(' '),
-    '5634857f4e6b46416a8dfbde1ae10134ee01b125'
+    'edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i'
   )
 
   try {
@@ -76,8 +57,8 @@ async function deploy() {
       code: TokenMultisig,
       //значение хранилища
       storage: {
-              counter: 0,  // начальное значение счётчика
-              threshold: 1, // количество полписей для подтвержения транзакции
+              counter: 1,  // начальное значение счётчика
+              threshold: 0, // количество полписей для подтвержения транзакции
               keys: ['edpkuS2PP7wumxVKTv9HfyH9L5CWUqJ8EgezaVDgyEDpJMAMmwUb1C'], // публичные ключи владельцев multisig
             },
     })

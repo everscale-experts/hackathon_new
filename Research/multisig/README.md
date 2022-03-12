@@ -8,6 +8,14 @@
 4) Сделать пример использования с помощью токито;  
    1) Создание новой транзакции;  
    2) Подпись существующей транзакции;  
+
+
+# Использование Multisig на taquito:
+написать в командной строке yarn  
+для запуска транзакции npx ts-node call_multisig2.ts  
+И изминить поля как написано в комментариях к коду   
+
+
   
 ## Примеры Multisig  
 1) Multisig от Madfish-solutions [тут](https://github.com/madfish-solutions/tezos-multisig) -

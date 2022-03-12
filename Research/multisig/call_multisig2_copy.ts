@@ -77,7 +77,7 @@ export class token_transfer {
        
         const op = await contract.methods.main(
             // счетчик после каждого вызова увеличиваем на один
-            '1',
+            '2',
             // Sub function
             'operation',
             // Action

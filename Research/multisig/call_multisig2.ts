@@ -3,23 +3,21 @@ import { InMemorySigner } from '@taquito/signer';
 import { KeyToken } from '@taquito/michelson-encoder/dist/types/tokens/key';
 import { b58cencode, char2Bytes, Prefix, prefix } from '@taquito/utils';
 import {SchemaOfParams1} from './schema1'
+import {SchemaOfParams2} from './schema2'
 
 const acc = require('./Account.json');
 
-   const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz';
-const CONTRACT = 'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1'; //адрес опубликованного multisig
-
+const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz';
+const CONTRACT_MSIG = 'KT1NKRT1sdGZjpsN8qNNEX3fqNnSi6ReujSK'; //адрес опубликованного multisig
+const CONTRACT='KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87' // адресс контракта токенов 
+const RECEIVER = 'tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz' 
+const AMOUNT = '1' //количество токенов для отправки в сатошах, меньших единицах токена. Можете ввести другое число
+const ID='1'
 
 
 // присваиваем переменным обьект с помощью которого будем подписывать строку 
 const signer =new InMemorySigner('edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i');
   
-// // байтовая уже зашифрованная строка, получил с помощью tezos-client
-//const bytes = '05070707070a000000046252be4f0a0000001601885097fd0367dfdfc6946c1dea5c4f758841bb9e0007070001050502000000340320053d036d0743035d0a00000015003a0f681de989b300fab38bd867439115ac622cbf031e0743036a00a0843d034f034d031b'
-
-// подписыаем строку и получаем сигнатуры
-//const signature = signer.sign(bytes, new Uint8Array());
-
 
 
 export class token_transfer {
@@ -35,9 +33,9 @@ export class token_transfer {
       this.tezos.setSignerProvider(signer);
 
      }
-     public async transfer(contract1: string,) {
+     public async transfer(contractmsig: string,contract1:string,receiver:string, amount:string, id:string) {
         
-        const contract = await this.tezos.contract.at(contract1);
+        const contract = await this.tezos.contract.at(contractmsig);
         console.log("Packing started...")
 
        const pair = ({ data, type }: any, value: any) => {
@@ -57,8 +55,8 @@ export class token_transfer {
          data: {
          prim: 'Pair', // передача пары аргументов 
                 args: [
-                    {"int": "0"},//счетчик 
-                    {  // выбираем какое из двух значений or выбирать
+                    {"int": "1"},//счетчик 
+                    {  // выбираем одно из двух значений or
                         prim: 'Left',
                         args: [{
                            prim:'Left',
@@ -69,7 +67,7 @@ export class token_transfer {
                                  args:[{
                                     prim:'Pair',// передача пары аргументов 
                                     args:[
-                                       {'string':'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'}, //адресс контракта токенов 
+                                       {'string':contract1}, //адресс контракта токенов 
                                     {
                                        
                                        prim:'Right', // если надо transferFA1.2 - Left, если transferFA2 то пишем Right
@@ -79,20 +77,20 @@ export class token_transfer {
                                                    prim:'Pair',
                                                    args:[
                                                       {
-                                                         string:'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1',
+                                                         string:contractmsig, // адресс отправитель 
                                                       },
                                                       [
                                                          {
                                                             prim:'Pair',
                                                             args:[
                                                                {
-                                                                  string:'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1'
+                                                                  string:receiver // адресс получатель
                                                                },
                                                                {
                                                                   prim:'Pair',
                                                                   args:[
-                                                                     {int:'1'},
-                                                                     {int:'2300'}
+                                                                     {int:id}, // id токена
+                                                                     {int:amount} // количество в сатошинах 
                                                                   ]
                                                                }
                                                             ]
@@ -101,13 +99,6 @@ export class token_transfer {
                                                    ]
                                                 }
                                              ]
-                                                        
-                                                          
-                                                        
-                                                      
-                                          
-                                             
-                                             
                                              // пересылка токенов стандарта FA1.2
                                              // prim:'Pair',
                                              // args:[
@@ -121,7 +112,6 @@ export class token_transfer {
                                              //    }
                                              // ]
                                        ]
-                                       
                                     }
                                     ]
                                  }]
@@ -132,7 +122,7 @@ export class token_transfer {
                 ]
                 
 
-         //передача данных в лямбда функцию (работает)
+         //передача данных в лямбда функцию, в данной ситуации трансфер монет 
          // prim: 'Pair',
          //        args: [
          //            {"int": "0"},
@@ -144,47 +134,80 @@ export class token_transfer {
          //                }]
          //            }
          //        ]
-         } as any,
-         type: SchemaOfParams1  //схема параметров 
-          }, contract.address))
-       console.log(packed)
+         //трансфер монет
 
-       const signature = signer.sign(packed, new Uint8Array())
+         
+         //    prim:'Pair',
+         // args:[
+         //    {'int':'1'},
+         //    {
+         //       prim:'Left',
+         //       args:[{
+         //          prim:'Left',
+         //          args:[{
+         //             prim:'Left',
+         //             args:[{
+         //                prim:'Left',
+         //                args:[{
+         //                   prim: 'Pair',
+         //                   args:[
+         //                      {'string':'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'},
+         //                      {'int':'1000'},
+         //                   ]
+         //                }]
+         //             }]
+         //          }]
+         //       }]
+         //    }
+         // ]
+         
+      
+      
+         } as any,
+         type: SchemaOfParams2  //схема параметров 
+          }, contract.address))
+       
+
+       const signature = signer.sign(packed, new Uint8Array()) // подписание строки и получение сигнатуры
 
    console.log('Transaction started...')
+   try{
    const op = await contract.methods.main_parameter(
       // Counter
-      '0',
+      '1',
       // вызов метода трансфера токенов 
-      'transferFA',
-      'KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1',//адресс контракта токена 
-      'transferFA2',
-      [{
-         from_:'KT1JdLB4zECcXhuW6VWrgKw9BUnpsqbcXjY1',
-         txs:[{
-            to_:'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7',
-            token_id:'1',
-            amount:'7000',
-         }]
-      }],
+      // 'transferFA',
+      // contract1,//адресс контракта токена 
+      // 'transferFA2',
+      // [{
+      //    from_:contractmsig,
+      //    txs:[{
+      //       to_:receiver,
+      //       token_id:id,
+      //       amount:amount,
+      //    }]
+      // }],
+      // '1',
+      // 'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7',
+      // '1000',
       
       //'1' чтобы добраться до LLLL
       //'3' чтобы добраться до R
-
-
-
-      // Signature list
+      
+   
       [(await signature).prefixSig]
     ).send()
-
+   
+      console.log('Awaiting confirmation...')
       await op.confirmation();
         console.log(op.hash);
+      }catch(er){console.log(er)}
    } }
 
 
 
 
-new token_transfer(RPC_URL).transfer(CONTRACT);
+new token_transfer(RPC_URL).transfer(CONTRACT_MSIG,CONTRACT,RECEIVER,AMOUNT,ID);
   
 
 
