@@ -1,0 +1,32 @@
+//второй способ 
+//Смарт контракт KT1N8nfEVmHxaKGZei1dYDEarWAF36wcgycw
+
+
+
+type p1 is michelson_pair(string,"addressContractToken", string,"nameId")
+type p2 is michelson_pair(string,"addressReceiverEver", p1, "p1")
+type p3 is michelson_pair(string,"amountTz", p2, "p2")
+type p4 is michelson_pair(string,"addressSenderTz", p3, "p3")
+type p5 is michelson_pair(string,"addressReceiverTz", p4, "p4")
+
+type action is
+| Addition of p5
+
+type storage is string
+
+function add (const addressReceiverTz: string ; 
+    const addressSenderTz : string; 
+    const amountTz : string; 
+    const addressResieerEver: string; 
+    const addressContractToken : string; 
+    const nameId:string) : string is adresResieverTz^" "^
+    addressSenderTz^" "^amountTz^" "^addressReceiverEver^" "^
+    addressContractToken^" "^nameId
+
+function main (const parameter : action ; const store : storage) :
+(list(operation) * string) is block {
+  const result : string =
+  case parameter of
+| Addition(params) -> add(params.0, params.1.0, params.1.1.0, params.1.1.1.0, params.1.1.1.1.0, params.1.1.1.1.1)
+end;
+} with ((nil : list(operation)), result)
