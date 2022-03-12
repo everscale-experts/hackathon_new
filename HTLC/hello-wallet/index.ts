@@ -1,14 +1,15 @@
 import { Account, AccountType } from '@tonclient/appkit';
 import { signerKeys, TonClient } from '@tonclient/core';
 import { libNode } from '@tonclient/lib-node';
+import { ClientError, KeyPair } from '@tonclient/core/dist/modules';
+import { ContractPackage } from '@tonclient/appkit/dist/account';
 
 import HelloWallet from './HelloWallet';
 import SafeMultisigWallet from '../safemultisig/SafeMultisigWallet';
 
-import { ClientError, KeyPair } from '@tonclient/core/dist/modules';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ContractPackage } from '@tonclient/appkit/dist/account';
+// import * as process from 'process';
 
 const keysFilename = 'keys.json';
 const keysPath = path.resolve(__dirname, keysFilename);
@@ -33,16 +34,37 @@ async function readKeysFromFileOrGenerateAndSave(keysPath: string): Promise<KeyP
                 .then(() => keys)));
 }
 
-async function deployContract(client: TonClient, SafeMultisigWallet: ContractPackage) {
-    const keys = await readKeysFromFileOrGenerateAndSave(keysPath);
-    console.log(`deployContract`);
+async function deployContract(
+    client: TonClient,
+    SafeMultisigWallet: ContractPackage,
+    keys: KeyPair,
+): Promise<Account> {
     const account = new Account(SafeMultisigWallet, {
         signer: signerKeys(keys),
         client,
     });
-    console.log(`account=`, account);
-}
 
+    const address = await account.getAddress();
+    console.log(`Future address of the contract will be: ${address}`);
+
+    const accountData = await account.getAccount();
+    if (accountData.acc_type === AccountType.nonExist) {
+        console.log(`Account doesn't exist. Deploying...`);
+        // Request contract deployment funds form a local TON OS SE giver
+        await account.deploy({
+            useGiver: true,
+            initInput: {
+                owners: ['0x' + keys.public],
+                reqConfirms: 1,
+            }
+        });
+
+        console.log(`Hello contract was deployed at address: ${address}`);
+    } else {
+        console.log(`Hello contract was exist at address: ${address}`);
+    }
+    return account;
+}
 
 
 /**
@@ -62,7 +84,7 @@ async function main(client: TonClient) {
     console.log(`Future address of the contract will be: ${address}`);
 
     const account = await helloAcc.getAccount();
-    if(account.acc_type === AccountType.nonExist) {
+    if (account.acc_type === AccountType.nonExist) {
         // Request contract deployment funds form a local TON OS SE giver
         // not suitable for other networks.
         // Deploy `hello` contract.
@@ -106,9 +128,25 @@ async function main(client: TonClient) {
             endpoints: ['http://localhost']
         }
     });
+    console.log('Hello localhost TON!');
+    const keys = await readKeysFromFileOrGenerateAndSave(keysPath);
     try {
-        console.log('Hello localhost TON!');
-        deployContract(client, SafeMultisigWallet);
+        const multisig = await deployContract(client, SafeMultisigWallet, keys);
+
+        // sendTransaction - for 1 custodian only;
+        // submitTransaction - for
+        const response = await multisig.run('submitTransaction', {
+            dest: await multisig.getAddress(),
+            value: 1_500_000_000,
+            bounce: true,
+            allBalance: false,
+            payload: '',    // TODO: await this.encodePayload(payload)
+        }, {
+            signer: signerKeys(keys),
+        });
+        console.log('Contract reacted to your submitTransaction(),' +
+            'target address will recieve:', response.fees.total_output);
+        // console.log(response);
         process.exit(0);
 
         await main(client);

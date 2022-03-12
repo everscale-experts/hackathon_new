@@ -89,7 +89,7 @@ contract HelloWallet {
             sender: msg.sender,
             dest:   dest,
             hash:   hash,
-            value:  msg.value - 0.1 Ever,   // FIXME: Comission
+            value:  msg.value - 0.1 Ever,   // FIXME: Commission
             expiredTimestamp: now + timeout
         });
         bool isAdded = locker.add(dest, lock);
@@ -100,7 +100,8 @@ contract HelloWallet {
         }
     }
 
-    // this method should be called by tip3 account, so the notification for account should be set up
+    // this method should be called by transferWithNotify() from tip3 account
+    // so the notification for account should be set up
     function createLockWithTokens(uint256 hash) public {
     }
 
