@@ -1,12 +1,10 @@
 use std::sync::Arc;
 use ton_client::abi::ParamsOfEncodeMessage;
-use ton_client::abi::AbiFunction;
-use ton_client::abi::AbiContract;
-use ton_client::abi::AbiParam;
-use ton_client::abi::AbiEvent;
+use ton_client::abi::ParamsOfDecodeMessage;
 use ton_client::abi::Abi;
 use ton_client::abi::CallSet;
 use ton_client::abi::Signer;
+use ton_client::abi::MessageBodyType;
 
 fn get_json_field(file: &str, name: &str) -> serde_json::Value {
     serde_json::from_str::<serde_json::Value>(std::fs::read_to_string(file).unwrap().as_str())
@@ -31,7 +29,7 @@ async fn main() {
     let res = ton_client::abi::encode_message(
         context.clone(),
         ParamsOfEncodeMessage{
-            abi: abi,
+            abi: abi.clone(),
             address: Some(address.as_str().unwrap().to_owned()),
             deploy_set: None,
             call_set: Some(CallSet {
@@ -44,5 +42,20 @@ async fn main() {
         },
     ).await.unwrap();
 
-    println!("{}", res.message);
+    println!("encoded message: {}", res.message);
+    let decoded = ton_client::abi::decode_message(context, ParamsOfDecodeMessage {
+        abi: abi,
+        message: res.message,
+    }).await.unwrap();
+    println!("type: {}", match decoded.body_type {
+        MessageBodyType::Event => "event",
+        MessageBodyType::Input => "input",
+        MessageBodyType::InternalOutput => "internal output",
+        MessageBodyType::Output => "output",
+    });
+    println!("name: {}", decoded.name);
+    println!("value: {:#}", decoded.value.unwrap());
+    println!("header expire: {}", decoded.header.clone().unwrap().expire.unwrap());
+    println!("header time: {}", decoded.header.clone().unwrap().time.unwrap());
+    println!("header public key: {}", decoded.header.unwrap().pubkey.unwrap_or("None".to_owned()));
 }
