@@ -13,7 +13,7 @@ async fn get_costodians(address: &str) -> Result<(), String> {
     let address = Some(address);
     let method = Some("getCustodians");
     let params = Some("{}");
-    let abi = Some("contract.abi.json");
+    let abi = Some("SafeMultisigWallet.abi.json");
     let keys: Option<String> = None;
     let config = Config::new();
 
