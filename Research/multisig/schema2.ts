@@ -1,12 +1,10 @@
 export const SchemaOfParams2 = {
+    "prim": "pair",
+    "args": [
+      {
         "prim": "pair",
         "args": [
-          {
-            "prim": "nat",
-            "annots": [
-              ":counter"
-            ]
-          },
+          { "prim": "nat" },
           {
             "prim": "or",
             "args": [
@@ -19,37 +17,8 @@ export const SchemaOfParams2 = {
                       {
                         "prim": "or",
                         "args": [
-                          {
-                            "prim": "pair",
-                            "args": [
-                              {
-                                "prim": "address",
-                                "annots": [
-                                  ":to"
-                                ]
-                              },
-                              {
-                                "prim": "mutez",
-                                "annots": [
-                                  ":value"
-                                ]
-                              }
-                            ]
-                          },
-                          {
-                            "prim": "option",
-                            "args": [
-                              {
-                                "prim": "key_hash"
-                              }
-                            ],
-                            "annots": [
-                              ":delegation"
-                            ]
-                          }
-                        ],
-                        "annots": [
-                          ":direct_action"
+                          { "prim": "pair", "args": [ { "prim": "address" }, { "prim": "mutez" } ] },
+                          { "prim": "option", "args": [ { "prim": "key_hash" } ] }
                         ]
                       },
                       {
@@ -58,173 +27,57 @@ export const SchemaOfParams2 = {
                           {
                             "prim": "pair",
                             "args": [
-                              {
-                                "prim": "address"
-                              },
+                              { "prim": "address" },
                               {
                                 "prim": "or",
                                 "args": [
-                                  {
-                                    "prim": "pair",
-                                    "args": [
-                                      {
-                                        "prim": "address"
-                                      },
-                                      {
-                                        "prim": "address"
-                                      },
-                                      {
-                                        "prim": "nat"
-                                      }
-                                    ],
-                                    "annots": [
-                                      ":transferFA1.2"
-                                    ]
-                                  },
+                                  { "prim": "pair", "args": [ { "prim": "address" }, { "prim": "pair", "args": [ { "prim": "address" }, { "prim": "nat" } ] } ] },
                                   {
                                     "prim": "list",
                                     "args": [
                                       {
                                         "prim": "pair",
                                         "args": [
-                                          {
-                                            "prim": "address",
-                                            "annots": [
-                                              ":from_"
-                                            ]
-                                          },
+                                          { "prim": "address" },
                                           {
                                             "prim": "list",
                                             "args": [
                                               {
                                                 "prim": "pair",
-                                                "args": [
-                                                  {
-                                                    "prim": "address",
-                                                    "annots": [
-                                                      ":to_"
-                                                    ]
-                                                  },
-                                                  {
-                                                    "prim": "nat",
-                                                    "annots": [
-                                                      ":token_id"
-                                                    ]
-                                                  },
-                                                  {
-                                                    "prim": "nat",
-                                                    "annots": [
-                                                      ":amount"
-                                                    ]
-                                                  }
-                                                ]
+                                                "args": [ { "prim": "address" }, { "prim": "pair", "args": [ { "prim": "nat" }, { "prim": "nat" } ] } ]
                                               }
-                                            ],
-                                            "annots": [
-                                              ":txs"
                                             ]
                                           }
                                         ]
                                       }
-                                    ],
-                                    "annots": [
-                                      ":transferFA2"
                                     ]
                                   }
                                 ]
                               }
-                            ],
-                            "annots": [
-                              ":transferFA"
                             ]
                           },
                           {
                             "prim": "pair",
                             "args": [
-                              {
-                                "prim": "address",
-                                "annots": [
-                                  ":vesting"
-                                ]
-                              },
-                              {
-                                "prim": "or",
-                                "args": [
-                                  {
-                                    "prim": "option",
-                                    "args": [
-                                      {
-                                        "prim": "key_hash"
-                                      }
-                                    ],
-                                    "annots": [
-                                      ":setDelegate"
-                                    ]
-                                  },
-                                  {
-                                    "prim": "nat",
-                                    "annots": [
-                                      ":vest"
-                                    ]
-                                  }
-                                ]
-                              }
+                              { "prim": "address" },
+                              { "prim": "or", "args": [ { "prim": "option", "args": [ { "prim": "key_hash" } ] }, { "prim": "nat" } ] }
                             ]
                           }
                         ]
                       }
-                    ],
-                    "annots": [
-                      ":action"
                     ]
                   },
-                  {
-                    "prim": "lambda",
-                    "args": [
-                      {
-                        "prim": "unit"
-                      },
-                      {
-                        "prim": "list",
-                        "args": [
-                          {
-                            "prim": "operation"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ],
-                "annots": [
-                  ":actions"
+                  { "prim": "lambda", "args": [ { "prim": "unit" }, { "prim": "list", "args": [ { "prim": "operation" } ] } ] }
                 ]
               },
-              {
-                "prim": "pair",
-                "args": [
-                  {
-                    "prim": "nat",
-                    "annots": [
-                      ":threshold"
-                    ]
-                  },
-                  {
-                    "prim": "list",
-                    "args": [
-                      {
-                        "prim": "key"
-                      }
-                    ],
-                    "annots": [
-                      ":keys"
-                    ]
-                  }
-                ]
-              }
+              { "prim": "pair", "args": [ { "prim": "nat" }, { "prim": "list", "args": [ { "prim": "key" } ] } ] }
             ]
           }
         ]
-      }
+      },
+      { "prim": "list", "args": [ { "prim": "option", "args": [ { "prim": "signature" } ] } ] }
+    ]
+  }
  
   
 

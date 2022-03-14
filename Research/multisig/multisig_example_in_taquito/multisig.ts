@@ -104,13 +104,7 @@ export const genericMultisig = [{
       }]],
       {
         "prim": "IF_LEFT",
-        "args":
-          [[{ "prim": "DROP" },
-          {
-            "prim": "NIL",
-            "args": [{ "prim": "operation" }]
-          },
-          { "prim": "PAIR" }],
+        "args":[[{ "prim": "DROP" }, {"prim": "NIL", "args": [{ "prim": "operation" }]}, { "prim": "PAIR" }],
           [{
             "prim": "PUSH",
             "args":

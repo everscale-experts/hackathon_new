@@ -9,5 +9,17 @@ https://madfish-solutions.github.io/sol2ligo/ - компилятор из Solidi
 https://github.com/atticlab/tezosign/blob/master/services/contract/path.go#L12 - передача параметров на golange
 https://tezos.gitlab.io/active/michelson.html- документация michelson
 
+https://tezos.gitlab.io/active/michelson.html#annotations - чем в микельсоне отличаются : и %
 
+
+
+
+
+ссылки на гитхаб tezosing в которых содержиься информация о подписи и передачи данных   
+https://github.com/atticlab/tezosign/tree/master/resources  
+https://github.com/atticlab/tezosign/blob/master/services/contract/path_test.go  
+https://github.com/atticlab/tezosign/blob/master/services/contract/operation.go  
+https://github.com/atticlab/tezosign/blob/master/services/contract/operation_test.go  
+https://github.com/atticlab/tezosign/blob/master/services/contract/operation.go  
+https://github.com/atticlab/tezosign/blob/master/services/contract/asset.go  
 
