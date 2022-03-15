@@ -15,8 +15,13 @@ async fn get_transactions(address: &str) -> Result<(), String> {
     let params = Some("{}");
     let abi = Some("SafeMultisigWallet.abi.json");
     let keys: Option<String> = None;
-    let config = Config::new();
-
+    let config = Config::from_json(
+        serde_json::from_str(
+            std::fs::read_to_string(
+                "run_config.json"
+            ).unwrap().as_str()
+        ).expect("failed to parse json")
+    );
     let abi = std::fs::read_to_string(abi.unwrap())
         .map_err(|e| format!("failed to read ABI file: {}", e.to_string()))?;
     let address = load_ton_address(address.unwrap(), &config)?;
@@ -43,8 +48,7 @@ async fn main() {
         address.as_str().unwrap(),
     ).await;
     println!(
-        "Result: {}",
-        serde_json::to_string_pretty(&res)
-            .map_err(|e| format!("failed to serialize result: {}", e))
-            .unwrap());
+        "{}",
+        serde_json::to_string_pretty(&res).unwrap()
+    );
 }

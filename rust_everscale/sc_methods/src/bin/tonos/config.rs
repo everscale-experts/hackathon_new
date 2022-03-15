@@ -122,6 +122,34 @@ impl Config {
         }
     }
 
+    pub fn from_json(value: serde_json::Value) -> Self {
+        let conf = &value["config"];
+        Config {
+            url: conf["url"].as_str().unwrap().to_string(),
+            wc: conf["wc"].as_i64().unwrap() as i32,
+            addr: conf["addr"].as_str().map(|s| s.to_string()),
+            wallet: conf["wallet"].as_str().map(|s| s.to_string()),
+            pubkey: conf["pubkey"].as_str().map(|s| s.to_string()),
+            abi_path: conf["abi_path"].as_str().map(|s| s.to_string()),
+            keys_path: conf["keys_path"].as_str().map(|s| s.to_string()),
+            retries: conf["retries"].as_u64().unwrap() as u8,
+            timeout: conf["timeout"].as_u64().unwrap() as u32,
+            message_processing_timeout: conf["message_processing_timeout"].as_u64().unwrap() as u32,
+            is_json: conf["is_json"].as_bool().unwrap(),
+            depool_fee: conf["depool_fee"].as_f64().unwrap() as f32,
+            lifetime: conf["lifetime"].as_u64().unwrap() as u32,
+            no_answer: conf["no_answer"].as_bool().unwrap(),
+            balance_in_tons: conf["balance_in_tons"].as_bool().unwrap(),
+            local_run: conf["local_run"].as_bool().unwrap(),
+            async_call: conf["async_call"].as_bool().unwrap(),
+            endpoints: (*conf["endpoints"].as_array().unwrap()
+                .iter()
+                .map(|v| v.as_str().expect("conf is not a string").to_string())
+                .collect::<Vec<String>>()).to_vec(),
+            out_of_sync_threshold: conf["out_of_sync_threshold"].as_u64().unwrap() as u32,
+        }
+    }
+
     pub fn from_file(path: &str) -> Option<Self> {
         let conf_str = std::fs::read_to_string(path).ok()?;
         let conf: serde_json::error::Result<FullConfig>  = serde_json::from_str(&conf_str);
