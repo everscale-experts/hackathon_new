@@ -1,4 +1,4 @@
-import { BatchOperation, TezosToolkit, MANAGER_LAMBDA } from '@taquito/taquito';
+import { BatchOperation, TezosToolkit, MANAGER_LAMBDA, ContractAbstraction } from '@taquito/taquito';
 import { InMemorySigner } from '@taquito/signer';
 import { KeyToken } from '@taquito/michelson-encoder/dist/types/tokens/key';
 import { b58cencode, char2Bytes, Prefix, prefix } from '@taquito/utils';
@@ -199,11 +199,11 @@ export class token_transfer {
       
    
       [(await signature).prefixSig]
-    ).send()
+    ).toTransferParams()
 
-      console.log('Awaiting confirmation...');
-      await op.confirmation();
-        console.log(op.hash);
+
+
+      console.log(JSON.stringify(op, null, 2))
       }catch(er){console.log(er)}
    } }
 
