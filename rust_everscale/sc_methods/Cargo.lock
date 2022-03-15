@@ -643,6 +643,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "everscale_sc_method"
+version = "0.1.0"
+dependencies = [
+ "base64 0.13.0",
+ "chrono",
+ "clap",
+ "hex 0.4.3",
+ "lazy_static",
+ "log",
+ "qr2term",
+ "regex",
+ "serde",
+ "serde_json",
+ "sha2 0.8.2",
+ "tokio",
+ "ton_abi",
+ "ton_block",
+ "ton_client",
+ "ton_types",
+]
+
+[[package]]
 name = "failure"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -832,28 +854,6 @@ checksum = "fd48d33ec7f05fbfa152300fdad764757cbded343c1aa1cff2fbaf4134851803"
 dependencies = [
  "typenum",
  "version_check",
-]
-
-[[package]]
-name = "get_custodians"
-version = "0.1.0"
-dependencies = [
- "base64 0.13.0",
- "chrono",
- "clap",
- "hex 0.4.3",
- "lazy_static",
- "log",
- "qr2term",
- "regex",
- "serde",
- "serde_json",
- "sha2 0.8.2",
- "tokio",
- "ton_abi",
- "ton_block",
- "ton_client",
- "ton_types",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [package]
-name = "get_custodians"
+name = "everscale_sc_method"
 version = "0.1.0"
 authors = ["javaharlalnehru <grechanichenkos@yandex.ru>"]
 edition = "2021"
