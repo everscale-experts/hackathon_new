@@ -37,10 +37,11 @@
 //3) npx ts-node deploy_multisig.ts
 
 
-import { TezosToolkit } from '@taquito/taquito'
+import { TezosToolkit,MichelsonMap } from '@taquito/taquito'
 import { importKey } from '@taquito/signer'
 import { TokenMultisig } from './TokenMultisig';
 import {genericMultisig} from '././multisig_example_in_taquito/multisig'
+import{msig_tokens2} from './Schema_multisik_tokens2'
 
 const provider = 'https://rpc.hangzhounet.teztnets.xyz'
 
@@ -51,17 +52,38 @@ async function deploy() {
     'edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i'
   )
 
-  try {
-    const op = await tezos.contract.originate({
-      //код смарт-контракта
-      code: TokenMultisig,
-      //значение хранилища
-      storage: {
-              counter: 1,  // начальное значение счётчика
-              threshold: 0, // количество полписей для подтвержения транзакции
-              keys: ['edpkuS2PP7wumxVKTv9HfyH9L5CWUqJ8EgezaVDgyEDpJMAMmwUb1C'], // публичные ключи владельцев multisig
-            },
-    })
+  // try {
+  //   const op = await tezos.contract.originate({
+  //     //код смарт-контракта
+  //     code: TokenMultisig,
+  //     //значение хранилища
+  //     storage: {
+  //             counter: 1,  // начальное значение счётчика
+  //             threshold: 0, // количество полписей для подтвержения транзакции
+  //             keys: ['edpkuS2PP7wumxVKTv9HfyH9L5CWUqJ8EgezaVDgyEDpJMAMmwUb1C'], // публичные ключи владельцев multisig
+  //           },
+  //   })
+    try {
+      const op = await tezos.contract.originate({
+        //код смарт-контракта
+        code: msig_tokens2,
+        //значение хранилища
+        storage: {
+                counter: 1,  // начальное значение счётчика
+                expiration_time:2, // количество полписей для подтвержения транзакции
+                metadata:new MichelsonMap({
+                  prim: 'map',
+                  args:[{prim:'string'},{prim:'mutez'}]
+                }),
+                minimum_votes:1,
+                proposals:new MichelsonMap({
+                  prim:"Pair", args:[{prim:'nat'},{}]
+                }),
+                users:['tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz'],
+                
+              },
+      })
+
 
     //начало развертывания
     console.log('Awaiting confirmation...');
