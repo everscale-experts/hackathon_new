@@ -173,7 +173,7 @@ fn pack_message(msg: &EncodedMessage, method: &str, is_raw: bool) -> Result<Vec<
     Ok(res)
 }
 
-fn unpack_message(str_msg: &str) -> Result<(EncodedMessage, String), String> {
+pub fn unpack_message(str_msg: &str) -> Result<(EncodedMessage, String), String> {
     let bytes = hex::decode(str_msg)
         .map_err(|e| format!("couldn't unpack message: {}", e))?;
 
@@ -203,7 +203,7 @@ fn unpack_message(str_msg: &str) -> Result<(EncodedMessage, String), String> {
     Ok((msg, method))
 }
 
-async fn decode_call_parameters(ton: TonClient, msg: &EncodedMessage, abi: Abi) -> Result<(String, String), String> {
+pub async fn decode_call_parameters(ton: TonClient, msg: &EncodedMessage, abi: Abi) -> Result<(String, String), String> {
     let result = decode_message(
         ton,
         ParamsOfDecodeMessage {
@@ -345,7 +345,7 @@ pub enum CallType {
     Fee,
 }
 
-fn load_params(params: &str) -> Result<String, String> {
+pub fn load_params(params: &str) -> Result<String, String> {
     Ok(if params.find('{').is_none() {
         std::fs::read_to_string(params)
             .map_err(|e| format!("failed to load params from file: {}", e))?
@@ -466,7 +466,7 @@ pub async fn run_local_for_account(
     Ok(())
 }
 
-fn prepare_execution_options(bc_config: Option<&str>) -> Result<Option<ExecutionOptions>, String> {
+pub fn prepare_execution_options(bc_config: Option<&str>) -> Result<Option<ExecutionOptions>, String> {
     if let Some(config) = bc_config {
         let bytes = std::fs::read(config)
             .map_err(|e| format!("Failed to read data from file {}: {}", config, e))?;

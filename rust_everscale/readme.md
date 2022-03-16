@@ -14,3 +14,8 @@ cargo run --bin get_custodians
 ```bash
 cargo run --bin get_transactions
 ```
+
+# Send transaction  
+```bash
+cargo run --bin send_transaction
+```
