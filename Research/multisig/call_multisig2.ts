@@ -1,4 +1,4 @@
-import { BatchOperation, TezosToolkit, MANAGER_LAMBDA, ContractAbstraction } from '@taquito/taquito';
+import { BatchOperation, TezosToolkit, MANAGER_LAMBDA, ContractAbstraction, WalletOperationBatch } from '@taquito/taquito';
 import { InMemorySigner } from '@taquito/signer';
 import { KeyToken } from '@taquito/michelson-encoder/dist/types/tokens/key';
 import { b58cencode, char2Bytes, Prefix, prefix } from '@taquito/utils';
@@ -139,29 +139,54 @@ export class token_transfer {
          //трансфер монет
          
 
-               prim:'Pair',
-            args:[
-               {'int':'1'},
+
+            prim:'Right',
+      args:[{
+         "prim": "Pair",
+         "args": [
+           {
+             "prim": "Pair",
+             "args": [
                {
-                  prim:'Left',
-                  args:[{
-                     prim:'Left',
-                     args:[{
-                        prim:'Left',
-                        args:[{
-                           prim:'Left',
-                           args:[{
-                              prim: 'Pair',
-                              args:[
-                                 {'string':'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'},
-                                 {'int':'1000'},
-                              ]
-                           }]
-                        }]
-                     }]
-                  }]
+                 "int": "1"
+               },
+               {
+                 "prim": "Left",
+                 "args": [
+                   {
+                     "prim": "Left",
+                     "args": [
+                       {
+                         "prim": "Left",
+                         "args": [
+                           {
+                             "prim": "Left",
+                             "args": [
+                               {
+                                 "prim": "Pair",
+                                 "args": [
+                                   {
+                                     "string": "tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7"
+                                   },
+                                   {
+                                     "int": "1000"
+                                   }
+                                 ]
+                               }
+                             ]
+                           }
+                         ]
+                       }
+                     ]
+                   }
+                 ]
                }
-            ]
+             ]
+           },
+           []
+         ]
+      }]
+  
      
          
       
@@ -178,31 +203,32 @@ export class token_transfer {
    const op = await contract.methods.main_parameter(
       // Counter
       '1',
-      // вызов метода трансфера токенов 
-      // 'transferFA',
-      // contract1,//адресс контракта токена 
-      // 'transferFA2',
-      // [{
-      //    from_:contractmsig,
-      //    txs:[{
-      //       to_:receiver,
-      //       token_id:id,
-      //       amount:amount,
-      //    }]
-      // }],
+      // // вызов метода трансфера токенов 
+      // // 'transferFA',
+      // // contract1,//адресс контракта токена 
+      // // 'transferFA2',
+      // // [{
+      // //    from_:contractmsig,
+      // //    txs:[{
+      // //       to_:receiver,
+      // //       token_id:id,
+      // //       amount:amount,
+      // //    }]
+      // // }],
       '1',
       'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7',
       '1000',
       
-      //'1' чтобы добраться до LLLL
-      //'3' чтобы добраться до R
+      // //'1' чтобы добраться до LLLL
+      // //'3' чтобы добраться до R
       
    
       [(await signature).prefixSig]
-    ).toTransferParams()
+      
+       
 
-
-
+    ).getSignature()
+       
       console.log(JSON.stringify(op, null, 2))
       }catch(er){console.log(er)}
    } }
@@ -212,9 +238,6 @@ export class token_transfer {
 
 new token_transfer(RPC_URL).transfer(CONTRACT_MSIG,CONTRACT,RECEIVER,AMOUNT,ID);
   
-
-
-
 
 // параметры которые можно указывать в PAIR
 // '    "ABS" , "IF" , "SENDER" , "VOTING_POWER" , "False" , "NEVER" , "DUG" , "chest" , "BLAKE2B" ,

@@ -36,6 +36,8 @@
 попытки вызова метода контракта [тут](call_multisig1.ts)   
 6) Видео по созданию Multisig [ссылка](https://morioh.com/p/674f718d10ac) (ошибка компиляции, truffle при компиляции ligo не указывает параметры компиляции)  
   
+7) Msig ссылка на контракт задеплоиный https://tzkt.io/KT1Cecn3A2A4i9EmSqug45iyzUUQc4F7C9yM/storage/52432  
+(принцып его работы отличается от других msig) https://leonnicholls.medium.com/hic-et-nunc-multi-sig-smart-contract-d1f63fe5d24 - статья о нём
 ### 1) Multisig от Madfish-solutions  
 Чтобы установить себе надо перейти по ссылке все инструкции там   
 При запуске Myltisig командой yarn migrate # development возникает ошибка:    

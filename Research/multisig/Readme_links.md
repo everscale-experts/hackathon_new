@@ -24,7 +24,8 @@ https://github.com/atticlab/tezosign/blob/master/services/contract/asset.go
 <br>
 
 https://tezostaquito.io/docs/smartcontracts/ - как получить схему того что мы должны подписать
-
+https://tezostaquito.io/docs/signing/ - как подписывать данные передаваемые в контракт  
+https://tezostaquito.io/docs/contracts-library  
 <br>
 
 #### ссылки на вопросы 
