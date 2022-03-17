@@ -51,7 +51,7 @@ async function deploy() {
     tezos,
     'edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i'
   )
-
+  // деплой msig TokenMultisig
   // try {
   //   const op = await tezos.contract.originate({
   //     //код смарт-контракта
@@ -77,7 +77,7 @@ async function deploy() {
                 }),
                 minimum_votes:1,
                 proposals:new MichelsonMap({
-                  prim:"Pair", args:[{prim:'nat'},{}]
+                  prim:"map", args:[{prim:'nat'},{prim:'value'}]
                 }),
                 users:['tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz'],
                 

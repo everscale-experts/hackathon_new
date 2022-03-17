@@ -227,12 +227,13 @@ export class token_transfer {
       
        
 
-    ).getSignature()
+    ).send()
        
       console.log(JSON.stringify(op, null, 2))
       }catch(er){console.log(er)}
    } }
 
+//           TezosOperationError: (temporary) proto.011-PtHangz2.michelson_v1.script_rejected  пока что такая ошибка 
 
 
 
