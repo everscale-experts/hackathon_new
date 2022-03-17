@@ -38,7 +38,8 @@
   
 7) Msig ссылка на контракт задеплоиный https://tzkt.io/KT1Cecn3A2A4i9EmSqug45iyzUUQc4F7C9yM/storage/52432  
 (принцып его работы отличается от других msig) https://leonnicholls.medium.com/hic-et-nunc-multi-sig-smart-contract-d1f63fe5d24 - статья о нём  
-на гитхабе(гит хаб в статье) нету примера деплоя контракта
+на гитхабе(гит хаб в статье) нету примера деплоя контракта, 
+8) Msig c taquito https://github.com/ecadlabs/taquito/blob/master/integration-tests/contract-multisig-scenario.spec.ts, взаимодействие с multisig [файл](call_multisig2_copy.ts)
 ### 1) Multisig от Madfish-solutions  
 Чтобы установить себе надо перейти по ссылке все инструкции там   
 При запуске Myltisig командой yarn migrate # development возникает ошибка:    
