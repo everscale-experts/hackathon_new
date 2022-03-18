@@ -1,36 +1,3 @@
-// первая попытка задеплоить мультисиг, возникала ошибка при деплое
-
-// import { Schema } from '@taquito/michelson-encoder/dist/types/schema/storage';
-// import { TezosToolkit } from '@taquito/taquito';
-// const Tezos = new TezosToolkit('https://rpc.hangzhounet.teztnets.xyz');
-
-
-
-// const genericMultisigJSONfile = require('./multisig.json')
-// // generic.json is referring to Michelson source code in JSON representation
-
-// Tezos.contract
-//   .originate({
-//     code: genericMultisigJSONfile,
-//     storage: {
-//       counter: 0,
-//       threshold: 1,
-//       keys: ['edpkuAPjD8jVpbDUEQBXUdp1v9eNhLLo3JxUBBMTwWdw7Fm9tnHZTL'],
-//     },
-//   })
-//   .then((originationOp) => {
-//     console.log(`Waiting for confirmation of origination for ${originationOp.contractAddress}...`);
-//     return originationOp.contract();
-//   })
-//   .then((contract) => {
-//     console.log(`Origination completed.`);
-//   })
-//   .catch((error) => console.log(`Error: ${JSON.stringify(error, null, 2)}`));
-
-
-
-// второй способ развертывания смарт контракта, все работает
-
 // для того чтобы пользоватся кодом пишем в командной строке
 //1) npm install -g yarn
 //2) yarn
@@ -42,6 +9,7 @@ import { importKey } from '@taquito/signer'
 import { TokenMultisig } from './TokenMultisig';
 import {genericMultisig} from '././multisig_example_in_taquito/multisig'
 import{msig_tokens2} from './Schema_multisik_tokens2'
+import {char2Bytes} from '@taquito/utils';
 
 const provider = 'https://rpc.hangzhounet.teztnets.xyz'
 
@@ -49,7 +17,7 @@ async function deploy() {
   const tezos = new TezosToolkit(provider)
   await importKey(
     tezos,
-    'edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i'
+    'edsk3kvk241t24haGeub1yJhrMHuFzTLo4uLc9gCbvhS91atVr4TTZ'
   )
   // деплой msig TokenMultisig
   // try {
@@ -64,23 +32,29 @@ async function deploy() {
   //           },
   //   })
     try {
+      const metadata = new MichelsonMap();
+      metadata.set('',char2Bytes('Everangers_team') ) // можно записать любую строку
+
+      // создаем поле для записи proposals
+      const proposals = new MichelsonMap(); 
+
+      // создаем поле для записи votes
+      const votes= new MichelsonMap();
+ 
       const op = await tezos.contract.originate({
         //код смарт-контракта
         code: msig_tokens2,
         //значение хранилища
         storage: {
                 counter: 1,  // начальное значение счётчика
-                expiration_time:2, // количество полписей для подтвержения транзакции
-                metadata:new MichelsonMap({
-                  prim: 'map',
-                  args:[{prim:'string'},{prim:'mutez'}]
-                }),
-                minimum_votes:1,
-                proposals:new MichelsonMap({
-                  prim:"map", args:[{prim:'nat'},{prim:'value'}]
-                }),
-                users:['tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz'],
-                
+                expiration_time:2, // время в течении которго должна быть подписана транзакция в днях
+                metadata,
+                // минимальной количество подписей 
+                minimum_votes:2,
+                proposals,
+                // владельцы кошелька
+                users:['tz1LpyieamcZRUAEqXxRz6k7yEG1GfMkX3At','tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF'],
+                votes,
               },
       })
 
