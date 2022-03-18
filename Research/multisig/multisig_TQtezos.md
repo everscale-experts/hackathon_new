@@ -29,7 +29,7 @@ tezos-client --endpoint https://rpc.hangzhounet.teztnets.xyz config update
 
 ## 3.создание Multisig
 
-### готовые аккаунты и готовые Multisig можно взять [тут](accaunt.txt)    
+### готовые аккаунты и готовые Multisig можно взять [тут](account.txt)    
 
 `tezos-client --wait none originate contract MultisigNat1 transferring 0 from tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF running "$(stack exec -- lorentz-contract-multisig`     `GenericMultisig \  `
  ` print-specialized --parameterType 'nat' --oneline)"   --init "$(stack exec -- lorentz-contract-multisig GenericMultisig \  `  
