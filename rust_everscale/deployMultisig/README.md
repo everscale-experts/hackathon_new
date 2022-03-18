@@ -19,7 +19,7 @@ tonos-cli deploy SetcodeMultisigWallet.tvc '{"owners":["0xf8780f83d8c5951de73cb3
 ```
 Она выдаст ошибку и ничего не задеплоит, потому что на аккаунте нет денег, но покажет адрес аккаунта, например:  
 `account_address": "0:937483f070202bea2df057b887337db7ae1103f66432209dd9ea2d364102e7c9`  
-6) Пересылаем туда денежку, например один рубин.  
+6) Пересылаем туда денежку, например один кристалл или рубин.  
 7) Повторяем команду деплоя. В этот раз деплой пройдет успешно:  
 ```csh
 Transaction succeeded.
@@ -32,5 +32,26 @@ Contract deployed at address: 0:937483f070202bea2df057b887337db7ae1103f66432209d
 `tonos-cli account 0:937483f070202bea2df057b887337db7ae1103f66432209dd9ea2d364102e7c9`
 10) Получаем список кастодианов кошелька:  
 `tonos-cli run 0:937483f070202bea2df057b887337db7ae1103f66432209dd9ea2d364102e7c9 getCustodians {} --abi SetcodeMultisigWallet.abi.json`  
+11) Отправляем 1 кристалл/рубин c мультисиг кошелька на другой адрес:  
+```csh
+tonos-cli call 0:937483f070202bea2df057b887337db7ae1103f66432209dd9ea2d364102e7c9 submitTransaction '{"dest":"0:6f4bdf89f15df6be4204e4a9a78661ce709b750655d191a5911a2c3c6f6ece1d","value":1000000000,"bounce":"true","allBalance":"false","payload":""}' --abi SetcodeMultisigWallet.abi.json --sign wallet.scmsig1.json
+```
+Вместо отправки команда выдаст номер транзакции, которую надо будет подписать остальным кастодианам кошелька:  
+```csh
+Result: {
+  "transId": "7076466742909715265"
+}
+```
+Все неподписанные транзакции можно получить следующей командой:  
+```csh
+tonos-cli run 0:937483f070202bea2df057b887337db7ae1103f66432209dd9ea2d364102e7c9 getTransactions {} --abi SetcodeMultisigWallet.abi.json
+```
+12) Подписываем получившуюся транзакцию от имени двух других кастодианов 
+(ключи в wallet.scmsig2.json и wallet.scmsig3.json):  
+```csh
+tonos-cli call 0:937483f070202bea2df057b887337db7ae1103f66432209dd9ea2d364102e7c9 confirmTransaction '{"transactionId":"7076466742909715265"}' --abi SetcodeMultisigWallet.abi.json --sign wallet.scmsig2.json
+tonos-cli call 0:937483f070202bea2df057b887337db7ae1103f66432209dd9ea2d364102e7c9 confirmTransaction '{"transactionId":"7076466742909715265"}' --abi SetcodeMultisigWallet.abi.json --sign wallet.scmsig3.json
+```
+После чего данная транзакция пропадет из выдачи метода `getTransactions`, а денежки отправятся получателю.  
   
   
