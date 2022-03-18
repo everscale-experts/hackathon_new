@@ -1,6 +1,6 @@
 {
   "config": {
-    "url": "net.ton.dev",
+    "url": "main.ton.dev",
     "wc": 0,
     "addr": null,
     "wallet": null,
@@ -19,8 +19,9 @@
     "local_run": false,
     "async_call": false,
     "endpoints": [
-      "https://net1.ton.dev",
-      "https://net5.ton.dev"
+      "https://main2.ton.dev",
+      "https://main3.ton.dev",
+      "https://main4.ton.dev"
     ]
   },
   "endpoints_map": {
