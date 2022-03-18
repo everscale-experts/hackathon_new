@@ -32,6 +32,9 @@ Contract deployed at address: 0:937483f070202bea2df057b887337db7ae1103f66432209d
 `tonos-cli account 0:937483f070202bea2df057b887337db7ae1103f66432209dd9ea2d364102e7c9`
 10) Получаем список кастодианов кошелька:  
 `tonos-cli run 0:937483f070202bea2df057b887337db7ae1103f66432209dd9ea2d364102e7c9 getCustodians {} --abi SetcodeMultisigWallet.abi.json`  
+  
+  
+  
 11) Отправляем 1 кристалл/рубин c мультисиг кошелька на другой адрес:  
 ```csh
 tonos-cli call 0:937483f070202bea2df057b887337db7ae1103f66432209dd9ea2d364102e7c9 submitTransaction '{"dest":"0:6f4bdf89f15df6be4204e4a9a78661ce709b750655d191a5911a2c3c6f6ece1d","value":1000000000,"bounce":"true","allBalance":"false","payload":""}' --abi SetcodeMultisigWallet.abi.json --sign wallet.scmsig1.json
