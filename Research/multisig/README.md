@@ -53,14 +53,14 @@
 пример вызова метода multisig [тут](call_multisig2.ts)  
 3) Myltisig TQTezos [ссылка](https://wiki.tezos.org.ua/token-contracts-specialized-multisig/2-originate-and-use-multisig-contract)
 удалось задеплоить, есть [инструкция](multisig_TQtezos.md)
-попытки вызова метода контракта [тут](call_multisig.ts)   
+попытки вызова метода контракта [тут](call_multisig2.ts)   
 Похоже, что это первый мультисиг, который послужил примером остальным.  
 4) Multisig разработанный на хакатоне https://devfolio.co/submissions/tezos-multisig-wallet-1b17
 Приложение: https://msig.netlify.app - не подключается temple wallet.  
 гит хаба нету: https://github.com/fuzious/multisig-tezos
 5) Пример создание Multisig с Tezos-client [ссылка](https://dear-cricket-c83.notion.site/Multisig-9eef3ff65a0e4a3a84109f8d3563a88f)
 удалось задеплоить, [инструкция](multisig_tezos-client.md) 
-попытки вызова метода контракта [тут](call_multisig1.ts)   
+попытки вызова метода контракта [тут](call_multisig2.ts)   
 6) Видео по созданию Multisig [ссылка](https://morioh.com/p/674f718d10ac) (ошибка компиляции, truffle при компиляции ligo не указывает параметры компиляции)  
   
 7) Msig ссылка на контракт задеплоиный https://tzkt.io/KT1Cecn3A2A4i9EmSqug45iyzUUQc4F7C9yM/storage/52432  
