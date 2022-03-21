@@ -9,26 +9,35 @@ fn get_json_field(file: &str, name: &str) -> Value {
         .unwrap()[name]
         .clone()
 }
+// "name": "submitTransaction",
+// "inputs": [
+//     {"name":"dest","type":"address"},
+//     {"name":"value","type":"uint128"},
+//     {"name":"bounce","type":"bool"},
+//     {"name":"allBalance","type":"bool"},
+//     {"name":"payload","type":"cell"}
+// ],
+// "outputs": [
+//     {"name":"transId","type":"uint64"}
+// ]
 
-async fn send_transaction(
+async fn submit_transaction(
     address: &str,
     destination: &str,
     amount: &str,
     message: &str
 ) -> Result<(), String> {
-    let address = Some(address);
-    let method = Some("sendTransaction");
     let params_string = format!(r#"{{
         "dest": "{}",
-        "value": "{}",
+        "value": {},
         "bounce": false,
-        "flags": 0,
+        "allBalance": false,
         "payload": "{}"
     }}"#, destination, amount, message);
-    println!("{}", params_string);
+    println!("{:#}", serde_json::from_str::<Value>(params_string.as_str()).unwrap());
     let params = Some(params_string.as_str());
     let abi = Some("SafeMultisigWallet.abi.json");
-    let keys: Option<String> = None;
+    let keys: Option<String> = Some("wallet.scmsig1.json".to_owned());
     let config = Config::from_json(
         serde_json::from_str(
             std::fs::read_to_string(
@@ -38,7 +47,7 @@ async fn send_transaction(
     );
     let abi = std::fs::read_to_string(abi.unwrap())
         .map_err(|e| format!("failed to read ABI file: {}", e.to_string()))?;
-    let address = load_ton_address(address.unwrap(), &config)?;
+    let address = load_ton_address(address, &config)?;
 
     let local = false;
     let is_fee = false;
@@ -46,7 +55,7 @@ async fn send_transaction(
         config,
         address.as_str(),
         abi,
-        method.unwrap(),
+        "submitTransaction",
         &params.unwrap(),
         keys,
         local,
@@ -54,13 +63,56 @@ async fn send_transaction(
     ).await
 }
 
+// async fn send_transaction(
+//     address: &str,
+//     destination: &str,
+//     amount: &str,
+//     message: &str
+// ) -> Result<(), String> {
+//     let address = Some(address);
+//     let params_string = format!(r#"{{
+//         "dest": "{}",
+//         "value": "{}",
+//         "bounce": false,
+//         "flags": 0,
+//         "payload": "{}"
+//     }}"#, destination, amount, message);
+//     println!("{:#}", serde_json::from_str::<Value>(params_string.as_str()).unwrap());
+//     let params = Some(params_string.as_str());
+//     let abi = Some("SafeMultisigWallet.abi.json");
+//     let keys: Option<String> = None;
+//     let config = Config::from_json(
+//         serde_json::from_str(
+//             std::fs::read_to_string(
+//                 "run_config.json"
+//             ).unwrap().as_str()
+//         ).expect("failed to parse json")
+//     );
+//     let abi = std::fs::read_to_string(abi.unwrap())
+//         .map_err(|e| format!("failed to read ABI file: {}", e.to_string()))?;
+//     let address = load_ton_address(address.unwrap(), &config)?;
+
+//     let local = false;
+//     let is_fee = false;
+//     tonos::call_contract(
+//         config,
+//         address.as_str(),
+//         abi,
+//         "sendTransaction",
+//         &params.unwrap(),
+//         keys,
+//         local,
+//         is_fee,
+//     ).await
+// }
+
 #[tokio::main]
 async fn main() {
     let address = get_json_field("config.json", "address");
-    let send_res = send_transaction(
+    let send_res = submit_transaction(
         address.as_str().unwrap(),
-        "0:189385c72e1410c46b5837aa4111b6a5d77139835fac695eed09a3407dff55fa",
-        "1",
+        "0:6f4bdf89f15df6be4204e4a9a78661ce709b750655d191a5911a2c3c6f6ece1d",
+        "1000000000",
         "",
     ).await;
     println!("{}", to_string_pretty(&send_res).unwrap());
