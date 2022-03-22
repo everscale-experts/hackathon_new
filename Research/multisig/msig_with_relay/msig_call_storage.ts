@@ -28,12 +28,20 @@ async function example() {
 
         console.log("Showing schem...");
         
-        const schema1 = await contract.storage();
-        console.log(JSON.stringify(schema1, null, 2));
+        const storage = contract.storage
+        console.log(JSON.stringify(storage, null, 2));
 
-        const schema = await contract.bigMap('195502') //Error: No big map schema
+        
+        const schema = await storage.get('15')
         // выводим в json формате
         console.log(JSON.stringify(schema, null, 2));
+        
+        // вот такой пример дали для того чтобы получить big map 
+        // const contract = await tezos.contract.at(CONTRACT_ADDRESS);
+        // const storage = await contract.storage<StorageType>();
+        // const value = await storage.PROPERTY.get<PropertyType>(KEY))
+
+
 
   }
 
@@ -44,5 +52,4 @@ async function example() {
 }
 
 example();
-
 
