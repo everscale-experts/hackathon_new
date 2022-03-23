@@ -668,7 +668,7 @@ pub async fn call_contract_with_client(
     process_message(ton.clone(), msg_params, conf.is_json).await
 }
 
-fn print_json_result(result: Value, conf: Config) -> Result<(), String> {
+pub fn print_json_result(result: Value, conf: Config) -> Result<(), String> {
     if !result.is_null() {
         let result = serde_json::to_string_pretty(&result)
             .map_err(|e| format!("Failed to serialize the result: {}", e))?;

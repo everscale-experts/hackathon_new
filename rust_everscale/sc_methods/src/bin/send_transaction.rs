@@ -29,41 +29,51 @@ fn get_json_field(file: &str, name: &str) -> Value {
         .clone()
 }
 
-// async fn submit_transaction(
-//     address: &str,
-//     dest: &str,
-//     amount: &str,
-//     msg: &str
-// ) -> Result<(), String> {
-// }
+async fn call_command(
+    ton: std::sync::Arc<ton_client::ClientContext>,
+    config: Config,
+    address: &str,
+    abi: String,
+    method: &str,
+    params: &str,
+    keys: Option<String>,
+) -> Result<(), String> {
+    // let address = matches.value_of("ADDRESS");
+    // let method = matches.value_of("METHOD");
+    // let params = matches.value_of("PARAMS");
+    // let lifetime = matches.value_of("LIFETIME");
+    // let raw = matches.is_present("RAW");
+    // let output = matches.value_of("OUTPUT");
 
-async fn run_local(
-    ton: TonClient,
-    abi: Abi,
-    msg: String,
-    acc_boc: String,
-    bc_config: Option<&str>,
-) -> Result<serde_json::Value, String> {
-    let execution_options = prepare_execution_options(bc_config)?;
-    let result = run_tvm(
-        ton.clone(),
-        ParamsOfRunTvm {
-            message: msg,
-            account: acc_boc,
-            abi: Some(abi.clone()),
-            return_updated_account: Some(true),
-            execution_options,
-            ..Default::default()
-        },
-    ).await
-        .map_err(|e| format!("{:#}", e))?;
-    let res = result.decoded.and_then(|d| d.output)
-        .ok_or("Failed to decode the result. Check that abi matches the contract.")?;
-    Ok(res)
+    // let abi = Some(abi_from_matches_or_config(matches, &config)?);
+
+    let params = tonos::load_params(params)?;
+
+    let abi = std::fs::read_to_string(abi)
+        .map_err(|e| format!("failed to read ABI file: {}", e.to_string()))?;
+    let address = load_ton_address(address, &config)?;
+    let local = false;
+    let is_fee = false;
+    // let ton = create_client_verbose(&conf)?;
+    let result = tonos::call_contract_with_client(
+        ton,
+        config.clone(),
+        address.as_str(),
+        abi,
+        method,
+        params.as_str(),
+        keys,
+        local,
+        is_fee,
+    ).await?;
+    if !config.is_json {
+        println!("Succeeded.");
+    }
+    print_json_result(result, config)?;
+    Ok(())
 }
 
-pub async fn call_contract_with_client(
-    ton: std::sync::Arc<ClientContext>,
+async fn call_contract_with_result(
     conf: Config,
     addr: &str,
     abi: String,
@@ -73,82 +83,21 @@ pub async fn call_contract_with_client(
     local: bool,
     is_fee: bool,
 ) -> Result<serde_json::Value, String> {
-    let abi = load_abi(&abi)?;
+    let ton = create_client_verbose(&conf)?;
+    tonos::call_contract_with_client(ton, conf, addr, abi, method, params, keys, local, is_fee).await
+}
 
-    let expire_at = conf.lifetime + now()?;
-    let time = now_ms();
-    let header = FunctionHeader {
-        expire: Some(expire_at),
-        time: Some(time),
-        ..Default::default()
-    };
-    let msg_params = prepare_message_params(
-        addr,
-        abi.clone(),
-        method,
-        params,
-        Some(header),
-        keys.clone(),
-    )?;
-
-    let needs_encoded_msg = is_fee ||
-        local ||
-        conf.async_call ||
-        conf.local_run;
-
-    if needs_encoded_msg {
-        let mut msg = encode_message(ton.clone(), msg_params.clone()).await
-            .map_err(|e| format!("failed to create inbound message: {}", e))?;
-        let signature1 = ton_client::crypto::sign(ton.clone(), ton_client::crypto::ParamsOfSign{ unsigned: msg.message.clone(), keys: KeyPair { 
-            public: "f8780f83d8c5951de73cb3c07b134ecd5d00917a9083e3ea30721ca10063defc".to_owned(),
-            secret: "c9188e64524c0a30418d9f6d05a252e5c67d817de560bd5a14a6b0d3ac63d497".to_owned(),
-        }}).unwrap().signed;
-        let signature2 = ton_client::crypto::sign(ton.clone(), ton_client::crypto::ParamsOfSign{ unsigned: signature1.clone(), keys: KeyPair { 
-            public: "e795829a2d866d52b611e40ccc0cda9b720565a15d3aa62b96073baab45e7d27".to_owned(),
-            secret: "248acf719f50d079f7f719830a88d490dab45a67c917a9e479b2e991eaed5711".to_owned(),
-        }}).unwrap().signed;
-        let signature3 = ton_client::crypto::sign(ton.clone(), ton_client::crypto::ParamsOfSign{ unsigned: signature2.clone(), keys: KeyPair { 
-            public: "8b9be2bea26b47c293b28f8361ec63ea325a53105c866110b2525d4a38deff11".to_owned(),
-            secret: "6fba472ef24db9b9d99580f6d8bdd8bde4ae6f5ce51f79089190e7c3b659362a".to_owned(),
-        }}).unwrap().signed;
-        // println!("{}", signature1);
-        // println!("{}", signature2);
-        // println!("{}", signature3);
-        // println!("{}", msg.message);
-        // if let Some(d) = msg.data_to_sign {
-            // println!("data to sign: {}", d);
-        // }
-        // println!("{}", msg.address);
-        // println!("{}", msg.message_id);
-        // msg.message = signature3;
-
-        if local {
-            if !conf.is_json {
-                println!("Running get-method...");
-            }
-            let acc_boc = query_account_field(ton.clone(), addr, "boc").await?;
-            return run_local(ton.clone(), abi, msg.message.clone(), acc_boc, None).await;
-        }
-        if conf.local_run || is_fee {
-            tonos::emulate_locally(ton.clone(), addr, msg.message.clone(), is_fee).await?;
-            if is_fee {
-                return Ok(Value::Null);
-            }
-        }
-        if conf.async_call {
-            return tonos::send_message_and_wait(ton,
-                                         Some(abi),
-                                         msg.message,
-                                         conf).await;
+fn print_json_result(result: Value, conf: Config) -> Result<(), String> {
+    if !result.is_null() {
+        let result = serde_json::to_string_pretty(&result)
+            .map_err(|e| format!("Failed to serialize the result: {}", e))?;
+        if !conf.is_json {
+            println!("Result: {}", result);
+        } else {
+            println!("{}", result);
         }
     }
-
-    if !conf.is_json {
-        print!("Expire at: ");
-        let expire_at = Local.timestamp(expire_at as i64 , 0);
-        println!("{}", expire_at.to_rfc2822());
-    }
-    process_message(ton.clone(), msg_params, conf.is_json).await
+    Ok(())
 }
 
 #[tokio::main]
@@ -164,48 +113,33 @@ async fn main() {
     let ton = create_client_verbose(&config).unwrap();
     let abi = std::fs::read_to_string("SafeMultisigWallet.abi.json")
         .map_err(|e| format!("failed to read ABI file: {}", e.to_string())).unwrap();
-    // let send_res = submit_transaction(
-    //     address.as_str().unwrap(),
-    //     "0:6f4bdf89f15df6be4204e4a9a78661ce709b750655d191a5911a2c3c6f6ece1d",
-    //     "1000000000",
-    //     "",
-    // ).await;
-    // let send_res = call_contract_with_client(
-    //     ton.clone(),
+    // let send_res = call_command(
+    //     ton,
     //     config.clone(),
     //     address.as_str().unwrap(),
-    //     abi.clone(),
+    //     "SafeMultisigWallet.abi.json".to_owned(),
     //     "submitTransaction",
     //     r#"{
-    //         "dest": "0:6f4bdf89f15df6be4204e4a9a78661ce709b750655d191a5911a2c3c6f6ece1d",
-    //         "value": "1000000000",
-    //         "bounce": "false",
-    //         "allBalance": "false",
-    //         "payload": ""
+    //         "dest":"0:6f4bdf89f15df6be4204e4a9a78661ce709b750655d191a5911a2c3c6f6ece1d",
+    //         "value":"1000000000",
+    //         "bounce":"false",
+    //         "allBalance":"false",
+    //         "payload":""
     //     }"#,
-    //     Some("wallet.scmsig3.json".to_owned()),
-    //     true,
-    //     false,
+    //     Some(format!("wallet.scmsig{}.json", std::fs::read_to_string("src/bin/nope.txt").unwrap())),
     // ).await;
-    let send_res = call_contract_with_client(
-        ton.clone(),
-        config.clone(),
-        address.as_str().unwrap(),
-        abi.clone(),
-        "confirmTransaction",
-        r#"{
-            "dest": "0:6f4bdf89f15df6be4204e4a9a78661ce709b750655d191a5911a2c3c6f6ece1d",
-            "value": "1000000000",
-            "bounce": "false",
-            "allBalance": "false",
-            "payload": ""
-        }"#,
-        Some("wallet.scmsig3.json".to_owned()),
-        false,
-        false,
-    ).await;
-    println!("{}", to_string_pretty(&send_res).unwrap());
-    // transId 1: 7077990478994424385
-    // transId 2: 7077990715217625665
-    // transId 3: 7077991067404943937
+    for i in 1..4 {
+        let send_res = call_command(
+            ton.clone(),
+            config.clone(),
+            address.as_str().unwrap(),
+            "SafeMultisigWallet.abi.json".to_owned(),
+            "confirmTransaction",
+            r#"{
+                "transactionId": "7078339917191664385"
+            }"#,
+            Some(format!("wallet.scmsig{}.json", i)),
+        ).await;
+        println!("{}", to_string_pretty(&send_res).unwrap());
+    }
 }
