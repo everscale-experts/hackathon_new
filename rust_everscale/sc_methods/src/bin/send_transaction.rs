@@ -111,16 +111,16 @@ pub async fn call_contract_with_client(
             public: "8b9be2bea26b47c293b28f8361ec63ea325a53105c866110b2525d4a38deff11".to_owned(),
             secret: "6fba472ef24db9b9d99580f6d8bdd8bde4ae6f5ce51f79089190e7c3b659362a".to_owned(),
         }}).unwrap().signed;
-        println!("{}", signature1);
-        println!("{}", signature2);
-        println!("{}", signature3);
-        println!("{}", msg.message);
-        if let Some(d) = msg.data_to_sign {
-            println!("{}", d);
-        }
-        println!("{}", msg.address);
-        println!("{}", msg.message_id);
-        msg.message = signature1;
+        // println!("{}", signature1);
+        // println!("{}", signature2);
+        // println!("{}", signature3);
+        // println!("{}", msg.message);
+        // if let Some(d) = msg.data_to_sign {
+            // println!("data to sign: {}", d);
+        // }
+        // println!("{}", msg.address);
+        // println!("{}", msg.message_id);
+        // msg.message = signature3;
 
         if local {
             if !conf.is_json {
@@ -129,18 +129,18 @@ pub async fn call_contract_with_client(
             let acc_boc = query_account_field(ton.clone(), addr, "boc").await?;
             return run_local(ton.clone(), abi, msg.message.clone(), acc_boc, None).await;
         }
-        // if conf.local_run || is_fee {
-        //     emulate_locally(ton.clone(), addr, msg.message.clone(), is_fee).await?;
-        //     if is_fee {
-        //         return Ok(Value::Null);
-        //     }
-        // }
-        // if conf.async_call {
-        //     return send_message_and_wait(ton,
-        //                                  Some(abi),
-        //                                  msg.message,
-        //                                  conf).await;
-        // }
+        if conf.local_run || is_fee {
+            tonos::emulate_locally(ton.clone(), addr, msg.message.clone(), is_fee).await?;
+            if is_fee {
+                return Ok(Value::Null);
+            }
+        }
+        if conf.async_call {
+            return tonos::send_message_and_wait(ton,
+                                         Some(abi),
+                                         msg.message,
+                                         conf).await;
+        }
     }
 
     if !conf.is_json {
@@ -170,21 +170,38 @@ async fn main() {
     //     "1000000000",
     //     "",
     // ).await;
+    // let send_res = call_contract_with_client(
+    //     ton.clone(),
+    //     config.clone(),
+    //     address.as_str().unwrap(),
+    //     abi.clone(),
+    //     "submitTransaction",
+    //     r#"{
+    //         "dest": "0:6f4bdf89f15df6be4204e4a9a78661ce709b750655d191a5911a2c3c6f6ece1d",
+    //         "value": "1000000000",
+    //         "bounce": "false",
+    //         "allBalance": "false",
+    //         "payload": ""
+    //     }"#,
+    //     Some("wallet.scmsig3.json".to_owned()),
+    //     true,
+    //     false,
+    // ).await;
     let send_res = call_contract_with_client(
         ton.clone(),
         config.clone(),
         address.as_str().unwrap(),
         abi.clone(),
-        "sendTransaction",
+        "confirmTransaction",
         r#"{
             "dest": "0:6f4bdf89f15df6be4204e4a9a78661ce709b750655d191a5911a2c3c6f6ece1d",
             "value": "1000000000",
             "bounce": "false",
-            "flags": "0",
+            "allBalance": "false",
             "payload": ""
         }"#,
         Some("wallet.scmsig3.json".to_owned()),
-        true,
+        false,
         false,
     ).await;
     println!("{}", to_string_pretty(&send_res).unwrap());
