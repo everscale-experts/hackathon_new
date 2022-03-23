@@ -10,12 +10,19 @@ Set address in config.json
 cargo run --bin get_custodians
 ```
 
-# Get transactions  
-```bash
-cargo run --bin get_transactions
-```
-
-# Send transaction  
+# Submit transaction  
 ```bash
 cargo run --bin send_transaction
+```
+
+# Confirm transaction  
+Paste transaction id on line 82  
+```bash
+cargo run --bin confirm_transaction
+```
+
+# Get transactions  
+After confirmation you can see transaction in console output  
+```bash
+cargo run --bin get_transactions
 ```
