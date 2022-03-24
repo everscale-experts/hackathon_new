@@ -229,25 +229,25 @@ impl Config {
     // }
 }
 
-fn load_ton_address(addr: &str, conf: &Config) -> Result<String, String> {
-    let addr = if addr.find(':').is_none() {
-        format!("{}:{}", conf.wc, addr)
-    } else {
-        addr.to_owned()
-    };
-    // let _ = MsgAddressInt::from_str(&addr)
-    //     .map_err(|e| format!("Address is specified in the wrong format. Error description: {}", e))?;
-    Ok(addr)
-}
+// fn load_ton_address(addr: &str, conf: &Config) -> Result<String, String> {
+//     let addr = if addr.find(':').is_none() {
+//         format!("{}:{}", conf.wc, addr)
+//     } else {
+//         addr.to_owned()
+//     };
+//     // let _ = MsgAddressInt::from_str(&addr)
+//     //     .map_err(|e| format!("Address is specified in the wrong format. Error description: {}", e))?;
+//     Ok(addr)
+// }
 
-fn load_params(params: &str) -> Result<String, String> {
-    Ok(if params.find('{').is_none() {
-        std::fs::read_to_string(params)
-            .map_err(|e| format!("failed to load params from file: {}", e))?
-    } else {
-        params.to_string()
-    })
-}
+// fn load_params(params: &str) -> Result<String, String> {
+//     Ok(if params.find('{').is_none() {
+//         std::fs::read_to_string(params)
+//             .map_err(|e| format!("failed to load params from file: {}", e))?
+//     } else {
+//         params.to_string()
+//     })
+// }
 
 pub fn get_json_field(file: &str, name: &str) -> Value {
     serde_json::from_str::<Value>(std::fs::read_to_string(file).unwrap().as_str())
@@ -584,59 +584,59 @@ pub async fn call_contract_with_client(
     }
 
     if !conf.is_json {
-        print!("Expire at: ");
+        print!("\nExpire at: ");
         let expire_at = Local.timestamp(expire_at as i64 , 0);
         println!("{}", expire_at.to_rfc2822());
     }
     process_message(ton.clone(), msg_params, conf.is_json).await
 }
 
-pub async fn call_command(
-    ton: std::sync::Arc<ton_client::ClientContext>,
-    config: Config,
-    address: &str,
-    abi: String,
-    method: &str,
-    params: &str,
-    keys: Option<String>,
-    local: bool,
-) -> Result<(), String> {
-    let params = load_params(params)?;
-    let abi = std::fs::read_to_string(abi)
-        .map_err(|e| format!("failed to read ABI file: {}", e.to_string()))?;
-    let address = load_ton_address(address, &config)?;
-    let is_fee = false;
-    // let ton = create_client_verbose(&conf)?;
-    let result = call_contract_with_client(
-        ton,
-        config.clone(),
-        address.as_str(),
-        abi,
-        method,
-        params.as_str(),
-        keys,
-        local,
-        is_fee,
-    ).await?;
-    if !config.is_json {
-        println!("Succeeded.");
-    }
-    print_json_result(result, config)?;
-    Ok(())
-}
+// pub async fn call_command(
+//     ton: std::sync::Arc<ton_client::ClientContext>,
+//     config: Config,
+//     address: &str,
+//     abi: String,
+//     method: &str,
+//     params: &str,
+//     keys: Option<String>,
+//     local: bool,
+// ) -> Result<(), String> {
+//     let params = load_params(params)?;
+//     let abi = std::fs::read_to_string(abi)
+//         .map_err(|e| format!("failed to read ABI file: {}", e.to_string()))?;
+//     let address = load_ton_address(address, &config)?;
+//     let is_fee = false;
+//     // let ton = create_client_verbose(&conf)?;
+//     let result = call_contract_with_client(
+//         ton,
+//         config.clone(),
+//         address.as_str(),
+//         abi,
+//         method,
+//         params.as_str(),
+//         keys,
+//         local,
+//         is_fee,
+//     ).await?;
+//     if !config.is_json {
+//         println!("Succeeded.");
+//     }
+//     print_json_result(result, config)?;
+//     Ok(())
+// }
 
-fn print_json_result(result: Value, conf: Config) -> Result<(), String> {
-    if !result.is_null() {
-        let result = serde_json::to_string_pretty(&result)
-            .map_err(|e| format!("Failed to serialize the result: {}", e))?;
-        if !conf.is_json {
-            println!("Result: {}", result);
-        } else {
-            println!("{}", result);
-        }
-    }
-    Ok(())
-}
+// fn print_json_result(result: Value, conf: Config) -> Result<(), String> {
+//     if !result.is_null() {
+//         let result = serde_json::to_string_pretty(&result)
+//             .map_err(|e| format!("Failed to serialize the result: {}", e))?;
+//         if !conf.is_json {
+//             println!("Result: {}", result);
+//         } else {
+//             println!("{}", result);
+//         }
+//     }
+//     Ok(())
+// }
 
 struct SimpleLogger;
 
