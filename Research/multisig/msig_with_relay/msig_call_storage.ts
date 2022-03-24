@@ -19,29 +19,42 @@ import { InMemorySigner } from '@taquito/signer';
 
 async function example() {
     const provider = 'https://rpc.hangzhounet.teztnets.xyz';
-    const signer: any = new InMemorySigner('edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj');
+    const signer: any = new InMemorySigner('edsk3kvk241t24haGeub1yJhrMHuFzTLo4uLc9gCbvhS91atVr4TTZ');
         const tezos = new TezosToolkit(provider);
     tezos.setSignerProvider( signer );
     try {
 
-        const contract = await tezos.contract.at('KT1WGc5s9WwGHi5TUGAGvX9dSP1sbD8qdEc6');
+        // const contract = await tezos.contract.getbig
 
-        console.log("Showing schem...");
+        // console.log("Showing schem...");
         
-        const storage = contract.storage
-        console.log(JSON.stringify(storage, null, 2));
+        // const schem = contract.bigMap('195501')
+        
+        
+        // console.log(JSON.stringify(schem, null, 2));
 
         
-        const schema = await storage.get('15')
-        // выводим в json формате
-        console.log(JSON.stringify(schema, null, 2));
+        
+        // const schema = await storage
+        // // выводим в json формате
+        // console.log(JSON.stringify(schema, null, 2));
         
         // вот такой пример дали для того чтобы получить big map 
-        // const contract = await tezos.contract.at(CONTRACT_ADDRESS);
-        // const storage = await contract.storage<StorageType>();
-        // const value = await storage.PROPERTY.get<PropertyType>(KEY))
+        // const contract1 = await tezos.wallet.at('tz1LpyieamcZRUAEqXxRz6k7yEG1GfMkX3At')
+        // const storage = await contract1.bigMap('195501')
+        
 
+        // второй пример который дали
+//         const contract = await tezos.contract.at('KT1WGc5s9WwGHi5TUGAGvX9dSP1sbD8qdEc6');
 
+// console.log("Showing schem...");
+    
+// const schema1 = await contract.storage();
+// console.log(JSON.stringify(schema1, null, 2));
+
+// const schema = await schema1.bigMap('195502') // Should work now if the bigmap id is correct
+   
+// console.log(JSON.stringify(schema, null, 2));
 
   }
 
@@ -53,3 +66,24 @@ async function example() {
 
 example();
 
+import{require} from 'requirejs'
+
+const signalR = require("@microsoft/signalr");
+
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("https://api.tzkt.io/v1/events")
+    .build();
+
+async function init() {
+    // open connection
+    await connection.start();
+    // subscribe to head
+    await connection.invoke("SubscribeToHead");
+    // subscribe to account transactions
+    await connection.invoke("SubscribeToOperations", {
+        address: 'KT19kgnqC5VWoxktLRdRUERbyUPku9YioE8W',
+        types: 'transaction'
+    });
+};
+
+init()
