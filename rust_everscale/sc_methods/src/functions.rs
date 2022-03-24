@@ -1,45 +1,44 @@
-use serde::Serialize;
-use serde::Deserialize;
-pub(crate) use serde_json::to_string_pretty;
-use serde_json::Value;
+pub use ton_client::ClientContext;
+pub use serde_json::Value;
+pub use std::sync::Arc;
 use std::collections::BTreeMap;
-use lazy_static::lazy_static;
-use log;
-use std::sync::Arc;
 use std::time::SystemTime;
-use ton_client::abi::Signer;
+use std::str::FromStr;
+use lazy_static::lazy_static;
+use ton_client::error::ClientError;
+use ton_client::crypto::CryptoConfig;
+use ton_client::crypto::KeyPair;
+use ton_client::ClientConfig;
 use ton_client::abi::ParamsOfEncodeMessage;
 use ton_client::abi::AbiContract;
 use ton_client::abi::AbiConfig;
+use ton_client::abi::Signer;
 use ton_client::abi::Abi;
-use ton_client::crypto::KeyPair;
-use ton_client::crypto::CryptoConfig;
-use ton_client::error::ClientError;
 use ton_client::net::ParamsOfQueryCollection;
-use ton_client::net::OrderBy;
 use ton_client::net::query_collection;
-use ton_client::ClientContext;
-use ton_client::ClientConfig;
-use ton_block::Account;
-use std::str::FromStr;
-use chrono::Local;
+use ton_client::net::OrderBy;
+use serde::Deserialize;
+use serde::Serialize;
 use chrono::TimeZone;
-use ton_client::processing::ParamsOfSendMessage;
-use ton_client::processing::wait_for_transaction;
-use ton_client::processing::ParamsOfProcessMessage;
-use ton_client::processing::send_message;
-use ton_client::processing::ProcessingEvent;
+use chrono::Local;
 use ton_client::processing::ParamsOfWaitForTransaction;
-use ton_client::abi::CallSet;
-use ton_client::abi::FunctionHeader;
+use ton_client::processing::ParamsOfProcessMessage;
+use ton_client::processing::wait_for_transaction;
+use ton_client::processing::ParamsOfSendMessage;
+use ton_client::processing::ProcessingEvent;
+use ton_client::processing::send_message;
 use ton_client::abi::encode_message;
+use ton_client::abi::FunctionHeader;
+use ton_client::abi::CallSet;
 use ton_client::tvm::ExecutionOptions;
 use ton_client::tvm::AccountForExecutor;
 use ton_client::tvm::ParamsOfRunExecutor;
-use ton_client::tvm::run_executor;
 use ton_client::tvm::ParamsOfRunTvm;
+use ton_client::tvm::run_executor;
 use ton_client::tvm::run_tvm;
 use ton_block::Serializable;
+use ton_block::Account;
+use log;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
@@ -282,7 +281,6 @@ fn prepare_message_params(
     let keys = keys.map(|k| read_keys(&k)).transpose()?;
     let params = serde_json::from_str(&params)
         .map_err(|e| format!("arguments are not in json format: {}", e))?;
-
     let call_set = Some(CallSet {
         function_name: method.into(),
         input: Some(params),
@@ -509,8 +507,7 @@ async fn process_message(
                 ..Default::default()
             },
             callback,
-        ).await
-            .map_err(|e| format!("{:#}", e))?
+        ).await.map_err(|e| format!("{:#}", e))?
     } else {
         ton_client::processing::process_message(
             ton,
@@ -520,14 +517,12 @@ async fn process_message(
                 ..Default::default()
             },
             |_| { async move {} },
-        ).await
-            .map_err(|e| format!("{:#}", e))?
+        ).await.map_err(|e| format!("{:#}", e))?
     };
-
     Ok(res.decoded.and_then(|d| d.output).unwrap_or(serde_json::json!({})))
 }
 
-async fn call_contract_with_client(
+pub async fn call_contract_with_client(
     ton: Arc<ClientContext>,
     conf: Config,
     addr: &str,
@@ -539,7 +534,6 @@ async fn call_contract_with_client(
     is_fee: bool,
 ) -> Result<serde_json::Value, String> {
     let abi = load_abi(&abi)?;
-
     let expire_at = conf.lifetime + SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .map_err(|e| format!("failed to obtain system time: {}", e))?
