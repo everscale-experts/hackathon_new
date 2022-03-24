@@ -104,7 +104,7 @@ pub async fn prepare_message(
     })
 }
 
-pub fn prepare_message_params (
+pub fn prepare_message_params(
     addr: &str,
     abi: Abi,
     method: &str,

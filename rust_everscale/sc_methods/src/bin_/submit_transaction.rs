@@ -76,15 +76,15 @@ async fn main() {
         config.clone(),
         address.as_str().unwrap(),
         "SafeMultisigWallet.abi.json".to_owned(),
-        "submitTransaction",
+        "sendTransaction",
         r#"{
             "dest": "0:6f4bdf89f15df6be4204e4a9a78661ce709b750655d191a5911a2c3c6f6ece1d",
             "value": "1000000000",
             "bounce": "false",
-            "allBalance": "false",
+            "flags": "3",
             "payload": ""
         }"#,
-        Some(format!("wallet.scmsig{}.json", std::fs::read_to_string("src/bin/nope.txt").unwrap())),
+        Some("wallet.scmsig1.json".to_owned()),
     ).await;
     println!("{}", to_string_pretty(&send_res).unwrap());
 }
