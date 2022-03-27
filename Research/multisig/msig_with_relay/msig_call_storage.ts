@@ -24,38 +24,25 @@ async function example() {
     tezos.setSignerProvider( signer );
     try {
 
-        // const contract = await tezos.contract.getbig
-
-        // console.log("Showing schem...");
-        
-        // const schem = contract.bigMap('195501')
-        
-        
-        // console.log(JSON.stringify(schem, null, 2));
-
-        
-        
-        // const schema = await storage
-        // // выводим в json формате
+        // Не работает, Error: No big map schema 
+        // const schema = await tezos.contract.getBigMapKey('KT1WGc5s9WwGHi5TUGAGvX9dSP1sbD8qdEc6','exprthA3d55ZxYP1XP22aad2VLJvcThGMNrHJYa5cUCPiU9UAknxRT')
         // console.log(JSON.stringify(schema, null, 2));
         
-        // вот такой пример дали для того чтобы получить big map 
-        // const contract1 = await tezos.wallet.at('tz1LpyieamcZRUAEqXxRz6k7yEG1GfMkX3At')
-        // const storage = await contract1.bigMap('195501')
+        // Не работает, Error: No big map schema 
+        // const contract = await tezos.contract.at('KT1WGc5s9WwGHi5TUGAGvX9dSP1sbD8qdEc6')
+        // const schema = await contract.bigMap('195502')
+        // console.log(JSON.stringify(schema, null, 2));
+ 
+        // Не работает, Error: No big map schema
+        // const contract = await tezos.contract.at('KT1WGc5s9WwGHi5TUGAGvX9dSP1sbD8qdEc6')
+        // const schema = await contract.schema.EncodeBigMapKey
+        // const schema1 = await contract.schema
+        // const schemabigmap= await tezos.contract.getBigMapKeyByID('195502',schema,schema1 )
+        // console.log(JSON.stringify(schemabigmap, null, 2));
         
 
-        // второй пример который дали
-//         const contract = await tezos.contract.at('KT1WGc5s9WwGHi5TUGAGvX9dSP1sbD8qdEc6');
 
-// console.log("Showing schem...");
     
-// const schema1 = await contract.storage();
-// console.log(JSON.stringify(schema1, null, 2));
-
-// const schema = await schema1.bigMap('195502') // Should work now if the bigmap id is correct
-   
-// console.log(JSON.stringify(schema, null, 2));
-
   }
 
 
@@ -83,7 +70,8 @@ async function init() {
     await connection.invoke("SubscribeToOperations", {
         address: 'KT19kgnqC5VWoxktLRdRUERbyUPku9YioE8W',
         types: 'transaction'
-    });
+    }
+    );
 };
 
 init()
