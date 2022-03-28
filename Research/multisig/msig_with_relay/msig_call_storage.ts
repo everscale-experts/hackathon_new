@@ -27,7 +27,7 @@ async function example() {
 
         const contract = await tezos.contract.at('KT1WGc5s9WwGHi5TUGAGvX9dSP1sbD8qdEc6')
         const storage: any = await contract.storage();
-        const proposal = await storage.proposals.get(1)
+        const proposal = await storage.proposals.get(3)
         console.log(JSON.stringify(proposal, null, 2));
     
   }
