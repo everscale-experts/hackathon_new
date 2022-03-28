@@ -49,5 +49,22 @@
                 "secret": "c1565bc5664f359d55a79816a640ac2914bb9d8bf20ca60dd270253a69aac934"
             }
         ]
+    },
+    {
+        "address": "0:e7769e2266d49d7e85649c97a27ec2bfd3984edc85985b1ebc4c7725bf104c72",
+        "pairs": [
+            {
+                "public": "8f0dfc862920bdd03e63389a98359403abfb31763d5d3ae1d9a5a9d2d8e6c05b",
+                "secret": "22fcc6f0bc24686bcc7f167690da0e1f07cdf49ea6d59ed77f05e2a9d1e9b42d"
+            },
+            {
+                "public": "135d5cb852dd102ea9c91366e262a9a1b2d165a930059ae50e82b1df690e725f",
+                "secret": "bab602d1a485e35a0c7807f39bd24609c2407ce96ba585e64df62fe622f5b993"
+            },
+            {
+                "public": "8b0f4e8efae8ead6404303eb507f57b32dee57a6bb4ab226616a86866f79771f",
+                "secret": "a7868a8d4504ffaced17a60f7265a9323d481e4ec83a234ca55529f3587a3ee8"
+            }
+        ]
     }
 ]
