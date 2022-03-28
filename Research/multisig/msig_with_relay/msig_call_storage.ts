@@ -1,18 +1,3 @@
-// import {RpcClientInterface} from "@taquito/rpc"
-// import { TezosToolkit } from '@taquito/taquito'
-// import { importKey } from '@taquito/signer'
-import { Schema } from "@taquito/michelson-encoder";
-
-
-
-
-
-// const script = Tezos.rpc.getScript('KT1SYmWUEZu13tycy5cLEaYuDtoG6Zf6DsxL')
-
-// const schema = Schema.fromRPCResponse({script})
-
-// console.log(script)
-
 import { TezosToolkit } from '@taquito/taquito';
 import { InMemorySigner } from '@taquito/signer';
 
@@ -39,9 +24,11 @@ async function example() {
         // const schema1 = await contract.schema
         // const schemabigmap= await tezos.contract.getBigMapKeyByID('195502',schema,schema1 )
         // console.log(JSON.stringify(schemabigmap, null, 2));
-        
 
-
+        const contract = await tezos.contract.at('KT1WGc5s9WwGHi5TUGAGvX9dSP1sbD8qdEc6')
+        const storage: any = await contract.storage();
+        const proposal = await storage.proposals.get(1);
+        console.log(JSON.stringify(proposal, null, 2));
     
   }
 
@@ -53,25 +40,12 @@ async function example() {
 
 example();
 
-import{require} from 'requirejs'
+// import{require} from 'requirejs'
 
-const signalR = require("@microsoft/signalr");
+// const signalR = require("@microsoft/signalr");
 
-const connection = new signalR.HubConnectionBuilder()
-    .withUrl("https://api.tzkt.io/v1/events")
-    .build();
+// const connection = new signalR.HubConnectionBuilder()
+//     .withUrl("https://api.tzkt.io/v1/bigmap")
+//     .build();
 
-async function init() {
-    // open connection
-    await connection.start();
-    // subscribe to head
-    await connection.invoke("SubscribeToHead");
-    // subscribe to account transactions
-    await connection.invoke("SubscribeToOperations", {
-        address: 'KT19kgnqC5VWoxktLRdRUERbyUPku9YioE8W',
-        types: 'transaction'
-    }
-    );
-};
 
-init()
