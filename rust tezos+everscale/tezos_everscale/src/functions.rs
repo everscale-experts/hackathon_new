@@ -544,6 +544,7 @@ pub async fn call_contract_with_client(
         time: Some(time),
         ..Default::default()
     };
+    // println!("{}", params);
     let msg_params = prepare_message_params(
         addr,
         abi.clone(),
@@ -552,7 +553,6 @@ pub async fn call_contract_with_client(
         Some(header),
         keys.clone(),
     )?;
-
     let needs_encoded_msg = is_fee ||
         local ||
         conf.async_call ||
