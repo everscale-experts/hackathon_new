@@ -4,7 +4,7 @@ import { InMemorySigner } from '@taquito/signer';
 
 const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz';
 const CONTRACT = 'KT1WGc5s9WwGHi5TUGAGvX9dSP1sbD8qdEc6'; //адрес мультисига 
-const id_transaction = 10; // id транзакции совпадает со счетчиком htlc контракта 
+const id_transaction = 11; // id транзакции совпадает со счетчиком htlc контракта 
 const id_token=3;    // id токена перевод которого булет выполнен берем из htlc контракта 
 const amount=100000;  // количество токенов в меньших единицах токена берем из htlc контракта 
 const HTLC_adress='tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF'; // адресс получателя токенов (htlc контракт)
