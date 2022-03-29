@@ -65,7 +65,6 @@ function main (const p: parameter; const s: storage) : return is
 
 (*__________________________________*)
 (*Тот же код но с моими коментариями*)
-
 type commit is record [
   date        : timestamp;
   salted_hash : bytes;
@@ -131,10 +130,13 @@ function reveal (const p: reveal; var s: storage) : return is
     else skip;
     (*если байты лежащие в storage равны байтам которые получаются в результате хэширования байтов которые мы передали в функ reveal *)
     if s.hashed = Crypto.sha256(p.hashable)
+    (* в storage обновляем значение unused*)
     then s := s with record [unused = False]
+    (*если не так то выводим ошибку*)
     else failwith("Your commitment did not match the storage hash.");
+    (*в конце ???????*)
   end with (p.message(unit), s)
-
+(*объявляем точки входа*)
 function main (const p: parameter; const s: storage) : return is
   case p of
   | Commit (c) -> commit (c,s)
