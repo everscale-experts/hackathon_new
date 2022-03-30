@@ -249,10 +249,24 @@ impl Config {
 //     })
 // }
 
-pub fn get_json_field(file: &str, name: &str) -> Value {
-    serde_json::from_str::<Value>(std::fs::read_to_string(file).unwrap().as_str())
-        .unwrap()[name]
-        .clone()
+pub fn get_json_field(file: &str, key: Option<&str>, index: Option<usize>) -> Value {
+    if let Some(k) = key {
+        serde_json::from_str::<Value>(std::fs::read_to_string(file).unwrap().as_str())
+            .unwrap()[k]
+            .clone()
+    } else if let Some(i) = index {
+        serde_json::from_str::<Value>(std::fs::read_to_string(file).unwrap().as_str())
+            .unwrap()[i]
+            .clone()
+    } else {
+        serde_json::from_str::<Value>(std::fs::read_to_string(file).unwrap().as_str())
+            .unwrap()
+            .clone()
+    }
+}
+
+pub fn hex_to_dec(v: &str) -> u64 {
+    u64::from_str_radix(v.trim_start_matches("0x"), 16).unwrap()
 }
 
 fn load_abi(abi: &str) -> Result<Abi, String> {

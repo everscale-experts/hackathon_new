@@ -13,7 +13,7 @@ async fn submit_transaction(
     keys: Option<String>,
     amount: &str,
 ) -> String {
-    let ever_accs = serde_json::from_str::<Value>(std::fs::read_to_string("everscale_accounts.json").unwrap().as_str()).unwrap();
+    let ever_accs = get_json_field("everscale_accounts.json", None, None);
     call_contract_with_client(
         ton,
         config.clone(),
@@ -28,7 +28,7 @@ async fn submit_transaction(
                 "allBalance": "false",
                 "payload": "{}"
             }}"#,
-            ever_accs[1]["address"].as_str().unwrap(),
+            ever_accs[3]["address"].as_str().unwrap(),
             amount,
             "",
         ).as_str(),
@@ -88,8 +88,8 @@ fn tezos_get_transactions() -> Value {
 const PATH: &str = "tezos_accounts.json";
 
 async fn everscale_transaction12(amount: &str, ton: &Arc<ClientContext>, config: Config) { // from first account to second
-    let ever_accs = serde_json::from_str::<Value>(std::fs::read_to_string("everscale_accounts.json").unwrap().as_str()).unwrap();
-    let address = ever_accs[0]["address"].clone();
+    let ever_accs = get_json_field("everscale_accounts.json", None, None);
+    let address = ever_accs[2]["address"].clone();
     let abi = std::fs::read_to_string("SetcodeMultisigWallet.abi.json")
         .map_err(|e| format!("failed to read ABI file: {}", e.to_string())).unwrap();
     let trans_id = submit_transaction(
@@ -97,7 +97,7 @@ async fn everscale_transaction12(amount: &str, ton: &Arc<ClientContext>, config:
         config.clone(),
         address.as_str().unwrap(),
         abi.clone(),
-        Some("wallet1.scmsig1.json".to_string()),
+        Some("wallet3.scmsig1.json".to_string()),
         amount,
     ).await;
     println!("Transaction created with id: {}", trans_id);
@@ -109,7 +109,7 @@ async fn everscale_transaction12(amount: &str, ton: &Arc<ClientContext>, config:
                 config.clone(),
                 address.as_str().unwrap(),
                 abi.clone(),
-                Some(format!("wallet1.scmsig{}.json", i)),
+                Some(format!("wallet3.scmsig{}.json", i)),
                 trans_id.to_string(),
             ).await,
         );
@@ -127,12 +127,50 @@ async fn main() {
     );
     let ton = create_client_verbose(&config).unwrap();
     let mut last_len = tezos_get_transactions().as_array().unwrap().len();
+    let context = Arc::new(
+        ton_client::ClientContext::new(ton_client::ClientConfig {
+            network: ton_client::net::NetworkConfig {
+                // server_address: Some("cinet.tonlabs.io".to_owned()), // mainnet
+                server_address: Some("net.ton.dev".to_string()), // devnet
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .unwrap(),
+    );
+
+    // subscribe for all transactions in everscale (new thread)
+    ton_client::net::subscribe_collection(
+        context.clone(),
+        ton_client::net::ParamsOfSubscribeCollection {
+            collection: "transactions".to_owned(),
+            filter: None,
+            result: "id in_message {value} account_addr".to_owned(),
+        },
+        |result| async {
+            match result {
+                Ok(result) => {
+                    if let Some(address) = result.result["account_addr"].as_str() {
+                        if let Some(v) = result.result["in_message"]["value"].as_str() {
+                            if address == get_json_field("everscale_accounts.json", None, None)[1]["address"].as_str().unwrap().to_owned() {
+                                println!("{}", hex_to_dec(v));
+                            }
+                        }
+                    }
+                }
+                Err(err) => {
+                    println!("(Everscale listener) Error: {}", err);
+                }
+            }
+        },
+    ).await.unwrap();
+
     loop {
         let res = tezos_get_transactions();
         let len = res.as_array().unwrap().len();
         if len > last_len {
             println!("{:#}", res[0]["amount"]); // nanoXTZ
-            everscale_transaction12((res[0]["amount"].as_i64().unwrap() * 1000000).to_string().as_str(), &ton, config.clone()).await;
+            everscale_transaction12((res[0]["amount"].as_i64().unwrap() * 1000).to_string().as_str(), &ton, config.clone()).await;
             last_len = len;
         }
     }
