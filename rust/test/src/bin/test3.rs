@@ -91,9 +91,7 @@ struct OperationResult {
 fn run_operation(
     agent: ureq::Agent,
     rpc: String,
-    endpoint: String,
     branch: String,
-    contract: String,
     operation: serde_json::Value,
 ) -> Result<OperationResult, RunOperationError> {
     let body = ureq::json!({
@@ -148,22 +146,20 @@ fn get_group(rpc: &str, endpoint: &str, branch: String, contract: &str) -> Vec<s
             "storage_limit": "100",
             "amount": "0",
             "parameters": {
-                "entrypoint": transactions[i].clone()["entrypoint"].clone(),
-                "value": get_value(
-                    ureq::Agent::new(),
-                    endpoint.to_string(),
-                    contract.to_string(),
-                    transactions[i].clone()["entrypoint"].clone().as_str().unwrap().to_string(),
-                    transactions[i].clone()["parameters"].clone(),
-                ).unwrap()
+                // "entrypoint": transactions[i].clone()["entrypoint"].clone(),
+                // "value": get_value(
+                //     ureq::Agent::new(),
+                //     endpoint.to_string(),
+                //     contract.to_string(),
+                //     transactions[i].clone()["entrypoint"].clone().as_str().unwrap().to_string(),
+                //     transactions[i].clone()["parameters"].clone(),
+                // ).unwrap()
             }
         });
         let run_op_res = run_operation(
             ureq::Agent::new(),
             rpc.to_string(),
-            endpoint.to_string(),
             branch.clone(),
-            get_config_field("contract").unwrap(),
             test_op,
         ).unwrap();
         group.push(serde_json::json!({

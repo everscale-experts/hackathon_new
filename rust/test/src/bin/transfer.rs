@@ -1,6 +1,6 @@
 use console::style;
 use lib::utils::parse_float_amount;
-use lib::{Address, OriginatedAddress, PrivateKey, PublicKey};
+use lib::{Address, PrivateKey, PublicKey};
 use crate::commands::CommandError;
 use crate::common::exit_with_error;
 use crate::common::operation_command::*;
@@ -93,7 +93,7 @@ impl TransferLocal {
             },
             api: Box::new(lib::http_api::HttpApi::new(self.endpoint.clone())),
             // from: public_key.hash().into(),
-            from: Address::from_base58check("KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1").unwrap(),
+            from: Address::from_base58check("tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R").unwrap(),
             // from: "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
             // from: public_key,
             fee: self.fee()?,
@@ -107,7 +107,7 @@ fn transfer(contract: &str, from: &str, to: &str, public_key: &str, secret_key: 
     let transfer_obj = TransferLocal {
         verbose: 3,
         no_prompt: false,
-        endpoint: "https://rpctest.tzbeta.net".to_string(),
+        endpoint: "https://hangzhounet.api.tez.ie".to_string(),
         public_key: public_key.to_string(),
         private_key: secret_key.to_string(),
         contract: contract.to_string(),
@@ -129,10 +129,10 @@ fn transfer(contract: &str, from: &str, to: &str, public_key: &str, secret_key: 
 fn main() {
     let from = "";
     // let to = "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX";
-    let contract = "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1";
-    let to = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
-    let secret_key = "edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD";
-    let public_key = "edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH";
-    let amount = "0.00001";
+    let contract = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
+    let to = "tz1aazXPQEU5fAFh9nS7KbyzmePi8xyirc4M";
+    let secret_key = "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R";
+    let public_key = "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd";
+    let amount = "0.001";
     transfer(contract, from, to, public_key, secret_key, amount);
 }
