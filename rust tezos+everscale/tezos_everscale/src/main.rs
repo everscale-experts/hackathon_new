@@ -4,7 +4,7 @@ mod common;
 mod commands;
 use functions::*;
 use ureq::Agent;
-use std::{fs, time::Duration};
+use std::fs;
 use serde_json::Value;
 use tezos_send_transaction::transfer as tezos_transfer;
 
@@ -158,10 +158,13 @@ async fn main() {
                             if address == get_json_field("everscale_accounts.json", None, None)[1]["address"].as_str().unwrap().to_owned() {
                                 let v_u64 = hex_to_dec(v);
                                 println!("{}", v_u64);
+                                let sender = get_json_field("tezos_accounts.json", None, Some(2));
+                                let receiver = get_json_field("tezos_accounts.json", None, Some(3));
                                 tezos_transfer(
-                                    "tz1aazXPQEU5fAFh9nS7KbyzmePi8xyirc4M",
-                                    "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd",
-                                    "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R",
+                                    sender["address"].as_str().unwrap(),
+                                    receiver["address"].as_str().unwrap(),
+                                    sender["public"].as_str().unwrap(),
+                                    sender["secret"].as_str().unwrap(),
                                     format!("{}", v_u64 as f64 / 1000000000.0).as_str(),
                                 );
                             }

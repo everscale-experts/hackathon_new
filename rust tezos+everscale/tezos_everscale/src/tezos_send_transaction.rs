@@ -89,8 +89,8 @@ impl TransferLocal {
                 no_prompt: self.no_prompt,
             },
             api: Box::new(lib::http_api::HttpApi::new(self.endpoint.clone())),
-            // from: public_key.hash().into(),
-            from: Address::from_base58check("tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R").unwrap(),
+            from: public_key.hash().into(),
+            // from: Address::from_base58check("tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R").unwrap(),
             // from: "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
             // from: public_key,
             fee: self.fee()?,
@@ -100,14 +100,14 @@ impl TransferLocal {
     }
 }
 
-pub fn transfer(to: &str, public_key: &str, secret_key: &str, amount: &str) {
+pub fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount: &str) {
     let transfer_obj = TransferLocal {
         verbose: 3,
         no_prompt: false,
         endpoint: "https://hangzhounet.api.tez.ie".to_string(),
         public_key: public_key.to_string(),
         private_key: secret_key.to_string(),
-        contract: "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R".to_string(),
+        contract: from.to_string(),
         from: "".to_owned(),
         to: to.to_string(),
         amount: amount.to_string(),
