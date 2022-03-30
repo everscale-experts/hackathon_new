@@ -1,9 +1,12 @@
 mod functions;
-
+mod tezos_send_transaction;
+mod common;
+mod commands;
 use functions::*;
 use ureq::Agent;
-use std::fs;
+use std::{fs, time::Duration};
 use serde_json::Value;
+use tezos_send_transaction::transfer as tezos_transfer;
 
 async fn submit_transaction(
     ton: Arc<ClientContext>,
@@ -153,7 +156,14 @@ async fn main() {
                     if let Some(address) = result.result["account_addr"].as_str() {
                         if let Some(v) = result.result["in_message"]["value"].as_str() {
                             if address == get_json_field("everscale_accounts.json", None, None)[1]["address"].as_str().unwrap().to_owned() {
-                                println!("{}", hex_to_dec(v));
+                                let v_u64 = hex_to_dec(v);
+                                println!("{}", v_u64);
+                                tezos_transfer(
+                                    "tz1aazXPQEU5fAFh9nS7KbyzmePi8xyirc4M",
+                                    "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd",
+                                    "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R",
+                                    format!("{}", v_u64 as f64 / 1000000000.0).as_str(),
+                                );
                             }
                         }
                     }

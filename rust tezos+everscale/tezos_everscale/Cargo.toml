@@ -14,10 +14,15 @@ tokio = { features = [ "rt-threaded", "macros", "sync" ], version = "*" }
 ton_client = { git = "https://github.com/tonlabs/TON-SDK" }
 serde = { features = [ 'derive' ], version = '1.0' }
 log = { features = [ 'std' ], version = '0.4.11' }
-ureq = { path = "./ureq" }
+ureq = { path = "../urequ" }
+lib = { path = "../lib" }
 serde_json = "1.0.41"
 lazy_static = '1.4.0'
+thiserror = "1.0.24"
 itertools = "0.10.3"
+structopt = "0.3.21"
+console = "0.14.0"
+dialoguer = "0.8"
 base64 = '0.13.0'
 qr2term = '0.3.0'
 regex = '1.5.4'
