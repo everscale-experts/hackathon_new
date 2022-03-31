@@ -93,6 +93,7 @@ async function send_everscalewallet(){
   console.log(transferPayload)
   const transfer = await EVER.walletTransfer(wallet.address, 100000000, transferPayload, true)
 
+
   //send_with_tezos();
 
 
