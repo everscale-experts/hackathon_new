@@ -1,21 +1,21 @@
-use types::OriginatedAddress;
+use types::{Address, PublicKey};
 use crypto::ToBase58Check;
 use crate::api::{
-    GetContractStorage, GetContractStorageResult,
-    TransportError, GetContractStorageError, GetContractStorageErrorKind,
+    GetManagerPublicKey, GetManagerPublicKeyResult,
+    TransportError, GetManagerPublicKeyError, GetManagerPublicKeyErrorKind,
 };
 use crate::http_api::HttpApi;
 
 /// Get manager key
-fn get_contract_storage_url(base_url: &str, addr: &OriginatedAddress) -> String {
+fn get_manager_key_url(base_url: &str, addr: &Address) -> String {
     format!(
-        "{}/chains/main/blocks/head/context/contracts/{}/storage",
+        "{}/chains/main/blocks/head/context/contracts/{}/manager_key",
         base_url,
         addr.to_base58check(),
     )
 }
 
-impl From<ureq::Error> for GetContractStorageErrorKind {
+impl From<ureq::Error> for GetManagerPublicKeyErrorKind {
     fn from(error: ureq::Error) -> Self {
         match error {
             ureq::Error::Transport(error) => {
@@ -37,32 +37,32 @@ impl From<ureq::Error> for GetContractStorageErrorKind {
     }
 }
 
-impl From<std::io::Error> for GetContractStorageErrorKind {
+impl From<std::io::Error> for GetManagerPublicKeyErrorKind {
     fn from(error: std::io::Error) -> Self {
         Self::Transport(TransportError(Box::new(error)))
     }
 }
 
 #[inline]
-fn build_error<E>(address: &OriginatedAddress, kind: E) -> GetContractStorageError
-    where E: Into<GetContractStorageErrorKind>,
+fn build_error<E>(address: &Address, kind: E) -> GetManagerPublicKeyError
+    where E: Into<GetManagerPublicKeyErrorKind>,
 {
-    GetContractStorageError {
+    GetManagerPublicKeyError {
         address: address.clone(),
         kind: kind.into(),
     }
 }
 
-impl GetContractStorage for HttpApi {
-    fn get_contract_storage(
-        &self,
-        addr: &OriginatedAddress,
-    ) -> GetContractStorageResult
-    {
-        Ok(self.client.get(&get_contract_storage_url(&self.base_url, addr), &"HttpApi > get_contract_storage")
+impl GetManagerPublicKey for HttpApi {
+    fn get_manager_public_key(&self, addr: &Address) -> GetManagerPublicKeyResult {
+        Ok(self.client.get(&get_manager_key_url(&self.base_url, addr))
            .call()
            .map_err(|err| build_error(addr, err))?
-           .into_json()
+           .into_json::<Option<String>>()
+           .map_err(|err| build_error(addr, err))?
+           .map(|key| PublicKey::from_base58check(&key))
+           .transpose()
            .map_err(|err| build_error(addr, err))?)
     }
 }
+

@@ -71,7 +71,7 @@ impl GetContractCounter for HttpApi {
     fn get_contract_counter(&self, addr: &ImplicitAddress) -> GetContractCounterResult {
         let value: String = get_contract_counter_url(&self.base_url, addr);
         println!("{}", value);
-        Ok(self.client.get(&value, &"HttpApi > get_contract_counter")
+        Ok(self.client.get(&value)
            .call()
            .map_err(|err| build_error(addr, err))?
            .into_json::<ContractCounter>()

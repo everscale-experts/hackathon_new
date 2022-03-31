@@ -1,14 +1,11 @@
-use crate::api::{
-    GetHeadBlockHash, GetHeadBlockHashResult,
-    TransportError, GetHeadBlockHashError,
-};
+use crate::api::{TransportError, GetChainID, GetChainIDResult, GetChainIDError};
 use crate::http_api::HttpApi;
 
-fn get_head_block_hash_url(base_url: &str) -> String {
-    format!("{}/chains/main/blocks/head/hash", base_url)
+fn get_chain_id_url(base_url: &str) -> String {
+    format!("{}/chains/main/chain_id", base_url)
 }
 
-impl From<ureq::Error> for GetHeadBlockHashError {
+impl From<ureq::Error> for GetChainIDError {
     fn from(error: ureq::Error) -> Self {
         match error {
             ureq::Error::Transport(error) => {
@@ -30,16 +27,16 @@ impl From<ureq::Error> for GetHeadBlockHashError {
     }
 }
 
-impl From<std::io::Error> for GetHeadBlockHashError {
+impl From<std::io::Error> for GetChainIDError {
     fn from(error: std::io::Error) -> Self {
         Self::Transport(TransportError(Box::new(error)))
     }
 }
 
-impl GetHeadBlockHash for HttpApi {
-    fn get_head_block_hash(&self) -> GetHeadBlockHashResult {
-        Ok(self.client.get(&get_head_block_hash_url(&self.base_url), &"HttpApi > get_head_block_hash")
-        // Ok(self.client.get(&get_head_block_hash_url("https://hangzhounet.api.tez.ie/"), &"HttpApi > get_head_block_hash")
+impl GetChainID for HttpApi {
+    fn get_chain_id(&self) -> GetChainIDResult {
+        // Ok("NetXZSsxBpMQeAT".to_string())
+        Ok(self.client.get(&get_chain_id_url(&self.base_url))
             .call()?
             .into_json()?)
     }

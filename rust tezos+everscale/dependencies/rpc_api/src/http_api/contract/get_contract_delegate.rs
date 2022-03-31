@@ -54,7 +54,7 @@ fn build_error<E>(address: &Address, kind: E) -> GetContractDelegateError
 
 impl GetContractDelegate for HttpApi {
     fn get_contract_delegate(&self, addr: &Address) -> GetContractDelegateResult {
-        Ok(self.client.get(&get_contract_delegate_url(&self.base_url, addr), &"HttpApi > get_contract_delegate")
+        Ok(self.client.get(&get_contract_delegate_url(&self.base_url, addr))
            .call()
            .map(|resp| resp.into_json())
            .or_else(|err| {

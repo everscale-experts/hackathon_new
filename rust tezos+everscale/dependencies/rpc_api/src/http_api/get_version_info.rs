@@ -42,7 +42,7 @@ impl GetVersionInfo for HttpApi {
         // println!("{}", value);
         let value: String = "https://hangzhounet.api.tez.ie/version".to_string();
         // let value: String = "https://rpctest.tzbeta.net/version".to_string();
-        Ok(self.client.get(&value, "HttpApi > get_version_info")
+        Ok(self.client.get(&value)
             .call()?
             .into_json()?)
     }

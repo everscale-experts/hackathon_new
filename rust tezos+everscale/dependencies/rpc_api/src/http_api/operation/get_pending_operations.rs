@@ -58,7 +58,7 @@ impl From<PendingOperationsJson> for PendingOperations {
 
 impl GetPendingOperations for HttpApi {
     fn get_pending_operations(&self) -> GetPendingOperationsResult {
-        Ok(self.client.get(&get_pending_operations_url(&self.base_url), &"HttpApi > get_pending_operations")
+        Ok(self.client.get(&get_pending_operations_url(&self.base_url))
            .call()?
            .into_json::<PendingOperationsJson>()?
            .into())

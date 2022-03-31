@@ -55,7 +55,7 @@ impl Into<ProtocolInfo> for ProtocolInfoJson {
 
 impl GetProtocolInfo for HttpApi {
     fn get_protocol_info(&self) -> GetProtocolInfoResult {
-        Ok(self.client.get(&get_protocol_info_url(&self.base_url), &"HttpApi > get_protocol_info")
+        Ok(self.client.get(&get_protocol_info_url(&self.base_url))
         // Ok(self.client.get(&get_protocol_info_url("https://hangzhounet.api.tez.ie/"), "HttpApi > get_protocol_info")
             .call()?
             .into_json::<ProtocolInfoJson>()?
