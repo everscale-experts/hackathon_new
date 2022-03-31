@@ -119,6 +119,21 @@ async fn everscale_transaction12(amount: &str, ton: &Arc<ClientContext>, config:
     }
 }
 
+fn check_batch(hash: String) -> (bool, Value) {
+    let agent = Agent::new();
+    let path = format!("https://api.hangzhou.tzstats.com/explorer/op/{}", hash);
+    let res = agent.get(&path)
+        .call()
+        .unwrap()
+        .into_string()
+        .unwrap();
+    let res_json = serde_json::from_str::<Value>(res.as_str()).unwrap();
+    (
+        res_json[0]["is_batch"].as_bool().unwrap_or(false),
+        res_json,
+    )
+}
+
 #[tokio::main]
 async fn main() {
     let config = Config::from_json(
