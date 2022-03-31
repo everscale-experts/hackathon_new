@@ -125,7 +125,7 @@ async function main(client: TonClient) {
             input: {
                 dest: randomAddress,
                 hash,
-                timeout: 600,
+                timeout: 300,
             }
         }),
     }, {

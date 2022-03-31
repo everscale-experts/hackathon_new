@@ -11,7 +11,12 @@ contract HelloWallet {
     // Error codes:
     uint constant ERROR_NO_PUBKEY = 101;
     uint constant ERROR_SENDER_IS_NOT_OWNER = 102;
-    uint constant ERROR_BAD_ASSURANCE = 103;
+    uint constant ERROR_BAD_ASSURANCE = 103;        // FIXME
+    uint constant AMOUNT_LESS_THAN_THE_MINIMUM_REQUIRED = 104;
+    uint constant THE_LOCK_IS_ALREADY_OCCUPIED = 105;
+    uint constant THE_LOCK_DOES_NOT_EXIST = 106;
+    uint constant THE_SECRET_IS_WRONG = 107;
+
 
     // Contract can have an instance variables.
     // In this example instance variable `timestamp` is used to store the time of `constructor` or `touch`
@@ -82,8 +87,8 @@ contract HelloWallet {
     mapping(address => Lock) public locker;
 
     function createLockWithCoins(address dest, uint256 hash, uint32 timeout) public {
-        require(msg.value > 1 Ever);    // Min value should be more than 1 Ever
-        require(!locker.exists(dest));  // to avoid broke existing lock
+        require(msg.value > 1 Ever, AMOUNT_LESS_THAN_THE_MINIMUM_REQUIRED); // Min value should be more than 1 Ever
+        require(!locker.exists(dest), THE_LOCK_IS_ALREADY_OCCUPIED);        // to avoid broke existing lock
 
         Lock lock = Lock({
             sender: msg.sender,
@@ -109,14 +114,14 @@ contract HelloWallet {
         tvm.log(secret);
 
         optional(Lock) lockInfo = locker.fetch(dest);
-        require(lockInfo.hasValue());
+        require(lockInfo.hasValue(), THE_LOCK_DOES_NOT_EXIST);
         Lock lock = lockInfo.get();
         if(now > lock.expiredTimestamp) {
             tvm.accept();
 
             lock.sender.transfer(lock.value);
         } else {
-            require(lock.hash == tvm.hash(secret));
+            require(lock.hash == tvm.hash(secret), THE_SECRET_IS_WRONG);
             tvm.accept();
 
             emit IgotTheKey(secret);

@@ -5,7 +5,8 @@
     "scripts": {
         "start": "ts-node index",
         "compile": "everdev sol compile HelloWallet.sol -c",
-        "postcompile": "everdev js w HelloWallet.abi.json -o HelloWallet.ts -e es6-default"
+        "postcompile": "everdev js w HelloWallet.abi.json -o HelloWallet.ts -e es6-default",
+        "wrap_msig": "everdev js w SafeMultisigWallet.abi.json -o SafeMultisigWallet.ts -e es6-default"
     },
     "keywords": [],
     "author": "",
