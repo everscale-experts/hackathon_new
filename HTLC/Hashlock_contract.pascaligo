@@ -142,3 +142,143 @@ function main (const p: parameter; const s: storage) : return is
   | Commit (c) -> commit (c,s)
   | Reveal (r) -> reveal (r,s)
   end
+
+
+
+(*HTLC контракт который начал писать я*)
+ (*___________________________________________*)
+
+type commit is record [
+  date   : timestamp;
+  sender : address;
+  dest   : address;
+  hash   : bytes;
+  value  : tez;
+]
+
+
+type commit_set is big_map(string,commit)
+
+type storage is record [
+  hashed  : bytes;
+  unused  : bool;
+  commits : commit_set
+]
+
+type return is list(operation) * storage
+
+function createLockWithCoins (const hash1 : bytes; const dest1 : address; var s : storage): return is
+    begin
+    (*проверяем больши ли одного теза в контракте *)
+    if Tezos.balance < 1tez
+    then failwith("Error balance HTLC contract")
+    else skip;
+    (* проверка был ли замок раскрыт *)
+    if not s.unused
+    then failwith("This contract has already been used.")
+    else skip;
+    const commit : commit = record [
+        date = Tezos.now + 86_400; 
+        sender = Tezos.sender; 
+        dest = dest1; 
+        hash = hash1; 
+        value = Tezos.balance - 0.1tez 
+        ];
+    const updated_map: commit_set = Big_map.update(Tezos.sender, Some(commit), s.commits);
+    s := s with record [commits = updated_map];
+end with ((nil : list(operation)), s)
+
+
+
+// function OpenLock (const dest: address; const seed_f: bytes; var s: storage):return is 
+//     begin 
+//     (*Не просрочена ли транзакция*)
+//     if Tezos.now < commit.date
+//     then Tezos.transaction();
+//     else skip;
+    
+//     if Crypto.sha256(seed_f)
+//     then Tezos.transaction()
+
+
+
+
+
+(*_____________________________________*)
+(*третий вариант*)
+
+type storage is record [
+  unused  : bool;
+  date   : timestamp;
+  sender : address;
+  dest   : address;
+  hash   : bytes;
+  value  : tez;
+]
+
+type parameter is 
+CreateLockWithCoins of record [
+    hash1 : bytes;
+    dest1 : address;
+]
+| OpenLock          of record [
+    dest : address;
+    seed_f: bytes;
+]
+
+type return is list(operation) * storage
+
+// function createLockWithCoins (const hash1 : bytes; const dest1 : address; var s : storage): return is
+//     begin
+//     (*проверяем больши ли одного теза в контракте *)
+//     if Tezos.balance < 1tez
+//     then failwith("Error balance HTLC contract")
+//     else skip;
+//     (* проверка был ли замок раскрыт *)
+//     if not s.unused
+//     then failwith("This contract has already been used.")
+//     else skip;
+    
+    
+//     const commit : storage = record [
+//         unused = False;
+//         date = Tezos.now + 86_400; 
+//         sender = Tezos.sender;
+//         dest = dest1;
+//         hash = hash1; 
+//         value = Tezos.balance - 0.1tez
+//         ];
+
+// end with ((nil : list(operation)), commit)
+
+
+
+function openLock (const dest: address; const seed_f: bytes; var s: storage):return is 
+    begin 
+    (*Не просрочена ли транзакция*)
+    if Tezos.now < s.date
+    then {
+        Tezos.transaction(transfer, s.value, Tezos.sender); // если просроченна возвращаем отправителю
+    }
+    else {
+        if Crypto.sha256(seed_f) = storage.hash
+        then{
+            Tezos.transaction(transfer, s.value, dest) // если все хорошо отправляем коины на указанный адрес
+        }
+        else {
+            Tezos.transaction(transfer, s.value, Tezos.sender) // если hash не правильный отправляем коины отправителю
+        }
+    }
+
+end with ((nil: list(operation)), s)
+
+
+
+// function main(const p:parameter; const s:storage;) return is 
+// case p of[
+// | CreateLockWithCoins(hash1, dest1)-> createLockWithCoins(hash1, dest1,s);
+// | OpenLock(dest, seed_f)-> openLock(dest, seed_f, s)
+// ]
+
+
+
