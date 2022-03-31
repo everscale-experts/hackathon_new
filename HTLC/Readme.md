@@ -5,3 +5,4 @@
 полезная ссылка: https://medium.com/protofire-blog/enabling-smart-contract-interaction-in-tezos-with-ligo-functions-and-cps-e3ea2aa49336 тут есть примеры некотрых контрактов 
 https://answerbun.com/ пример перевода токенов стандарта FA2.0
 https://tezos.stackexchange.com/questions/2662/tezos-get-entrypoint-opt-in-ligo-issue 
+https://ligolang.org/docs/tutorials/taco-shop/tezos-taco-shop-payout - пример трансфера в ligo
