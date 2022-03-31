@@ -15,7 +15,6 @@ async fn submit_transaction(
     abi: String,
     keys: Option<String>,
     amount: &str,
-    receiver: String,
 ) -> String {
     let ever_accs = get_json_field("../dependencies/json/everscale_accounts.json", None, None);
     call_contract_with_client(
@@ -32,7 +31,7 @@ async fn submit_transaction(
                 "allBalance": "false",
                 "payload": "{}"
             }}"#,
-            receiver,
+            ever_accs[3]["address"].as_str().unwrap(),
             amount,
             "",
         ).as_str(),
@@ -91,7 +90,7 @@ fn tezos_get_transactions() -> Value {
 
 const PATH: &str = "../dependencies/json/tezos_accounts.json";
 
-async fn everscale_transaction(amount: &str, ton: &Arc<ClientContext>, config: Config, receiver: String) {
+async fn everscale_transaction12(amount: &str, ton: &Arc<ClientContext>, config: Config) { // from first account to second
     let ever_accs = get_json_field("../dependencies/json/everscale_accounts.json", None, None);
     let address = ever_accs[2]["address"].clone();
     let abi = std::fs::read_to_string("../dependencies/json/SetcodeMultisigWallet.abi.json")
@@ -103,7 +102,6 @@ async fn everscale_transaction(amount: &str, ton: &Arc<ClientContext>, config: C
         abi.clone(),
         Some("../dependencies/json/wallet3.scmsig1.json".to_string()),
         amount,
-        receiver,
     ).await;
     println!("Transaction created with id: {}", trans_id);
     for i in 2..4 {
@@ -119,32 +117,6 @@ async fn everscale_transaction(amount: &str, ton: &Arc<ClientContext>, config: C
             ).await,
         );
     }
-}
-
-fn check_batch(hash: String) -> (bool, Value) {
-    let agent = Agent::new();
-    let path = format!("https://api.hangzhou.tzstats.com/explorer/op/{}", hash);
-    let res = agent.get(&path)
-        .call()
-        .unwrap()
-        .into_string()
-        .unwrap();
-    let res_json = serde_json::from_str::<Value>(res.as_str()).unwrap();
-    (
-        res_json[0]["is_batch"].as_bool().unwrap_or(false),
-        res_json,
-    )
-}
-
-fn tezos_parse_comment(batch: Value) -> Option<String> {
-    if let Some(transactions) = batch.as_array() {
-        for t in transactions {
-            if let Some(ever_receiver) = t["parameters"]["value"]["default"]["3"].as_str() {
-                return Some(ever_receiver.to_owned());
-            }
-        }
-    }
-    None
 }
 
 #[tokio::main]
@@ -211,15 +183,8 @@ async fn main() {
         let res = tezos_get_transactions();
         let len = res.as_array().unwrap().len();
         if len > last_len {
-            let (is_batch, group) = check_batch(res[0]["hash"].as_str().unwrap().to_string());
-            if is_batch {
-                if let Some(ever_receiver) = tezos_parse_comment(group.clone()) {
-                    let amount = group[0]["amount"].as_i64().unwrap();
-                    everscale_transaction((amount * 1000).to_string().as_str(), &ton, config.clone(), ever_receiver).await;
-                }
-            }
-            // println!("{:#}", res[0]["amount"]); // nanoXTZ
-            // everscale_transaction12((amount * 1000).to_string().as_str(), &ton, config.clone()).await;
+            println!("{:#}", res[0]["amount"]); // nanoXTZ
+            everscale_transaction12((res[0]["amount"].as_i64().unwrap() * 1000).to_string().as_str(), &ton, config.clone()).await;
             last_len = len;
         }
     }

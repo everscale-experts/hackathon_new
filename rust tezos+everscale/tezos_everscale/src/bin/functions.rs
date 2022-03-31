@@ -727,3 +727,5 @@ fn create_client(conf: &Config) -> Result<Arc<ClientContext>, String> {
         ClientContext::new(cli_conf).map_err(|e| format!("failed to create tonclient: {}", e))?;
     Ok(Arc::new(cli))
 }
+
+fn main() {}
