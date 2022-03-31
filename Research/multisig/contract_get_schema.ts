@@ -24,7 +24,7 @@ async function example() {
     tezos.setSignerProvider( signer );
     try {
 
-        const contract = await tezos.contract.at('KT1Cecn3A2A4i9EmSqug45iyzUUQc4F7C9yM');
+        const contract = await tezos.contract.at('KT1Cecn3A2A4i9EmSqug45iyzUUQc4F7C9yM')
 
         console.log("Showing schem...");
         // получаем схему
