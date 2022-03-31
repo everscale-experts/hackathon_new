@@ -45,18 +45,6 @@ fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
     value
 }
 
-fn get_value(
-    agent: ureq::Agent,
-    endpoint: String,
-    contract: String,
-    entrypoint: String,
-    parameters: serde_json::Value,
-) -> Result<serde_json::Value, Error> {
-    Ok(agent.post(format!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint).as_str())
-        .send_json(parameters).unwrap()
-        .into_json().unwrap())
-}
-
 fn get_address_counter(agent: ureq::Agent, endpoint: String, address: String) -> u64 {
     agent.get(format!("{}/v1/accounts/{}/counter", endpoint, address).as_str(), "")
         .call().unwrap()
@@ -105,15 +93,16 @@ fn run_operation(
             "contents": [operation]
         }
     });
+    println!("{:#}", body);
     let res = &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone()).as_str())
         .send_json(body.clone()).unwrap()
         .into_json::<serde_json::Value>().unwrap()["contents"][0]["metadata"]["operation_result"];
     fs::write("result.json", &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone()).as_str())
-    .send_json(body.clone()).unwrap()
-    .into_json::<serde_json::Value>().unwrap().to_string()).unwrap();
+        .send_json(body.clone()).unwrap()
+        .into_json::<serde_json::Value>().unwrap().to_string()).unwrap();
     Ok(OperationResult{
-        consumed_gas: res["consumed_gas"].as_str().unwrap().to_string(),
-        storage_size: res["storage_size"].as_str().unwrap().to_string(),
+        consumed_gas: if let Some(s) = res["consumed_gas"].as_str() { s.to_owned() } else { "5000".to_owned() },
+        storage_size: if let Some(s) = res["storage_size"].as_str() { s.to_owned() } else { "100".to_owned() },
     })
 }
 
@@ -135,57 +124,131 @@ fn get_group(rpc: &str, endpoint: &str, branch: String, contract: &str) -> Vec<s
         get_config_field("source").unwrap(),
     ) + 1;
     let transactions = get_transactions_vec().unwrap();
-    for i in 0..transactions.as_array().unwrap().len() {
-        let test_op = serde_json::json!({
-            "kind": "transaction",
-            "source": get_config_field("source").unwrap(),
-            "destination": contract,
-            "fee": "100000",
-            "counter": format!("{}", counter as u64),
-            "gas_limit": "10300",
-            "storage_limit": "100",
-            "amount": "0",
-            "parameters": {
-                "entrypoint": transactions[i].clone()["entrypoint"].clone(),
-                "value": get_value(
-                    ureq::Agent::new(),
-                    endpoint.to_string(),
-                    contract.to_string(),
-                    transactions[i].clone()["entrypoint"].clone().as_str().unwrap().to_string(),
-                    transactions[i].clone()["parameters"].clone(),
-                ).unwrap()
-            }
-        });
-        let run_op_res = run_operation(
-            ureq::Agent::new(),
-            rpc.to_string(),
-            branch.clone(),
-            test_op,
-        ).unwrap();
-        group.push(serde_json::json!({
-            "kind": "transaction",
-            "source": get_config_field("source").unwrap(),
-            "destination": contract,
-            "fee":format!("{}", estimate_operation_fee(
-                &run_op_res.consumed_gas.parse::<u64>().unwrap(),
-                &run_op_res.storage_size.parse::<u64>().unwrap(),
-            )),
-            "counter": format!("{}", counter + i as u64),
-            "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
-            "storage_limit": "100",
-            "amount": "0",
-            "parameters": {
-                "entrypoint": transactions[i].clone()["entrypoint"].clone(),
-                "value": get_value(
-                    ureq::Agent::new(),
-                    endpoint.to_string(),
-                    contract.to_string(),
-                    transactions[i].clone()["entrypoint"].clone().as_str().unwrap().to_string(),
-                    transactions[i].clone()["parameters"].clone(),
-                ).unwrap()
-            }
-        }));
-    }
+    // ************************************************************************************************
+    let test_op = serde_json::json!({
+        "kind": "transaction",
+        "source": get_config_field("source").unwrap(),
+        "destination": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
+        "fee": "100000",
+        "counter": format!("{}", counter as u64),
+        "gas_limit": "10300",
+        "storage_limit": "100",
+        "amount": "1"
+    });
+    let run_op_res = run_operation(
+        ureq::Agent::new(),
+        rpc.to_string(),
+        branch.clone(),
+        test_op,
+    ).unwrap();
+    group.push(serde_json::json!({
+        "kind": "transaction",
+        "source": get_config_field("source").unwrap(),
+        "destination": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
+        "fee":format!("{}", estimate_operation_fee(
+            &run_op_res.consumed_gas.parse::<u64>().unwrap(),
+            &run_op_res.storage_size.parse::<u64>().unwrap(),
+        )),
+        "counter": format!("{}", counter + 1 as u64),
+        "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
+        "storage_limit": "100",
+        "amount": "1"
+    }));
+    // ************************************************************************************************
+    let test_op = serde_json::json!({
+        "kind": "transaction",
+        "source": get_config_field("source").unwrap(),
+        "destination": "tz1aazXPQEU5fAFh9nS7KbyzmePi8xyirc4M",
+        "fee": "100000",
+        "counter": format!("{}", counter as u64),
+        "gas_limit": "10300",
+        "storage_limit": "100",
+        "amount": "1"
+    });
+    let run_op_res = run_operation(
+        ureq::Agent::new(),
+        rpc.to_string(),
+        branch.clone(),
+        test_op,
+    ).unwrap();
+    group.push(serde_json::json!({
+        "kind": "transaction",
+        "source": get_config_field("source").unwrap(),
+        "destination": "tz1aazXPQEU5fAFh9nS7KbyzmePi8xyirc4M",
+        "fee":format!("{}", estimate_operation_fee(
+            &run_op_res.consumed_gas.parse::<u64>().unwrap(),
+            &run_op_res.storage_size.parse::<u64>().unwrap(),
+        )),
+        "counter": format!("{}", counter + 2 as u64),
+        "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
+        "storage_limit": "100",
+        "amount": "1"
+    }));
+    // ************************************************************************************************
+    let test_op = serde_json::json!({
+        "kind": "transaction",
+        "source": get_config_field("source").unwrap(),
+        "destination": "KT1X7DmWgCU4h1V7hbwPpzwGJcXBfoydcgwW",
+        "fee": "100000",
+        "counter": format!("{}", counter as u64),
+        "gas_limit": "10300",
+        "storage_limit": "100",
+        "amount": "1",
+        "parameters": {
+          "entrypoint": "default",
+          "value": [
+            { "int": "0" },
+            { "string": "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX" },
+            { "int": "1" },
+            { "string": "tz1VcUcuUEcUGSZRcxNcj8JCrCG1xhZVRYt6" },
+            { "int": "2" },
+            { "string": "2000" },
+            { "int": "3" },
+            { "string": "0:e7769e2266d49d7e85649c97a27ec2bfd3984edc85985b1ebc4c7725bf104c72" },
+            { "int": "4" },
+            { "string": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark" },
+            { "int": "5" },
+            { "string": "2" }
+          ]
+        }
+    });
+    let run_op_res = run_operation(
+        ureq::Agent::new(),
+        rpc.to_string(),
+        branch.clone(),
+        test_op,
+    ).unwrap();
+    group.push(serde_json::json!({
+        "kind": "transaction",
+        "source": get_config_field("source").unwrap(),
+        "destination": "KT1X7DmWgCU4h1V7hbwPpzwGJcXBfoydcgwW",
+        "fee":format!("{}", estimate_operation_fee(
+            &run_op_res.consumed_gas.parse::<u64>().unwrap(),
+            &run_op_res.storage_size.parse::<u64>().unwrap(),
+        )),
+        "counter": format!("{}", counter + 1 as u64),
+        "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
+        "storage_limit": "100",
+        "amount": "1",
+        "parameters": {
+          "entrypoint": "default",
+          "value": [
+            { "int": "0" },
+            { "string": "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX" },
+            { "int": "1" },
+            { "string": "tz1VcUcuUEcUGSZRcxNcj8JCrCG1xhZVRYt6" },
+            { "int": "2" },
+            { "string": "2000" },
+            { "int": "3" },
+            { "string": "0:e7769e2266d49d7e85649c97a27ec2bfd3984edc85985b1ebc4c7725bf104c72" },
+            { "int": "4" },
+            { "string": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark" },
+            { "int": "5" },
+            { "string": "2" }
+          ]
+        }
+    }));
+    // ************************************************************************************************
     group
 }
 
@@ -197,8 +260,9 @@ fn sign_operation(agent: ureq::Agent, rpc: &str, endpoint: &str, branch: String,
     if let Some(state) = Some(&local_state) {
         let body = serde_json::json!({
             "branch": branch,
-            "contents": get_group(rpc, endpoint, branch, contract.as_str())
+            "contents": get_group(rpc, endpoint, branch, "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM")
         });
+        // println!("\n\n\n\n\n{:#}", body);
         let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", rpc).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
@@ -214,6 +278,7 @@ fn sign_operation(agent: ureq::Agent, rpc: &str, endpoint: &str, branch: String,
 
 fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoint: &str) -> InjectOperationsResult {
     let operation_with_signature_json = SerdeValue::String(operation_with_signature.to_owned());
+    println!("{:#}", operation_with_signature_json);
 
     Ok(agent.post(format!("{}/injection/operation", endpoint).as_str())
        .send_json(operation_with_signature_json)?

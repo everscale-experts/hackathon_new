@@ -2,45 +2,19 @@
     "source": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
     "public_key": "edpku8Su3XvThSZ2sqecsozXNuGkBCxdDXVnSoaKkvDr3c9HHqREFi",
     "private_key": "edsk4SLTW3bL9ke7e3uyR7DvfDZ5SJvo7BfTn4yFESyZzhhLoagLeQ",
-    "contract": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark",
+    "contract": "KT1X7DmWgCU4h1V7hbwPpzwGJcXBfoydcgwW",
     "is_mainnet": false,
     "transactions": [
         {
-            "entrypoint": "transfer",
-            "parameters": [
-                {
-                    "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
-                    "txs": [
-                        {
-                            "to_": "tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz",
-                            "token_id": "1",
-                            "amount": "1"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "entrypoint": "mint_more_tokens",
-            "parameters":  {
-                "token_id": "1",
-                "tokens_to_mint": "40"
+            "entrypoint": "default",
+            "parameters": {
+                "string_0": "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX",
+                "string_1": "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX",
+                "string_2": "20",
+                "string_3": "0:e7769e2266d49d7e85649c97a27ec2bfd3984edc85985b1ebc4c7725bf104c72",
+                "string_4": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark",
+                "string_5": "2"
             }
-        },
-        {
-            "entrypoint": "transfer",
-            "parameters": [
-                {
-                    "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
-                    "txs": [
-                        {
-                            "to_": "tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz",
-                            "token_id": "1",
-                            "amount": "3"
-                        }
-                    ]
-                }
-            ]
         }
     ]
 }

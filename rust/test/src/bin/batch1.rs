@@ -52,6 +52,8 @@ fn get_value(
     entrypoint: String,
     parameters: serde_json::Value,
 ) -> Result<serde_json::Value, Error> {
+    println!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint);
+    println!("{:#}", parameters);
     Ok(agent.post(format!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint).as_str())
         .send_json(parameters).unwrap()
         .into_json().unwrap())
@@ -109,11 +111,11 @@ fn run_operation(
         .send_json(body.clone()).unwrap()
         .into_json::<serde_json::Value>().unwrap()["contents"][0]["metadata"]["operation_result"];
     fs::write("result.json", &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone()).as_str())
-    .send_json(body.clone()).unwrap()
-    .into_json::<serde_json::Value>().unwrap().to_string()).unwrap();
+        .send_json(body.clone()).unwrap()
+        .into_json::<serde_json::Value>().unwrap().to_string()).unwrap();
     Ok(OperationResult{
         consumed_gas: res["consumed_gas"].as_str().unwrap().to_string(),
-        storage_size: res["storage_size"].as_str().unwrap().to_string(),
+        storage_size: res["storage_size"].as_str().unwrap_or("100").to_string(),
     })
 }
 
@@ -186,6 +188,35 @@ fn get_group(rpc: &str, endpoint: &str, branch: String, contract: &str) -> Vec<s
             }
         }));
     }
+    let test_op = serde_json::json!({
+        "kind": "transaction",
+        "source": get_config_field("source").unwrap(),
+        "destination": "tz1aazXPQEU5fAFh9nS7KbyzmePi8xyirc4M",
+        "fee": "100000",
+        "counter": format!("{}", counter as u64),
+        "gas_limit": "10300",
+        "storage_limit": "100",
+        "amount": "1",
+    });
+    let run_op_res = run_operation(
+        ureq::Agent::new(),
+        rpc.to_string(),
+        branch.clone(),
+        test_op,
+    ).unwrap();
+    group.push(serde_json::json!({
+        "kind": "transaction",
+        "source": get_config_field("source").unwrap(),
+        "destination": "tz1aazXPQEU5fAFh9nS7KbyzmePi8xyirc4M",
+        "fee":format!("{}", estimate_operation_fee(
+            &run_op_res.consumed_gas.parse::<u64>().unwrap(),
+            &run_op_res.storage_size.parse::<u64>().unwrap(),
+        )),
+        "counter": format!("{}", counter + 1 as u64),
+        "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
+        "storage_limit": "100",
+        "amount": "1000",
+    }));
     group
 }
 
