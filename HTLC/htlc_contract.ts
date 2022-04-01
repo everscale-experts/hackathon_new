@@ -59,7 +59,7 @@ code { UNPAIR ;
            CAR ;
            NOW ;
            COMPARE ;
-           LT ;
+           GT ;
            IF { DIG 3 ;
                 DROP 2 ;
                 SWAP ;
@@ -69,8 +69,9 @@ code { UNPAIR ;
                 CDR ;
                 UNIT ;
                 TRANSFER_TOKENS ;
-                DROP ;
-                UNIT }
+                NIL operation ;
+                SWAP ;
+                CONS }
               { DUP 3 ;
                 CAR ;
                 CDR ;
@@ -88,8 +89,9 @@ code { UNPAIR ;
                      CDR ;
                      UNIT ;
                      TRANSFER_TOKENS ;
-                     DROP ;
-                     UNIT }
+                     NIL operation ;
+                     SWAP ;
+                     CONS }
                    { DROP ;
                      SWAP ;
                      DUP ;
@@ -98,9 +100,8 @@ code { UNPAIR ;
                      CDR ;
                      UNIT ;
                      TRANSFER_TOKENS ;
-                     DROP ;
-                     UNIT } } ;
-           DROP ;
-           NIL operation ;
+                     NIL operation ;
+                     SWAP ;
+                     CONS } } ;
            PAIR } } }
 `

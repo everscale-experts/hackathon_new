@@ -11,11 +11,11 @@ async function example() {
     tezos.setSignerProvider( signer );
     try {
 
-        const contract = await tezos.contract.at('KT1UR2v4qiENjnvkG22wcpTcLyKAGLEP3m7x')
-        const hash: any = sha256('Hello')
+        const contract = await tezos.contract.at('KT1VXCGgNv8dAjxVPWYQc445rK4R8zLtwxdm')
+        const hash: any = sha256(char2Bytes('Hello'))
       const batch = await tezos.contract.batch()
-      .withContractCall(contract.methods.createLockWithCoins(hash,'KT1UR2v4qiENjnvkG22wcpTcLyKAGLEP3m7x'))
-
+      .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW',char2Bytes('Hello') ))
+      //.withContractCall(contract.methods.createLockWithCoins(hash,'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ))
 
         
         batch.send()
