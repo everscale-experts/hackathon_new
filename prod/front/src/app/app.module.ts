@@ -7,6 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { MatSliderModule } from '@angular/material/slider';
 import { MainComponent } from './components/main/main.component';
+import { MaterialExampleModule } from './material.module';
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import { MainComponent } from './components/main/main.component';
     AppRoutingModule,
     BrowserAnimationsModule,
     MatSliderModule,
+    MaterialExampleModule,
   ],
   providers: [],
   bootstrap: [MainComponent]

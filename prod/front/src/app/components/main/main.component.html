@@ -1,4 +1,64 @@
-<p>main works!</p>
-<mat-slider min="1" max="100" step="1" value="50"></mat-slider>
+<h1>Everscale-Tezos Bridge</h1>
+
+<div class="container">
+
+  <h3>Choose what you have:</h3>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Blockchain</mat-label>
+    <mat-select>
+      <mat-option value="one">Everscale</mat-option>
+      <mat-option value="two">Tezos</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Token</mat-label>
+    <mat-select>
+      <mat-optgroup label="Native coins">
+        <mat-option value="EVER">EVER</mat-option>
+      </mat-optgroup>
+      <mat-optgroup label="Tokens">
+        <mat-option value="SOON">SOON</mat-option>
+        <mat-option value="BRIDGE">BRIDGE</mat-option>
+      </mat-optgroup>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Amount</mat-label>
+    <input matInput>
+  </mat-form-field>
+
+</div>
+
+
+<div class="container">
+
+  <h3>Choose what you want:</h3>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Blockchain</mat-label>
+    <mat-select>
+      <mat-option value="one">Everscale</mat-option>
+      <mat-option value="two">Tezos</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Token</mat-label>
+    <mat-select>
+      <mat-option value="EVER">EVER</mat-option>
+      <mat-option value="SOON">SOON</mat-option>
+      <mat-option value="BRIDGE">BRIDGE</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Amount</mat-label>
+    <input matInput>
+  </mat-form-field>
+
+</div>
 
 <router-outlet></router-outlet>
