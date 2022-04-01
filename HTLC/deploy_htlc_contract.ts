@@ -6,11 +6,11 @@
 
 import { TezosToolkit,MichelsonMap } from '@taquito/taquito'
 import { importKey } from '@taquito/signer'
-import { htlc_contract } from './htlc_contract';
-
-
+import * as fs from 'fs';
 import {char2Bytes} from '@taquito/utils';
+import { readFileSync } from "fs";
 
+const htlc_contract: string = fs.readFileSync('./htlc_contract.tz').toString();
 const provider = 'https://rpc.hangzhounet.teztnets.xyz'
 
 async function deploy() {
