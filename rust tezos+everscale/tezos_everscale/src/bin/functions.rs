@@ -276,6 +276,10 @@ pub fn load_abi(abi: &str) -> Result<Abi, String> {
     ))
 }
 
+pub fn load_abi_json(file: &str) -> Result<Abi, String> {
+    Ok(Abi::Json(std::fs::read_to_string(file).unwrap()))
+}
+
 fn read_keys(filename: &str) -> Result<KeyPair, String> {
     let keys_str = std::fs::read_to_string(filename)
         .map_err(|e| format!("failed to read the keypair file: {}", e.to_string()))?;

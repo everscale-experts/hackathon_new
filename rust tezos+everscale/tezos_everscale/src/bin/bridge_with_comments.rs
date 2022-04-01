@@ -171,7 +171,6 @@ async fn main() {
     );
 
     // subscribe for all transactions in everscale (new thread)
-    let ton1 = Arc::clone(&ton);
     ton_client::net::subscribe_collection(
         context.clone(),
         ton_client::net::ParamsOfSubscribeCollection {
@@ -187,6 +186,22 @@ async fn main() {
                             if address == get_json_field("../dependencies/json/everscale_accounts.json", None, None)[1]["address"]
                                 .as_str().unwrap().to_owned() {
                                 println!("{:#}", result.result);
+                                let ton1 = Arc::new(
+                                    ton_client::ClientContext::new(ton_client::ClientConfig {
+                                        network: ton_client::net::NetworkConfig {
+                                            // server_address: Some("cinet.tonlabs.io".to_owned()), // mainnet
+                                            server_address: Some("net.ton.dev".to_string()), // devnet
+                                            ..Default::default()
+                                        },
+                                        ..Default::default()
+                                    })
+                                    .unwrap(),
+                                );
+                                println!("{:#}", decode_msg(
+                                    Arc::clone(&ton1),
+                                    result.result["in_msg"].as_str().unwrap(),
+                                    load_abi_json("../dependencies/json/SetcodeMultisigWallet.abi.json").unwrap(),
+                                ).await);
                                 let v_u64 = hex_to_dec(v);
                                 println!("{}", v_u64);
                                 let sender = get_json_field("../dependencies/json/tezos_accounts.json", None, Some(2));
