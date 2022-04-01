@@ -6,3 +6,5 @@
 https://answerbun.com/ пример перевода токенов стандарта FA2.0
 https://tezos.stackexchange.com/questions/2662/tezos-get-entrypoint-opt-in-ligo-issue 
 https://ligolang.org/docs/tutorials/taco-shop/tezos-taco-shop-payout - пример трансфера в ligo
+https://tezosacademy.io/pascal/chapter-transactions - написано как делать перевод монет и вызывать методы других контрактов
+https://ide.ligolang.org/ - ide ligo
