@@ -269,7 +269,7 @@ pub fn hex_to_dec(v: &str) -> u64 {
     u64::from_str_radix(v.trim_start_matches("0x"), 16).unwrap()
 }
 
-fn load_abi(abi: &str) -> Result<Abi, String> {
+pub fn load_abi(abi: &str) -> Result<Abi, String> {
     Ok(Abi::Contract(
         serde_json::from_str::<AbiContract>(abi)
             .map_err(|e| format!("ABI is not a valid json: {}", e))?,
@@ -692,6 +692,13 @@ pub fn create_client_verbose(conf: &Config) -> Result<Arc<ClientContext>, String
         .map_err(|e| format!("failed to init logger: {}", e))?;
 
     create_client(conf)
+}
+
+pub async fn decode_msg(ton: Arc<ClientContext>, msg: &str, abi: Abi) -> Value {
+    ton_client::abi::decode_message(ton.clone(), ton_client::abi::ParamsOfDecodeMessage {
+        abi,
+        message: msg.to_owned(),
+    }).await.unwrap().value.unwrap()
 }
 
 fn create_client(conf: &Config) -> Result<Arc<ClientContext>, String> {

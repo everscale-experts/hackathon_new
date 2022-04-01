@@ -171,12 +171,13 @@ async fn main() {
     );
 
     // subscribe for all transactions in everscale (new thread)
+    let ton1 = Arc::clone(&ton);
     ton_client::net::subscribe_collection(
         context.clone(),
         ton_client::net::ParamsOfSubscribeCollection {
             collection: "transactions".to_owned(),
             filter: None,
-            result: "id in_message {value} account_addr".to_owned(),
+            result: "id in_message { value } account_addr in_msg ".to_owned(),
         },
         |result| async {
             match result {
@@ -185,6 +186,7 @@ async fn main() {
                         if let Some(v) = result.result["in_message"]["value"].as_str() {
                             if address == get_json_field("../dependencies/json/everscale_accounts.json", None, None)[1]["address"]
                                 .as_str().unwrap().to_owned() {
+                                println!("{:#}", result.result);
                                 let v_u64 = hex_to_dec(v);
                                 println!("{}", v_u64);
                                 let sender = get_json_field("../dependencies/json/tezos_accounts.json", None, Some(2));
