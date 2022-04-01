@@ -1,37 +1,39 @@
 export const htlc_contract =`{ parameter
-  (or (pair %createLockWithCoins (bytes %hash) (address %dest))
+  (or (or (pair %createLockWithCoins (bytes %hash) (address %dest)) (unit %default))
       (pair %openLock (address %dest) (bytes %seed_f))) ;
 storage
   (pair (pair (pair (timestamp %date) (address %dest)) (pair (bytes %hash) (address %sender)))
         (pair (bool %unused) (mutez %value))) ;
 code { UNPAIR ;
        IF_LEFT
-         { UNPAIR ;
-           PUSH mutez 1000000 ;
-           BALANCE ;
-           COMPARE ;
-           LT ;
-           IF { PUSH string "Error balance HTLC contract" ; FAILWITH } {} ;
-           DIG 2 ;
-           CDR ;
-           CAR ;
-           NOT ;
-           IF { PUSH string "This contract has already been used." ; FAILWITH } {} ;
-           BALANCE ;
-           PUSH bool False ;
-           PAIR ;
-           SENDER ;
-           DIG 2 ;
-           PAIR ;
-           DIG 2 ;
-           PUSH int 86400 ;
-           NOW ;
-           ADD ;
-           PAIR ;
-           PAIR ;
-           PAIR ;
-           NIL operation ;
-           PAIR }
+         { IF_LEFT
+             { UNPAIR ;
+               PUSH mutez 1000000 ;
+               BALANCE ;
+               COMPARE ;
+               LT ;
+               IF { PUSH string "Error balance HTLC contract" ; FAILWITH } {} ;
+               DIG 2 ;
+               CDR ;
+               CAR ;
+               NOT ;
+               IF { PUSH string "This contract has already been used." ; FAILWITH } {} ;
+               BALANCE ;
+               PUSH bool False ;
+               PAIR ;
+               SENDER ;
+               DIG 2 ;
+               PAIR ;
+               DIG 2 ;
+               PUSH int 86400 ;
+               NOW ;
+               ADD ;
+               PAIR ;
+               PAIR ;
+               PAIR ;
+               NIL operation ;
+               PAIR }
+             { DROP ; NIL operation ; PAIR } }
          { UNPAIR ;
            DUP 3 ;
            CDR ;

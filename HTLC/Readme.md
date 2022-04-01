@@ -7,4 +7,5 @@ https://answerbun.com/ пример перевода токенов станда
 https://tezos.stackexchange.com/questions/2662/tezos-get-entrypoint-opt-in-ligo-issue 
 https://ligolang.org/docs/tutorials/taco-shop/tezos-taco-shop-payout - пример трансфера в ligo
 https://tezosacademy.io/pascal/chapter-transactions - написано как делать перевод монет и вызывать методы других контрактов
+https://docs.chainstack.com/tutorials/tezos/simple-fund-contract-in-ligo#create-the-contract - пример контракта для ввода и вывоа tezos
 https://ide.ligolang.org/ - ide ligo
