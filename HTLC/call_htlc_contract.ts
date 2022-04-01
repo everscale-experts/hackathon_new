@@ -2,7 +2,7 @@
 import { char2Bytes, } from '@taquito/utils';
 import { TezosToolkit } from '@taquito/taquito';
 import { InMemorySigner } from '@taquito/signer';
-import {sha256} from 'js-sha256'
+
 
 async function example() {
     const provider = 'https://rpc.hangzhounet.teztnets.xyz';
@@ -11,11 +11,11 @@ async function example() {
     tezos.setSignerProvider( signer );
     try {
 
-        const contract = await tezos.contract.at('KT1VXCGgNv8dAjxVPWYQc445rK4R8zLtwxdm')
-        const hash: any = sha256(char2Bytes('Hello'))
+        const contract = await tezos.contract.at('KT1M1aUYcahdLSZppr8vgSeHtCFxVEnLHRWx')
+      
       const batch = await tezos.contract.batch()
       .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW',char2Bytes('Hello') ))
-      //.withContractCall(contract.methods.createLockWithCoins(hash,'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ))
+      //.withContractCall(contract.methods.createLockWithCoins(char2Bytes('Hello'),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ))
 
         
         batch.send()

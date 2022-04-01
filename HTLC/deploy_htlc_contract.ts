@@ -19,28 +19,9 @@ async function deploy() {
     tezos,
     'edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj'
   )
-  // деплой msig TokenMultisig
-  // try {
-  //   const op = await tezos.contract.originate({
-  //     //код смарт-контракта
-  //     code: TokenMultisig,
-  //     //значение хранилища
-  //     storage: {
-  //             counter: 1,  // начальное значение счётчика
-  //             threshold: 0, // количество полписей для подтвержения транзакции
-  //             keys: ['edpkuS2PP7wumxVKTv9HfyH9L5CWUqJ8EgezaVDgyEDpJMAMmwUb1C'], // публичные ключи владельцев multisig
-  //           },
-  //   })
+
     try {
-      const metadata = new MichelsonMap();
-      metadata.set('',char2Bytes('Everangers_team') ) // можно записать любую строку
 
-      // создаем поле для записи proposals
-      const proposals = new MichelsonMap(); 
-
-      // создаем поле для записи votes
-      const votes= new MichelsonMap();
- 
       const op = await tezos.contract.originate({
         //код смарт-контракта
         code: htlc_contract,

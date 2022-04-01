@@ -1,5 +1,5 @@
 export const htlc_contract =`{ parameter
-  (or (or (pair %createLockWithCoins (bytes %hash) (address %dest)) (unit %default))
+  (or (or (pair %createLockWithCoins (bytes %seed_f) (address %dest)) (unit %default))
       (pair %openLock (address %dest) (bytes %seed_f))) ;
 storage
   (pair (pair (pair (timestamp %date) (address %dest)) (pair (bytes %hash) (address %sender)))
@@ -23,6 +23,7 @@ code { UNPAIR ;
                PAIR ;
                SENDER ;
                DIG 2 ;
+               SHA256 ;
                PAIR ;
                DIG 2 ;
                PUSH int 86400 ;

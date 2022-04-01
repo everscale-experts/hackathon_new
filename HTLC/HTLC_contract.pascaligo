@@ -71,7 +71,7 @@ function openLock (const dest: address; const seed_f: bytes; var s: storage):ret
     ];
     var operations: list(operation) := nil;
     (*Не просрочена ли транзакция*)
-    if Tezos.now < s.date
+    if Tezos.now > s.date
     then {
         const op : operation = Tezos.transaction (unit, s.value, owner); // если просроченна возвращаем отправителю
         operations:= list [
