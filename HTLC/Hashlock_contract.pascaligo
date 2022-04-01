@@ -207,6 +207,9 @@ end with ((nil : list(operation)), s)
 (*_____________________________________*)
 (*третий вариант*)
 
+
+
+
 type storage is record [
   unused  : bool;
   date   : timestamp;
@@ -216,57 +219,67 @@ type storage is record [
   value  : tez;
 ]
 
+type createLockWithCoinsParams is michelson_pair(bytes, "hash", address,"dest")
+
+type openLockParams is michelson_pair(address, "dest", bytes,"seed_f");
+
 type parameter is 
-CreateLockWithCoins of record [
-    hash1 : bytes;
-    dest1 : address;
-]
-| OpenLock          of record [
-    dest : address;
-    seed_f: bytes;
-]
+| CreateLockWithCoins of createLockWithCoinsParams
+| OpenLock          of openLockParams
 
 type return is list(operation) * storage
 
-// function createLockWithCoins (const hash1 : bytes; const dest1 : address; var s : storage): return is
-//     begin
-//     (*проверяем больши ли одного теза в контракте *)
-//     if Tezos.balance < 1tez
-//     then failwith("Error balance HTLC contract")
-//     else skip;
-//     (* проверка был ли замок раскрыт *)
-//     if not s.unused
-//     then failwith("This contract has already been used.")
-//     else skip;
+function createLockWithCoins (const hash1 : bytes; const dest1 : address; var s : storage): return is
+    begin
+    (*проверяем больши ли одного теза в контракте *)
+    if Tezos.balance < 1tez
+    then failwith("Error balance HTLC contract")
+    else skip;
+    (* проверка был ли замок раскрыт *)
+    if not s.unused
+    then failwith("This contract has already been used.")
+    else skip;
     
     
-//     const commit : storage = record [
-//         unused = False;
-//         date = Tezos.now + 86_400; 
-//         sender = Tezos.sender;
-//         dest = dest1;
-//         hash = hash1; 
-//         value = Tezos.balance - 0.1tez
-//         ];
+    const commit : storage = record [
+        unused = False;
+        date = Tezos.now + 86_400; 
+        sender = Tezos.sender;
+        dest = dest1;
+        hash = hash1; 
+        value = Tezos.balance - 0.1tez
+        ];
 
-// end with ((nil : list(operation)), commit)
+end with ((nil : list(operation)), commit)
 
 
 
 function openLock (const dest: address; const seed_f: bytes; var s: storage):return is 
     begin 
+    
+    const owner : contract (unit) =
+    case (Tezos.get_contract_opt (Tezos.sender): option(contract(unit))) of [
+      Some (contract) -> contract
+    | None -> (failwith ("Not a contract") : (contract(unit)))
+    ];
+
+    const reciver : contract (unit) =
+    case (Tezos.get_contract_opt (dest): option(contract(unit))) of [
+      Some (contract) -> contract
+    | None -> (failwith ("Not a contract") : (contract(unit)))
+    ];
     (*Не просрочена ли транзакция*)
     if Tezos.now < s.date
     then {
-        Tezos.transaction(transfer, s.value, Tezos.sender); // если просроченна возвращаем отправителю
+        const _op : operation = Tezos.transaction (unit, s.value, owner); // если просроченна возвращаем отправителю
     }
     else {
-        if Crypto.sha256(seed_f) = storage.hash
+        if Crypto.sha256(seed_f) = s.hash
         then{
-            Tezos.transaction(transfer, s.value, dest) // если все хорошо отправляем коины на указанный адрес
+            const _op : operation = Tezos.transaction (unit, s.value, reciver); // если все хорошо отправляем коины на указанный адрес
         }
         else {
-            Tezos.transaction(transfer, s.value, Tezos.sender) // если hash не правильный отправляем коины отправителю
+            const _op : operation = Tezos.transaction (unit, s.value, owner); // если hash не правильный отправляем коины отправителю
         }
     }
 
@@ -274,11 +287,8 @@ end with ((nil: list(operation)), s)
 
 
 
-// function main(const p:parameter; const s:storage;) return is 
-// case p of[
-// | CreateLockWithCoins(hash1, dest1)-> createLockWithCoins(hash1, dest1,s);
-// | OpenLock(dest, seed_f)-> openLock(dest, seed_f, s)
-// ]
-
-
-
+function main(const p:parameter; var s:storage): return is 
+case p of [
+| CreateLockWithCoins(params)-> createLockWithCoins(params.0,params.1,s)
+| OpenLock(params)-> openLock(params.0,params.1, s)
+]
