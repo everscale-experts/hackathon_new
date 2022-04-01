@@ -1,3 +1,4 @@
+(*объявляем тип storage*)
 type storage is record [
   unused  : bool;
   date   : timestamp;
@@ -6,21 +7,22 @@ type storage is record [
   hash   : bytes;
   value  : tez;
 ]
-
-type createLockWithCoinsParams is michelson_pair(bytes, "hash", address,"dest")
+(*объявляем псевдонимы входящих параметров для каждой базовой функции*)
+type createLockWithCoinsParams is michelson_pair(bytes, "seed_f", address,"dest")
 type openLockParams is michelson_pair(address, "dest", bytes,"seed_f");
 type defaultParams is unit;
 
+(*псевдо-точки входа*)
 type parameter is 
 | Default of defaultParams
 | CreateLockWithCoins of createLockWithCoinsParams
 | OpenLock          of openLockParams
 
-
+(*тип возвращаемых данных*)
 type return is list(operation) * storage
 
 const noOperations: list(operation) = nil;
-
+(*Функция для того чтобы на контракт было возможно перевести токены и монеты *)
 function default (var s: storage): return is 
     block{
       skip
@@ -44,7 +46,7 @@ function createLockWithCoins (const hash1 : bytes; const dest1 : address; var s 
         date = Tezos.now + 86_400; 
         sender = Tezos.sender;
         dest = dest1;
-        hash = hash1; 
+        hash = Crypto.sha256(hash1);
         value = Tezos.balance // - 0.1tez
         ];
 
@@ -54,16 +56,18 @@ end with ((nil : list(operation)), commit)
 
 function openLock (const dest: address; const seed_f: bytes; var s: storage):return is 
     begin 
+    (*проверяем был ли открыт замок*)
     if s.unused
     then failwith("The chest was already open")
     else skip;
-    s.unused :=True;
+    s.unused :=True; // открываем замок
+    (*получаем точку входу для перевода коинов *)
     const owner : contract (unit) =
     case (Tezos.get_contract_opt (Tezos.sender): option(contract(unit))) of [
       Some (contract) -> contract
     | None -> (failwith ("Not a contract") : (contract(unit)))
     ];
-
+    (*получаем точку входу для перевода коинов *)
     const receiver : contract (unit) =
     case (Tezos.get_contract_opt (dest): option(contract(unit))) of [
       Some (contract) -> contract
