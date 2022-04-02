@@ -10,24 +10,24 @@ async function example() {
         const tezos = new TezosToolkit(provider);
     tezos.setSignerProvider( signer );
     try {
+        const batch = await tezos.contract.batch()
+      //.withTransfer({ to: 'KT1HEmedN3r828CcCa6wzTd4DMUw1XobxAHa', amount: 2 })
 
-        const contract = await tezos.contract.at('KT1M1aUYcahdLSZppr8vgSeHtCFxVEnLHRWx')
+        const contract = await tezos.contract.at('KT1HEmedN3r828CcCa6wzTd4DMUw1XobxAHa')
       
-      const batch = await tezos.contract.batch()
-      .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW',char2Bytes('Hello') ))
-      //.withContractCall(contract.methods.createLockWithCoins(char2Bytes('Hello'),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ))
-
-        
+      batch
+      .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW', char2Bytes('Hello')))
+      //.withContractCall(contract.methods.createLockWithCoins(char2Bytes('Hello'),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ));
+    
+      
+      
+   
         batch.send()
 
         const batchOp = await batch.send()
-        console.log("Operation hash:", batchOp.hash)
-        console.log(`Awaiting for ${batchOp.hash} to be confirmed...`)
+        console.log(`Awaiting confirmed...`)
         return batchOp.confirmation(1).then(() => batchOp.hash) //ждем одно подтверждение сети
         .then((hash) => console.log(`Hash: https://hangzhou2net.tzkt.io/${hash}`)) //получаем хеш операции
-
-        
-
 
 
   }

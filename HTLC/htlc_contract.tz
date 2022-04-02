@@ -2,52 +2,117 @@
     (or (or (pair %createLockWithCoins (bytes %seed_f) (address %dest)) (unit %default))
         (pair %openLock (address %dest) (bytes %seed_f))) ;
   storage
-    (pair (pair (pair (timestamp %date) (address %dest)) (pair (bytes %hash) (address %sender)))
-          (pair (bool %unused) (mutez %value))) ;
+    (pair (pair (big_map %chests
+                   address
+                   (pair (pair (pair (int %counter) (timestamp %date)) (pair (address %dest) (bytes %hash)))
+                         (mutez %value)))
+                (int %counter))
+          (big_map %transfers_amounts address mutez)) ;
   code { UNPAIR ;
          IF_LEFT
            { IF_LEFT
                { UNPAIR ;
+                 DUP 3 ;
+                 CDR ;
+                 PUSH int 1 ;
+                 DUP 5 ;
+                 CAR ;
+                 CDR ;
+                 ADD ;
+                 DIG 4 ;
+                 CAR ;
+                 CAR ;
+                 PAIR ;
+                 PAIR ;
+                 AMOUNT ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CDR ;
+                 SENDER ;
+                 GET ;
+                 IF_NONE { PUSH string "You have not transfer" ; FAILWITH } { SWAP ; DROP } ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 DROP ;
                  PUSH mutez 1000000 ;
-                 BALANCE ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
                  COMPARE ;
                  LT ;
                  IF { PUSH string "Error balance HTLC contract" ; FAILWITH } {} ;
                  DIG 2 ;
-                 CDR ;
-                 CAR ;
-                 NOT ;
-                 IF { PUSH string "This contract has already been used." ; FAILWITH } {} ;
-                 BALANCE ;
-                 PUSH bool False ;
-                 PAIR ;
-                 SENDER ;
-                 DIG 2 ;
                  SHA256 ;
+                 DIG 3 ;
                  PAIR ;
-                 DIG 2 ;
-                 PUSH int 86400 ;
+                 PUSH int 3600 ;
                  NOW ;
                  ADD ;
+                 DUP 4 ;
+                 CAR ;
+                 CDR ;
                  PAIR ;
+                 PAIR ;
+                 PAIR ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CAR ;
+                 CAR ;
+                 SWAP ;
+                 SOME ;
+                 SENDER ;
+                 UPDATE ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CDR ;
+                 DIG 2 ;
+                 CAR ;
+                 CDR ;
+                 DIG 2 ;
                  PAIR ;
                  PAIR ;
                  NIL operation ;
                  PAIR }
-               { DROP ; NIL operation ; PAIR } }
+               { DROP ;
+                 AMOUNT ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CDR ;
+                 SWAP ;
+                 SOME ;
+                 SENDER ;
+                 UPDATE ;
+                 SWAP ;
+                 CAR ;
+                 PAIR ;
+                 NIL operation ;
+                 PAIR } }
            { UNPAIR ;
+             PUSH mutez 0 ;
              DUP 3 ;
-             CDR ;
-             CAR ;
-             IF { PUSH string "The chest was already open" ; FAILWITH } {} ;
+             SHA256 ;
              DUP 3 ;
-             CDR ;
-             CDR ;
-             PUSH bool True ;
              PAIR ;
-             DIG 3 ;
+             PUSH int 3600 ;
+             NOW ;
+             ADD ;
+             PUSH int 0 ;
+             PAIR ;
+             PAIR ;
+             PAIR ;
+             DUP 4 ;
              CAR ;
-             PAIR ;
+             CAR ;
+             SENDER ;
+             GET ;
+             IF_NONE { PUSH string "You have not chest" ; FAILWITH } { SWAP ; DROP } ;
+             DUP 4 ;
+             DROP ;
              SENDER ;
              CONTRACT unit ;
              IF_NONE { PUSH string "Not a contract" ; FAILWITH } {} ;
@@ -57,16 +122,13 @@
              DUP 3 ;
              CAR ;
              CAR ;
-             CAR ;
+             CDR ;
              NOW ;
              COMPARE ;
              GT ;
              IF { DIG 3 ;
                   DROP 2 ;
                   SWAP ;
-                  DUP ;
-                  DUG 2 ;
-                  CDR ;
                   CDR ;
                   UNIT ;
                   TRANSFER_TOKENS ;
@@ -76,7 +138,7 @@
                 { DUP 3 ;
                   CAR ;
                   CDR ;
-                  CAR ;
+                  CDR ;
                   DIG 4 ;
                   SHA256 ;
                   COMPARE ;
@@ -84,24 +146,11 @@
                   IF { SWAP ;
                        DROP ;
                        SWAP ;
-                       DUP ;
-                       DUG 2 ;
-                       CDR ;
                        CDR ;
                        UNIT ;
                        TRANSFER_TOKENS ;
                        NIL operation ;
                        SWAP ;
                        CONS }
-                     { DROP ;
-                       SWAP ;
-                       DUP ;
-                       DUG 2 ;
-                       CDR ;
-                       CDR ;
-                       UNIT ;
-                       TRANSFER_TOKENS ;
-                       NIL operation ;
-                       SWAP ;
-                       CONS } } ;
+                     { DROP ; SWAP ; CDR ; UNIT ; TRANSFER_TOKENS ; NIL operation ; SWAP ; CONS } } ;
              PAIR } } }

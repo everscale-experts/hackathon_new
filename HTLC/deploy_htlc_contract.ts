@@ -19,7 +19,8 @@ async function deploy() {
     tezos,
     'edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj'
   )
-
+  const chests = new MichelsonMap(); 
+  const transfers_amounts = new MichelsonMap();
     try {
 
       const op = await tezos.contract.originate({
@@ -27,12 +28,9 @@ async function deploy() {
         code: htlc_contract,
         //значение хранилища
         storage: {
-                unused: true,
-                date:'',
-                sender:'tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz',
-                dest:'tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz',
-                hash:char2Bytes('Hello'),
-                value:0,
+                counter:0,
+                chests,
+                transfers_amounts,
               },
       })
 
