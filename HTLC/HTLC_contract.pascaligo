@@ -26,14 +26,14 @@ type storage is record [
 
 
 (*объявляем псевдонимы входящих параметров для каждой базовой функции*)
-type createLockWithCoinsParams is michelson_pair(bytes, "seed_f", address,"dest")
+type createLockParams is michelson_pair(bytes, "seed_f", address,"dest")
 type openLockParams is michelson_pair(address, "dest", bytes,"seed_f");
 type defaultParams is unit;
 
 (*псевдо-точки входа*)
 type parameter is 
 | Default of defaultParams
-| CreateLockWithCoins of createLockWithCoinsParams
+| CreateLock of createLockParams
 | OpenLock          of openLockParams
 
 (*тип возвращаемых данных*)
@@ -67,6 +67,7 @@ function createLock (const hash1 : bytes; const dest1 : address; var s : storage
     ];
     (*После прочтения удаляем запись из big_map*)
     const updated_map : transfer_amount = Big_map.remove (Tezos.sender, s.transfers_amounts);
+    s := s with record [transfers_amounts = updated_map]; 
     (*проверяем больши ли одного теза в контракте *)
     if value_bool.value < 1tez
     then failwith("Error balance HTLC contract")
@@ -102,6 +103,7 @@ function openLock (const dest: address; const seed_f: bytes; var s: storage):ret
     ];
     (*После прочтения удаляем запись из big_map*)
     const updated_map : chest = Big_map.remove (Tezos.sender, s.chests);
+    s := s with record [chests = updated_map]; 
     (*получаем точку входу для перевода коинов *)
     const owner : contract (unit) =
     case (Tezos.get_contract_opt (Tezos.sender): option(contract(unit))) of [
@@ -146,6 +148,6 @@ end with (operations, s)
 function main(const p:parameter; var s:storage): return is 
 case p of [
 | Default(params) -> default(s)
-| CreateLockWithCoins(params)-> createLock(params.0,params.1,s)
+| CreateLock(params)-> createLock(params.0,params.1,s)
 | OpenLock(params)-> openLock(params.0,params.1, s)
 ]

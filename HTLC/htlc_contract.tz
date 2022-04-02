@@ -1,5 +1,5 @@
 { parameter
-    (or (or (pair %createLockWithCoins (bytes %seed_f) (address %dest)) (unit %default))
+    (or (or (pair %createLock (bytes %seed_f) (address %dest)) (unit %default))
         (pair %openLock (address %dest) (bytes %seed_f))) ;
   storage
     (pair (pair (big_map %chests
@@ -35,14 +35,21 @@
                  SWAP ;
                  DUP ;
                  DUG 2 ;
-                 DROP ;
+                 CDR ;
+                 NONE mutez ;
+                 SENDER ;
+                 UPDATE ;
+                 DIG 2 ;
+                 CAR ;
+                 PAIR ;
                  PUSH mutez 1000000 ;
-                 SWAP ;
-                 DUP ;
-                 DUG 2 ;
+                 DUP 3 ;
                  COMPARE ;
                  LT ;
                  IF { PUSH string "Error balance HTLC contract" ; FAILWITH } {} ;
+                 PUSH mutez 100000 ;
+                 DIG 2 ;
+                 SUB ;
                  DIG 2 ;
                  SHA256 ;
                  DIG 3 ;
@@ -112,45 +119,65 @@
              GET ;
              IF_NONE { PUSH string "You have not chest" ; FAILWITH } { SWAP ; DROP } ;
              DUP 4 ;
-             DROP ;
+             CAR ;
+             CAR ;
+             NONE (pair (pair (pair int timestamp) (pair address bytes)) mutez) ;
+             SENDER ;
+             UPDATE ;
              SENDER ;
              CONTRACT unit ;
              IF_NONE { PUSH string "Not a contract" ; FAILWITH } {} ;
-             DIG 2 ;
+             DIG 3 ;
              CONTRACT unit ;
              IF_NONE { PUSH string "Not a contract" ; FAILWITH } {} ;
-             DUP 3 ;
+             DUP 4 ;
              CAR ;
              CAR ;
              CDR ;
              NOW ;
              COMPARE ;
              GT ;
-             IF { DIG 3 ;
+             IF { DIG 4 ;
                   DROP 2 ;
-                  SWAP ;
+                  DIG 2 ;
                   CDR ;
                   UNIT ;
                   TRANSFER_TOKENS ;
                   NIL operation ;
                   SWAP ;
                   CONS }
-                { DUP 3 ;
+                { DUP 4 ;
                   CAR ;
                   CDR ;
                   CDR ;
-                  DIG 4 ;
+                  DIG 5 ;
                   SHA256 ;
                   COMPARE ;
                   EQ ;
                   IF { SWAP ;
                        DROP ;
-                       SWAP ;
+                       DIG 2 ;
                        CDR ;
                        UNIT ;
                        TRANSFER_TOKENS ;
                        NIL operation ;
                        SWAP ;
                        CONS }
-                     { DROP ; SWAP ; CDR ; UNIT ; TRANSFER_TOKENS ; NIL operation ; SWAP ; CONS } } ;
+                     { DROP ;
+                       DIG 2 ;
+                       CDR ;
+                       UNIT ;
+                       TRANSFER_TOKENS ;
+                       NIL operation ;
+                       SWAP ;
+                       CONS } } ;
+             DUP 3 ;
+             CDR ;
+             DIG 3 ;
+             CAR ;
+             CDR ;
+             DIG 3 ;
+             PAIR ;
+             PAIR ;
+             SWAP ;
              PAIR } } }
