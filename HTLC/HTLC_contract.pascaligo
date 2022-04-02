@@ -78,7 +78,7 @@ function createLock (const hash1 : bytes; const dest1 : address; var s : storage
         date = Tezos.now + 3_600; 
         dest = dest1; 
         hash = Crypto.sha256(hash1);
-        value = value_bool.value;
+        value = value_bool.value // - 0.1tez;
          ];
      const updated_map: chest = Big_map.update(Tezos.sender, Some(data), s.chests);
      s := s with record [chests = updated_map]; 
