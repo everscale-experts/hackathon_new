@@ -1,5 +1,6 @@
 pub use ton_client::ClientContext;
 pub use serde_json::Value;
+use ton_client::abi::ParamsOfDecodeMessage;
 pub use std::sync::Arc;
 use std::collections::BTreeMap;
 use std::time::SystemTime;
@@ -698,10 +699,40 @@ pub fn create_client_verbose(conf: &Config) -> Result<Arc<ClientContext>, String
     create_client(conf)
 }
 
+pub async fn get_msg_by_id(ton: Arc<ClientContext>, msg_id: &str) -> String {
+    ton_client::net::query_collection(
+        ton,
+        ParamsOfQueryCollection {
+            collection: "messages".to_string(),
+            filter: Some(serde_json::json!({
+                "id": {
+                    "in": msg_id
+                }
+            })),
+            result: "body".to_string(),
+            limit: None,
+            order: None,
+        }
+    ).await.unwrap().result[0]["body"].as_str().unwrap().to_string()
+}
+
 pub async fn decode_msg(ton: Arc<ClientContext>, msg: &str, abi: Abi) -> Value {
-    ton_client::abi::decode_message(ton.clone(), ton_client::abi::ParamsOfDecodeMessage {
+    // ton_client::abi::decode_message_body(ton.clone(), ton_client::abi::ParamsOfDecodeMessageBody {
+    //     abi,
+    //     body: msg.to_owned(),
+    //     is_internal: true,
+    // }).await.unwrap().value.unwrap()
+    ton_client::abi::decode_message(ton, ParamsOfDecodeMessage {
         abi,
         message: msg.to_owned(),
+    }).await.unwrap().value.unwrap()
+}
+
+pub async fn decode_msg_by_id(ton: Arc<ClientContext>, msg_id: &str, abi: Abi) -> Value {
+    let msg = get_msg_by_id(ton.clone(), msg_id).await;
+    ton_client::abi::decode_message(ton, ParamsOfDecodeMessage {
+        abi,
+        message: msg,
     }).await.unwrap().value.unwrap()
 }
 

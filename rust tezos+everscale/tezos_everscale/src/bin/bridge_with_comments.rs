@@ -17,7 +17,6 @@ async fn submit_transaction(
     amount: &str,
     receiver: String,
 ) -> String {
-    let ever_accs = get_json_field("../dependencies/json/everscale_accounts.json", None, None);
     call_contract_with_client(
         ton,
         config.clone(),
@@ -176,7 +175,7 @@ async fn main() {
         ton_client::net::ParamsOfSubscribeCollection {
             collection: "transactions".to_owned(),
             filter: None,
-            result: "id in_message { value } account_addr in_msg ".to_owned(),
+            result: "id account_addr in_msg in_message { value }".to_owned(),
         },
         |result| async {
             match result {
@@ -197,18 +196,26 @@ async fn main() {
                                     })
                                     .unwrap(),
                                 );
-                                println!("{:#}", decode_msg(
+                                let address_hex = decode_msg_by_id(
                                     Arc::clone(&ton1),
                                     result.result["in_msg"].as_str().unwrap(),
-                                    load_abi_json("../dependencies/json/SetcodeMultisigWallet.abi.json").unwrap(),
-                                ).await);
+                                    // "388d0d91d23f4dbc97d277496cc0cd70219e646ae18a6c8e38d1ab7a9ce780e8",
+                                    load_abi_json("../dependencies/json/transfer.abi.json").unwrap(),
+                                ).await;
                                 let v_u64 = hex_to_dec(v);
-                                println!("{}", v_u64);
+                                println!("Amount: {}", v_u64);
                                 let sender = get_json_field("../dependencies/json/tezos_accounts.json", None, Some(2));
-                                let receiver = get_json_field("../dependencies/json/tezos_accounts.json", None, Some(3));
+                                // let receiver = get_json_field("../dependencies/json/tezos_accounts.json", None, Some(3));
                                 tezos_transfer(
                                     sender["address"].as_str().unwrap(),
-                                    receiver["address"].as_str().unwrap(),
+                                    std::str::from_utf8(
+                                        hex::decode(
+                                            address_hex["comment"]
+                                                .as_str()
+                                                .unwrap()
+                                        ).unwrap()
+                                        .as_ref()
+                                    ).unwrap(),
                                     sender["public"].as_str().unwrap(),
                                     sender["secret"].as_str().unwrap(),
                                     format!("{}", v_u64 as f64 / 1000000000.0).as_str(),
