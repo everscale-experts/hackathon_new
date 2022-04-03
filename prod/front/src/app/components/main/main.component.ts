@@ -1,4 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { MatSelectChange } from '@angular/material/select';
+
+const EverTokenList = ['SOON', 'BRIDGE'];
+import TezosTokenList from '../../../assets/tezosTokenList.json';
 
 @Component({
   selector: 'app-main',
