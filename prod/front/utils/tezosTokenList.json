@@ -7,7 +7,7 @@
   {
     "name": "wXTZ",
     "type": "FA 1.2",
-    "desc": "Wrapped Te..."
+    "desc": "Wrapped Tezos"
   },
   {
     "name": "USDS",
@@ -22,7 +22,7 @@
   {
     "name": "STKR",
     "type": "FA 1.2",
-    "desc": "Staker Gov..."
+    "desc": "Staker Governance"
   },
   {
     "name": "USDtz",
@@ -37,12 +37,12 @@
   {
     "name": "hDAO",
     "type": "FA 2.0",
-    "desc": "hic et nun..."
+    "desc": "Hic Et Nunc governance"
   },
   {
     "name": "WRAP",
     "type": "FA 2.0",
-    "desc": "Wrap Gover..."
+    "desc": "Wrap Governance"
   },
   {
     "name": "CRUNCH",
@@ -107,7 +107,7 @@
   {
     "name": "wMATIC",
     "type": "FA 2.0",
-    "desc": "Wrapped MA..."
+    "desc": "Wrapped MATIC"
   },
   {
     "name": "wMKR",
@@ -127,7 +127,7 @@
   {
     "name": "wSUSHI",
     "type": "FA 2.0",
-    "desc": "Wrapped SU..."
+    "desc": "Wrapped SUSHI"
   },
   {
     "name": "wUNI",
@@ -197,7 +197,7 @@
   {
     "name": "YOU",
     "type": "FA 2.0",
-    "desc": "youves YOU..."
+    "desc": "youves YOU governance"
   },
   {
     "name": "RCKT",
