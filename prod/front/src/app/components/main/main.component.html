@@ -1,5 +1,5 @@
 <h1>Everscale-Tezos Bridge</h1>
-<mat-grid-list cols="2">
+<mat-grid-list [cols]="breakpoint" (window:resize)="onResize($event)">
   <mat-grid-tile>
 <div class="container">
 
