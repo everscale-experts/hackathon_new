@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { MatSelectChange } from '@angular/material/select';
 import { FormControl, Validators } from '@angular/forms';
-// import { MatSelectChange } from '@angular/material/select';
 
 import EverTokenList from '../../../assets/EverTokenList.json';
 import TezosTokenList from '../../../assets/TezosTokenList.json';
@@ -60,6 +60,10 @@ export class MainComponent implements OnInit {
       this.srcTokenChosen = 'EVER';
       this.dstTokenChosen = 'wEVER';
     }
+  }
+
+  onSelectionChange(event: MatSelectChange) {
+    console.log('onSelectionChange, newValue = ', event.value, event.source);
   }
 
   onSrcTokenChange(newTokenValue: string) {
