@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatSelectChange } from '@angular/material/select';
-import {FormControl, Validators} from '@angular/forms';
+import { FormControl, Validators } from '@angular/forms';
 
 import EverTokenList from '../../../assets/EverTokenList.json';
 import TezosTokenList from '../../../assets/TezosTokenList.json';
@@ -11,8 +11,13 @@ import TezosTokenList from '../../../assets/TezosTokenList.json';
   styleUrls: ['./main.component.scss']
 })
 export class MainComponent implements OnInit {
-  amountControl = new FormControl('', [
-    Validators.pattern('\d+'),
+  srcAmountControl = new FormControl('0', [
+    Validators.pattern(/\d+/),
+    Validators.min(1),
+    Validators.max(9999),
+  ]);
+  dstAmountControl = new FormControl('0', [
+    Validators.pattern(/\d+/),
     Validators.min(1),
     Validators.max(9999),
   ]);
@@ -66,7 +71,7 @@ export class MainComponent implements OnInit {
   }
 
   onSrcTokenChange(newTokenValue: string) {
-    if( newTokenValue === this.srcTokenList[0]) {
+    if (newTokenValue === this.srcTokenList[0]) {
       this.dstTokenChosen = this.dstCoin;
     } else {
       this.dstTokenChosen = this.dstTokenList[0];
@@ -74,7 +79,7 @@ export class MainComponent implements OnInit {
   }
 
   onDstTokenChange(newTokenValue: string) {
-    if( newTokenValue === this.dstTokenList[0]) {
+    if (newTokenValue === this.dstTokenList[0]) {
       this.srcTokenChosen = this.srcCoin;
     } else {
       this.srcTokenChosen = this.srcTokenList[0];
@@ -83,13 +88,36 @@ export class MainComponent implements OnInit {
 
   // TODO: calculate on every keypress
   calculateAmount(isSrcChanged: boolean, newValue: string) {
-    if(isSrcChanged) {
+    if (isSrcChanged) {
       this.dstAmount = (Number.parseFloat(newValue) * 0.99).toFixed(8)
         .replace(/(\.\d*)0+/, '$1');  // FIXME: remove ending 0s
+      this.dstAmountControl.setValue(this.dstAmount);
+
     } else {
+      console.log(this.dstAmountControl.errors);
       this.srcAmount = (Number.parseFloat(newValue) / 0.99).toFixed(8)
-        .replace(/\.0+$/, '');
+        .replace(/\.0+$/, '');        // FIXME: round up (increment the last digit)
+      this.srcAmountControl.setValue(this.srcAmount);
     }
+  }
+
+  // FIXME: error appears after second setFocus() only
+  explainTheError(control: FormControl) {
+    const errors = control.errors || {};
+    return `Wrong number: ` + Object
+      .keys(errors)
+      .reduce((message, err) => {
+        switch (err) {
+          case 'min':
+            return message + `minimal value is ${errors[err].min}. `;
+          case 'max':
+            return message + `maximum value is ${errors[err].max}. `;
+          case 'pattern':
+            return message + `it should be number. `;
+          default:
+            return message + `wrong amount. `;
+        }
+      }, '');
   }
 
   consoleLog(event: any) {

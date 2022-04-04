@@ -39,9 +39,10 @@
            type="number"
            [value]="srcAmount"
            (change)="calculateAmount(true, srcInputElement.value)"
+           [formControl]="srcAmountControl"
     >
     <mat-hint>Amount of {{srcTokenChosen}} to pay</mat-hint>
-    <mat-error *ngIf="amountControl.invalid">{{'Wrong input'}}</mat-error>
+    <mat-error *ngIf="srcAmountControl.invalid">{{explainTheError(srcAmountControl)}}</mat-error>
   </mat-form-field>
 
 </div>
@@ -85,9 +86,9 @@
            type="number"
            [value]="dstAmount"
            (change)="calculateAmount(false, dstInputElement.value)"
+           [formControl]="dstAmountControl"
     >
-    <!--           [formControl]="amountControl"-->
-    <mat-error *ngIf="amountControl.invalid">{{'Wrong input'}}</mat-error>
+    <mat-error *ngIf="dstAmountControl.invalid">{{explainTheError(dstAmountControl)}}</mat-error>
     <mat-hint>Amount of {{dstTokenChosen}} to receive</mat-hint>
   </mat-form-field>
 
