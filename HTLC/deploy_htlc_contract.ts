@@ -11,7 +11,7 @@ import {char2Bytes} from '@taquito/utils';
 import { readFileSync } from "fs";
 
 const htlc_contract: string = fs.readFileSync('./htlc_contract.tz').toString();
-const provider = 'https://rpc.hangzhounet.teztnets.xyz'
+const provider = 'https://hangzhounet.smartpy.io'
 
 async function deploy() {
   const tezos = new TezosToolkit(provider)

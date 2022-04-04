@@ -1,6 +1,6 @@
 { parameter
-    (or (or (pair %createLock (bytes %seed_f) (address %dest)) (unit %default))
-        (pair %openLock (address %dest) (bytes %seed_f))) ;
+    (or (or (pair %createLock (bytes %hash) (address %dest)) (unit %default))
+        (pair %openLock (address %dest) (bytes %secret))) ;
   storage
     (pair (pair (big_map %chests
                    address
@@ -24,14 +24,11 @@
                  CAR ;
                  PAIR ;
                  PAIR ;
-                 AMOUNT ;
-                 SWAP ;
                  DUP ;
-                 DUG 2 ;
                  CDR ;
                  SENDER ;
                  GET ;
-                 IF_NONE { PUSH string "You have not transfer" ; FAILWITH } { SWAP ; DROP } ;
+                 IF_NONE { PUSH string "You have not transfer" ; FAILWITH } {} ;
                  SWAP ;
                  DUP ;
                  DUG 2 ;
@@ -51,7 +48,6 @@
                  DIG 2 ;
                  SUB ;
                  DIG 2 ;
-                 SHA256 ;
                  DIG 3 ;
                  PAIR ;
                  PUSH int 3600 ;
@@ -86,6 +82,14 @@
                  PAIR }
                { DROP ;
                  AMOUNT ;
+                 SWAP ;
+                 DUP ;
+                 DUG 2 ;
+                 CDR ;
+                 SENDER ;
+                 GET ;
+                 IF_NONE { PUSH mutez 0 } {} ;
+                 ADD ;
                  SWAP ;
                  DUP ;
                  DUG 2 ;
