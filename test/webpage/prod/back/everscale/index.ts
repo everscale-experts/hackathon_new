@@ -117,7 +117,7 @@ export class Wallet extends Account {
             payload: payload ? await this.encodePayload(payload) : ""
         })
     }
-    
+
     public async onTransaction(callback: (data: ITransactionNotification) => void){
         await this.subscribe("transactions", {
             account_addr: { eq: await this.getAddress() }
@@ -156,14 +156,14 @@ export class TokenWallet {
         this.keys = keys;
         this.account = new Account(getContract("TokenWallet"), {
             signer: keys ? signerKeys(keys) : signerNone(),
-            address, 
+            address,
             client
         });
     }
 
     private messageHandler(data: {boc: string, id: string, src: string}, callback: (data: ITokenReceivedNotification) => void){
         this.account.decodeMessage(data.boc).then(async decoded => {
-            if(decoded.name === "internalTransfer"){
+            if(decoded.name === "acceptTransfer"){
                 callback({
                     message_id: data.id,
                     from: data.src,
@@ -187,7 +187,7 @@ export class TokenWallet {
         }
     }
 
-    
+
 
     private async encodePayload(text: string){
         return (await this.account.client.abi.encode_message_body({
@@ -236,7 +236,7 @@ export class TokenWallet {
             return_ownership: 0,
             payload: payload ? await this.encodePayload(payload) : ""
         });
-        
+
         return transfer.out_messages.length ? transfer.transaction.id : null
     }
 }
@@ -344,7 +344,7 @@ export class MassListener {
             result: "boc src dst id"
         }, ({result: msg}) => this.tokenReceivedHandler(msg, callback))
     }
-    
+
 
     public onReceived(callback: INotificationHandler){
         this.onTokenReceived(callback);

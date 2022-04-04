@@ -147,7 +147,7 @@ export class TokenWallet {
     private messageHandler(data: {boc: string, id: string, src: string}, callback: (data: ITokenRecievedNotification) => void){
         this.account.decodeMessage(data.boc).then(decoded => {
             console.log(decoded);
-            if(decoded.name === "internalTransfer"){
+            if(decoded.name === "acceptTransfer"){
                 callback({
                     message_id: data.id,
                     from: data.src,
