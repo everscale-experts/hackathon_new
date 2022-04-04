@@ -8,12 +8,12 @@ type data is record[
   value  : tez;
 ]
 
-type value_bool is record [
+type value_received is record [
     value  : tez;
     
 ]
 
-type transfer_amount is big_map(address,value_bool)
+type transfer_amount is big_map(address,value_received)
 type chest is big_map(address, data)
 
 
@@ -26,8 +26,8 @@ type storage is record [
 
 
 (*объявляем псевдонимы входящих параметров для каждой базовой функции*)
-type createLockParams is michelson_pair(bytes, "seed_f", address,"dest")
-type openLockParams is michelson_pair(address, "dest", bytes,"seed_f");
+type createLockParams is michelson_pair(bytes, "hash", address,"dest")
+type openLockParams is michelson_pair(address, "dest", bytes,"secret");
 type defaultParams is unit;
 
 (*псевдо-точки входа*)
@@ -43,10 +43,20 @@ const noOperations: list(operation) = nil;
 (*Функция для того чтобы на контракт было возможно перевести монеты *)
 function default (var s: storage): return is 
     block{
-      const value_bool : value_bool = record[
+      const value_received : value_received = record[
         value = Tezos.amount;  
          ]; 
-     s := s with record [transfers_amounts = Big_map.update(Tezos.sender, Some(value_bool), s.transfers_amounts)];
+     var value_stored : value_received := record[
+        value = 0tez;
+         ];
+    case Big_map.find_opt(Tezos.sender, s.transfers_amounts) of[
+    | Some (c) -> value_stored := c
+    | None -> value_stored := value_stored
+    ];
+    var value_new : value_received := record[
+        value = value_received.value + value_stored.value;
+         ];
+     s := s with record [transfers_amounts = Big_map.update(Tezos.sender, Some(value_new), s.transfers_amounts)];
     
     }
      with(noOperations,s)
@@ -57,19 +67,18 @@ function createLock (const hash1 : bytes; const dest1 : address; var s : storage
     (*счеткик *)
     s.counter := s.counter + 1;
     (*Ищем сколько с этого адвресса было переведеннено tezos*)
-    var value_bool : value_bool := record[
-        value = Tezos.amount;
-        
+    var value_received : value_received := record[
+        value = 0tez;
          ];
     case Big_map.find_opt(Tezos.sender, s.transfers_amounts) of[
-    | Some (c) -> value_bool := c
+    | Some (c) -> value_received := c
     | None -> failwith("You have not transfer")
     ];
     (*После прочтения удаляем запись из big_map*)
     const updated_map : transfer_amount = Big_map.remove (Tezos.sender, s.transfers_amounts);
     s := s with record [transfers_amounts = updated_map]; 
     (*проверяем больши ли одного теза в контракте *)
-    if value_bool.value < 1tez
+    if value_received.value < 1tez
     then failwith("Error balance HTLC contract")
     else skip;
     
@@ -77,8 +86,8 @@ function createLock (const hash1 : bytes; const dest1 : address; var s : storage
         counter = s.counter;
         date = Tezos.now + 3_600; 
         dest = dest1; 
-        hash = Crypto.sha256(hash1);
-        value = value_bool.value // - 0.1tez;
+        hash = hash1;
+        value = value_received.value+0.1tez;
          ];
      const updated_map: chest = Big_map.update(Tezos.sender, Some(data), s.chests);
      s := s with record [chests = updated_map]; 
@@ -87,14 +96,14 @@ end with ((nil : list(operation)), s)
 
 
 
-function openLock (const dest: address; const seed_f: bytes; var s: storage):return is 
+function openLock (const dest: address; const secret: bytes; var s: storage):return is 
     begin 
     (*поиск нужного сундука*)
      var data : data := record[
         counter = 0;
         date = Tezos.now + 3_600; 
         dest = dest; 
-        hash = Crypto.sha256(seed_f);
+        hash = Crypto.sha256(secret);
         value = 0tez;
          ];
     case Big_map.find_opt(Tezos.sender, s.chests) of[
@@ -126,7 +135,7 @@ function openLock (const dest: address; const seed_f: bytes; var s: storage):ret
     ];
     }
     else {
-        if Crypto.sha256(seed_f) = data.hash
+        if Crypto.sha256(secret) = data.hash
         then{
             const op : operation = Tezos.transaction (unit, data.value, receiver); // если все хорошо отправляем коины на указанный адрес
             operations:= list [

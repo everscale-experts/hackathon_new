@@ -10,8 +10,8 @@ import * as fs from 'fs';
 import {char2Bytes} from '@taquito/utils';
 import { readFileSync } from "fs";
 
-const htlc_contract: string = fs.readFileSync('./htlc_contract.tz').toString(); // читаем данные из файла 
-const provider = 'https://rpc.hangzhounet.teztnets.xyz'
+const htlc_contract: string = fs.readFileSync('./htlc_contract.tz').toString();
+const provider = 'https://hangzhounet.smartpy.io'
 
 async function deploy() {
   const tezos = new TezosToolkit(provider)
@@ -28,7 +28,7 @@ async function deploy() {
         code: htlc_contract,
         //значение хранилища
         storage: {
-                counter:0, // определеям с какого числа будет считать счётчик 
+                counter:0,
                 chests,
                 transfers_amounts,
               },
