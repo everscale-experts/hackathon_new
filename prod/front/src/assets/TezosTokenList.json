@@ -1,0 +1,322 @@
+[
+  {
+    "name": "wEVER",
+    "type": "FA 2.0",
+    "desc": "Wrapped EVER"
+  },
+  {
+    "name": "KUSD",
+    "type": "FA 1.2",
+    "desc": "Kolibri"
+  },
+  {
+    "name": "wXTZ",
+    "type": "FA 1.2",
+    "desc": "Wrapped Tezos"
+  },
+  {
+    "name": "USDS",
+    "type": "FA 2.0",
+    "desc": "Stably USD"
+  },
+  {
+    "name": "tzBTC",
+    "type": "FA 1.2",
+    "desc": "tzBTC"
+  },
+  {
+    "name": "STKR",
+    "type": "FA 1.2",
+    "desc": "Staker Governance"
+  },
+  {
+    "name": "USDtz",
+    "type": "FA 1.2",
+    "desc": "USDtez"
+  },
+  {
+    "name": "ETHtz",
+    "type": "FA 1.2",
+    "desc": "ETHtez"
+  },
+  {
+    "name": "hDAO",
+    "type": "FA 2.0",
+    "desc": "Hic Et Nunc governance"
+  },
+  {
+    "name": "WRAP",
+    "type": "FA 2.0",
+    "desc": "Wrap Governance"
+  },
+  {
+    "name": "CRUNCH",
+    "type": "FA 2.0",
+    "desc": "CRUNCH"
+  },
+  {
+    "name": "wAAVE",
+    "type": "FA 2.0",
+    "desc": "Wrapped AAVE"
+  },
+  {
+    "name": "wBUSD",
+    "type": "FA 2.0",
+    "desc": "Wrapped BUSD"
+  },
+  {
+    "name": "wCEL",
+    "type": "FA 2.0",
+    "desc": "Wrapped CEL"
+  },
+  {
+    "name": "wCOMP",
+    "type": "FA 2.0",
+    "desc": "Wrapped COMP"
+  },
+  {
+    "name": "wCRO",
+    "type": "FA 2.0",
+    "desc": "Wrapped CRO"
+  },
+  {
+    "name": "wDAI",
+    "type": "FA 2.0",
+    "desc": "Wrapped DAI"
+  },
+  {
+    "name": "wFTT",
+    "type": "FA 2.0",
+    "desc": "Wrapped FTT"
+  },
+  {
+    "name": "wHT",
+    "type": "FA 2.0",
+    "desc": "Wrapped HT"
+  },
+  {
+    "name": "wHUSD",
+    "type": "FA 2.0",
+    "desc": "Wrapped HUSD"
+  },
+  {
+    "name": "wLEO",
+    "type": "FA 2.0",
+    "desc": "Wrapped LEO"
+  },
+  {
+    "name": "wLINK",
+    "type": "FA 2.0",
+    "desc": "Wrapped LINK"
+  },
+  {
+    "name": "wMATIC",
+    "type": "FA 2.0",
+    "desc": "Wrapped MATIC"
+  },
+  {
+    "name": "wMKR",
+    "type": "FA 2.0",
+    "desc": "Wrapped MKR"
+  },
+  {
+    "name": "wOKB",
+    "type": "FA 2.0",
+    "desc": "Wrapped OKB"
+  },
+  {
+    "name": "wPAX",
+    "type": "FA 2.0",
+    "desc": "Wrapped PAX"
+  },
+  {
+    "name": "wSUSHI",
+    "type": "FA 2.0",
+    "desc": "Wrapped SUSHI"
+  },
+  {
+    "name": "wUNI",
+    "type": "FA 2.0",
+    "desc": "Wrapped UNI"
+  },
+  {
+    "name": "wUSDC",
+    "type": "FA 2.0",
+    "desc": "Wrapped USDC"
+  },
+  {
+    "name": "wUSDT",
+    "type": "FA 2.0",
+    "desc": "Wrapped USDT"
+  },
+  {
+    "name": "wWBTC",
+    "type": "FA 2.0",
+    "desc": "Wrapped WBTC"
+  },
+  {
+    "name": "wWETH",
+    "type": "FA 2.0",
+    "desc": "Wrapped WETH"
+  },
+  {
+    "name": "PLENTY",
+    "type": "FA 1.2",
+    "desc": "Plenty DAO"
+  },
+  {
+    "name": "KALAM",
+    "type": "FA 2.0",
+    "desc": "Kalamint"
+  },
+  {
+    "name": "crDAO",
+    "type": "FA 2.0",
+    "desc": "Crunchy DAO"
+  },
+  {
+    "name": "SMAK",
+    "type": "FA 1.2",
+    "desc": "SmartLink"
+  },
+  {
+    "name": "kDAO",
+    "type": "FA 1.2",
+    "desc": "Kolibri DAO"
+  },
+  {
+    "name": "uUSD",
+    "type": "FA 2.0",
+    "desc": "youves uUSD"
+  },
+  {
+    "name": "uDEFI",
+    "type": "FA 2.0",
+    "desc": "youves uDEFI"
+  },
+  {
+    "name": "bDAO",
+    "type": "FA 2.0",
+    "desc": "Bazaar DAO"
+  },
+  {
+    "name": "YOU",
+    "type": "FA 2.0",
+    "desc": "youves YOU governance"
+  },
+  {
+    "name": "RCKT",
+    "type": "FA 2.0",
+    "desc": "Rocket"
+  },
+  {
+    "name": "rkDAO",
+    "type": "FA 2.0",
+    "desc": "Rocket DAO"
+  },
+  {
+    "name": "UNO",
+    "type": "FA 2.0",
+    "desc": "Unobtanium"
+  },
+  {
+    "name": "GIF",
+    "type": "FA 2.0",
+    "desc": "GIF DAO"
+  },
+  {
+    "name": "IDZ",
+    "type": "FA 2.0",
+    "desc": "TezID"
+  },
+  {
+    "name": "EASY",
+    "type": "FA 2.0",
+    "desc": "CryptoEasy"
+  },
+  {
+    "name": "INSTA",
+    "type": "FA 2.0",
+    "desc": "Instaraise"
+  },
+  {
+    "name": "xPLENTY",
+    "type": "FA 1.2",
+    "desc": "xPLENTY"
+  },
+  {
+    "name": "ctez",
+    "type": "FA 1.2",
+    "desc": "Ctez"
+  },
+  {
+    "name": "PAUL",
+    "type": "FA 1.2",
+    "desc": "PAUL Token"
+  },
+  {
+    "name": "SPI",
+    "type": "FA 2.0",
+    "desc": "Spice Token"
+  },
+  {
+    "name": "WTZ",
+    "type": "FA 2.0",
+    "desc": "WTZ"
+  },
+  {
+    "name": "FLAME",
+    "type": "FA 2.0",
+    "desc": "FLAME"
+  },
+  {
+    "name": "fDAO",
+    "type": "FA 2.0",
+    "desc": "fDAO"
+  },
+  {
+    "name": "PXL",
+    "type": "FA 2.0",
+    "desc": "Pixel"
+  },
+  {
+    "name": "sDAO",
+    "type": "FA 2.0",
+    "desc": "Salsa DAO"
+  },
+  {
+    "name": "akaDAO",
+    "type": "FA 2.0",
+    "desc": "akaSwap DAO"
+  },
+  {
+    "name": "MIN",
+    "type": "FA 2.0",
+    "desc": "Minerals"
+  },
+  {
+    "name": "ENR",
+    "type": "FA 2.0",
+    "desc": "Energy"
+  },
+  {
+    "name": "MCH",
+    "type": "FA 2.0",
+    "desc": "Machinery"
+  },
+  {
+    "name": "uBTC",
+    "type": "FA 2.0",
+    "desc": "youves uBTC"
+  },
+  {
+    "name": "MTRIA",
+    "type": "FA 2.0",
+    "desc": "Materia"
+  },
+  {
+    "name": "DOGA",
+    "type": "FA 1.2",
+    "desc": "DOGAMI"
+  }
+]
