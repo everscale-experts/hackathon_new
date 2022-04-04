@@ -1,5 +1,10 @@
 [
   {
+    "name": "wEVER",
+    "type": "FA 2.0",
+    "desc": "Wrapped EVER"
+  },
+  {
     "name": "KUSD",
     "type": "FA 1.2",
     "desc": "Kolibri"
