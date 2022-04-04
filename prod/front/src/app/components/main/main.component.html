@@ -1,0 +1,97 @@
+<h1>Everscale-Tezos Bridge</h1>
+
+<div class="container">
+
+  <h3>Choose what you have:</h3>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Blockchain</mat-label>
+    <mat-select [(value)]="srcChain"
+                (selectionChange)="onSelectionChange($event)"
+                (valueChange)="onChainValueChange($event === 'Tezos')"
+    >
+      <mat-option value="Everscale">Everscale</mat-option>
+      <mat-option value="Tezos">Tezos</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Token</mat-label>
+    <mat-select [(value)]="srcTokenChosen"
+                (valueChange)="onSrcTokenChange($event)"
+    >
+      <mat-optgroup label="Native coins">
+        <mat-option [value]=srcCoin>{{srcCoin}}</mat-option>
+      </mat-optgroup>
+      <mat-optgroup label="Tokens">
+        <mat-option *ngFor="let token of srcTokenList; index as index"
+                    [value]=token
+                    [disabled]="index > 0"
+        >{{token}}</mat-option>
+      </mat-optgroup>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Amount</mat-label>
+    <input matInput #srcInputElement
+           placeholder="Amount"
+           type="number"
+           [value]="srcAmount"
+           (change)="calculateAmount(true, srcInputElement.value)"
+           [formControl]="srcAmountControl"
+    >
+    <mat-hint>Amount of {{srcTokenChosen}} to pay</mat-hint>
+    <mat-error *ngIf="srcAmountControl.invalid">{{explainTheError(srcAmountControl)}}</mat-error>
+  </mat-form-field>
+
+</div>
+
+
+<div class="container">
+
+  <h3>Choose what you want:</h3>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Blockchain</mat-label>
+    <mat-select [(value)]="dstChain"
+                (valueChange)="onChainValueChange($event === 'Everscale')"
+    >
+      <mat-option value="Everscale">Everscale</mat-option>
+      <mat-option value="Tezos">Tezos</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Token</mat-label>
+    <mat-select [(value)]="dstTokenChosen"
+                (valueChange)="onDstTokenChange($event)"
+    >
+      <mat-optgroup label="Native coins">
+        <mat-option [value]=dstCoin>{{dstCoin}}</mat-option>
+      </mat-optgroup>
+      <mat-optgroup label="Tokens">
+        <mat-option *ngFor="let token of dstTokenList; index as index"
+                    [value]=token
+                    [disabled]="index > 0"
+        >{{token}}</mat-option>
+      </mat-optgroup>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Amount</mat-label>
+    <input matInput #dstInputElement
+           placeholder="Amount"
+           type="number"
+           [value]="dstAmount"
+           (change)="calculateAmount(false, dstInputElement.value)"
+           [formControl]="dstAmountControl"
+    >
+    <mat-error *ngIf="dstAmountControl.invalid">{{explainTheError(dstAmountControl)}}</mat-error>
+    <mat-hint>Amount of {{dstTokenChosen}} to receive</mat-hint>
+  </mat-form-field>
+
+</div>
+
+<router-outlet></router-outlet>
