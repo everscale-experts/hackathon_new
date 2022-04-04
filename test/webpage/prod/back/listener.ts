@@ -8,16 +8,17 @@ const RPC = "https://rpc.hangzhounet.teztnets.xyz";
 
 TonClient.useBinaryLibrary(libNode);
 
-const client = new TonClient({ 
+const client = new TonClient({
     network: {
-        endpoints: ['net.ton.dev']
+        endpoints: ['main3.ton.dev']
     }
 });
 
 async function main() {
     const tezos = new TezosToolkit(RPC);
     const everscale = new TokenWallet(client, null, config.everscale.address);
-    
+    console.log(everscale);
+
     console.log(`[*] EVERSCALE: Listening ${everscale.address} for incoming tokens...`)
     console.log(`[*] TEZOS: Listening ${config.tezos.token_contract} for incoming tokens...`)
     console.log("\n");
