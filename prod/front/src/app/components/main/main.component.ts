@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { MatSelectChange } from '@angular/material/select';
 import { FormControl, Validators } from '@angular/forms';
+// import { MatSelectChange } from '@angular/material/select';
 
 import EverTokenList from '../../../assets/EverTokenList.json';
 import TezosTokenList from '../../../assets/TezosTokenList.json';
@@ -38,10 +38,6 @@ export class MainComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  onClick(type: string, e: any): void {
-    console.log(type, ':', e);
-  }
-
   onChainValueChange(isSrcChainTezos: boolean) {
     if (isSrcChainTezos) {
       this.srcChain = 'Tezos';
@@ -64,10 +60,6 @@ export class MainComponent implements OnInit {
       this.srcTokenChosen = 'EVER';
       this.dstTokenChosen = 'wEVER';
     }
-  }
-
-  onSelectionChange(event: MatSelectChange) {
-    console.log('onSelectionChange, newValue = ', event.value, event.source);
   }
 
   onSrcTokenChange(newTokenValue: string) {
@@ -94,7 +86,6 @@ export class MainComponent implements OnInit {
       this.dstAmountControl.setValue(this.dstAmount);
 
     } else {
-      console.log(this.dstAmountControl.errors);
       this.srcAmount = (Number.parseFloat(newValue) / 0.99).toFixed(8)
         .replace(/\.0+$/, '');        // FIXME: round up (increment the last digit)
       this.srcAmountControl.setValue(this.srcAmount);
