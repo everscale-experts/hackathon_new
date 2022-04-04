@@ -174,7 +174,11 @@ async function main(client: TonClient) {
     const client = new TonClient({
         network: {
             // Local TON OS SE instance URL here
-            endpoints: ['http://localhost']
+            // endpoints: ['http://localhost']
+            endpoints: [
+                'https://net1.ton.dev',
+                'https://net5.ton.dev'
+            ]
         }
     });
     try {
