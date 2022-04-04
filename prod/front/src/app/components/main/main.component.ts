@@ -11,6 +11,7 @@ import TezosTokenList from '../../../assets/TezosTokenList.json';
   styleUrls: ['./main.component.scss']
 })
 export class MainComponent implements OnInit {
+  breakpoint: number | undefined;
   srcAmountControl = new FormControl('0', [
     Validators.pattern(/\d+/),
     Validators.min(1),
@@ -36,6 +37,8 @@ export class MainComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    this.breakpoint = (window.innerWidth <= 400) ? 1 : 2;
+
   }
 
   onChainValueChange(isSrcChainTezos: boolean) {
@@ -117,6 +120,14 @@ export class MainComponent implements OnInit {
 
   consoleLog(event: any) {
     console.log(event);
+  }
+
+/*  ngOnInit() {
+    this.breakpoint = (window.innerWidth <= 400) ? 1 : 2;
+  }*/
+
+  onResize(event:any) {
+    this.breakpoint = (event.target.innerWidth <= 400) ? 1 : 2;
   }
 
 }
