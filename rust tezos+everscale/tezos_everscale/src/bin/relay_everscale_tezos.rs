@@ -2,7 +2,9 @@ mod functions;
 mod tezos_send_transaction;
 mod common;
 mod commands;
+mod tezos_batch;
 use functions::*;
+use tezos_batch::create_batch;
 use ureq::Agent;
 use std::fs;
 use serde_json::Value;
@@ -169,7 +171,6 @@ async fn main() {
         .unwrap(),
     );
 
-    // subscribe for all transactions in everscale (new thread)
     ton_client::net::subscribe_collection(
         context.clone(),
         ton_client::net::ParamsOfSubscribeCollection {
@@ -182,7 +183,7 @@ async fn main() {
                 Ok(result) => {
                     if let Some(address) = result.result["account_addr"].as_str() {
                         if let Some(v) = result.result["in_message"]["value"].as_str() {
-                            if address == get_json_field("./dependencies/json/everscale_accounts.json", None, None)[1]["address"]
+                            if address == get_json_field("./dependencies/json/config.json", Some("htlc1"), None)
                                 .as_str().unwrap().to_owned() {
                                 println!("{:#}", result.result);
                                 let ton1 = Arc::new(
@@ -243,8 +244,6 @@ async fn main() {
                     everscale_transaction((amount.max(1000) * 1000).to_string().as_str(), &ton, config.clone(), ever_receiver).await;
                 }
             }
-            // println!("{:#}", res[0]["amount"]); // nanoXTZ
-            // everscale_transaction12((amount * 1000).to_string().as_str(), &ton, config.clone()).await;
             last_len = len;
         }
     }
