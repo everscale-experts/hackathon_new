@@ -21,3 +21,12 @@ temp/
 
 # sensitive information
 keys/
+work_acc.json
+work_acc
+
+# big files
+tonos-cli
+
+# Angular cache
+.angular
+
