@@ -170,6 +170,7 @@ async fn main() {
         })
         .unwrap(),
     );
+    create_batch();
 
     ton_client::net::subscribe_collection(
         context.clone(),

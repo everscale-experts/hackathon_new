@@ -35,20 +35,27 @@ fn get_address_counter(agent: ureq::Agent, endpoint: String, address: String) ->
 }
 
 fn get_transactions_vec() -> Result<serde_json::Value, Error> {
+    let htlc2 = get_json_field(CONFIG, Some("htlc2"), None);
     Ok(
-        serde_json::from_str::<serde_json::Value>(r#"[
-            {
-                "sigs": [
-                  "edsigtj8W5Jd3EuTYEqEv6EemEwdEmXABzkfL9x9GAHnLLZhSWuEtKVCv6YFbmfhRjcuEqyxyWpzds5efKF3cuHy9fB5tpfiXFd"
-                ],
-                "payload": {
-                  "action": {
-                    "operation": "[{"prim":"DROP"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PUSH","args":[{"prim":"key_hash"},{"string":"tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7"}]},{"prim":"IMPLICIT_ACCOUNT"},{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"1"}]},{"prim":"UNIT"},{"prim":"TRANSFER_TOKENS"},{"prim":"CONS"}]"
-                  },
-                  "counter": "0"
+        serde_json::json!(
+            [
+                {
+                    "contract": get_json_field(CONFIG, Some("tezos_multisig"), None).as_str().unwrap(),
+                    "entrypoint": "main",
+                    "parameters": {
+                        "sigs": [
+                            "edsigtj8W5Jd3EuTYEqEv6EemEwdEmXABzkfL9x9GAHnLLZhSWuEtKVCv6YFbmfhRjcuEqyxyWpzds5efKF3cuHy9fB5tpfiXFd"
+                        ],
+                        "payload": {
+                            "action": {
+                                "operation": format!(r#"[{{"prim":"DROP"}},{{"prim":"NIL","args":[{{"prim":"operation"}}]}},{{"prim":"PUSH","args":[{{"prim":"key_hash"}},{{"string":"{}"}}]}},{{"prim":"IMPLICIT_ACCOUNT"}},{{"prim":"PUSH","args":[{{"prim":"mutez"]}},{{"int":"1"}}]}},{{"prim":"UNIT"}},{{"prim":"TRANSFER_TOKENS"}},{{"prim":"CONS"}}]"#, htlc2.as_str().unwrap())
+                            },
+                            "counter": "0"
+                        }
+                    }
                 }
-              }
-        ]"#)?
+            ]
+        )
     )
 }
 
@@ -57,13 +64,12 @@ fn get_value(
     endpoint: String,
     contract: String,
     entrypoint: String,
-    parameters: serde_json::Value,
+    parameters: ureq::SerdeValue,
 ) -> Result<serde_json::Value, Error> {
     println!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint);
-    println!("{:#}", parameters);
-    Ok(agent.post(format!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint).as_str())
-        .send_json(parameters).unwrap()
-        .into_json().unwrap())
+    let res = agent.post(format!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint).as_str())
+        .send_json(parameters.clone()).unwrap();
+    Ok(res.into_json().unwrap())
 }
 
 fn get_chain_id(agent: ureq::Agent, endpoint: String) -> String {
@@ -220,3 +226,5 @@ pub fn create_batch() {
     println!("https://hangzhou2net.tzkt.io/{}", inject_res.as_str().unwrap());
     println!("{}", inject_res);
 }
+
+fn main() {}
