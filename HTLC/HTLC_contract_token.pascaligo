@@ -5,7 +5,8 @@ type data is record[
   date   : timestamp;
   dest : address;
   hash   : bytes;
-  value  : tez;
+  value  : nat;
+  id_tokens : int;
 ]
 
 type value_bool is record [
@@ -13,7 +14,7 @@ type value_bool is record [
     
 ]
 
-type transfer_amount is big_map(address,value_bool)
+
 type chest is big_map(address, data)
 
 
@@ -21,10 +22,11 @@ type chest is big_map(address, data)
 type storage is record [
     counter: int;
     chests : chest;
-    transfers_amounts : transfer_amount;
+
 ]
 type token_id is int;
 type transfer_destination is
+[@layout:comb]
 record [
  to_ : address;
  token_id : token_id;
@@ -32,6 +34,7 @@ record [
 ]
 
 type transfer is
+[@layout:comb]
 record [
  from_ : address;
  txs : list(transfer_destination);
@@ -39,50 +42,27 @@ record [
 
 
 (*объявляем псевдонимы входящих параметров для каждой базовой функции*)
-type createLockParams is michelson_pair(bytes, "seed_f", address,"dest")
-type openLockParams is michelson_pair(address, "dest", bytes,"seed_f");
-type defaultParams is unit;
+type p1 is michelson_pair(bytes, "hash", address,"dest")
+type p2 is michelson_pair(nat, "amount_tokens",p1, "pair")
+type createLockParams is michelson_pair(int, "id_tokens", p2, "pair")
+type openLockParams is michelson_pair(address, "dest", bytes,"secret");
 
 (*псевдо-точки входа*)
 type parameter is 
-| Default of defaultParams
 | CreateLock of createLockParams
 | OpenLock          of openLockParams
 
 (*тип возвращаемых данных*)
 type return is list(operation) * storage
 
-const noOperations: list(operation) = nil;
-(*Функция для того чтобы на контракт было возможно перевести монеты *)
-function default (var s: storage): return is 
-    block{
-      const value_bool : value_bool = record[
-        value = Tezos.amount;  
-         ]; 
-     s := s with record [transfers_amounts = Big_map.update(Tezos.sender, Some(value_bool), s.transfers_amounts)];
-    
-    }
-     with(noOperations,s)
 
 
-function createLock (const hash1 : bytes; const dest1 : address; var s : storage): return is
+function createLock (const id_tokens : int;const amount_tokens: nat; const hash1 : bytes; const dest1 : address; var s : storage): return is
     begin
     (*счеткик *)
     s.counter := s.counter + 1;
-    (*Ищем сколько с этого адвресса было переведеннено tezos*)
-    var value_bool : value_bool := record[
-        value = Tezos.amount;
-        
-         ];
-    case Big_map.find_opt(Tezos.sender, s.transfers_amounts) of[
-    | Some (c) -> value_bool := c
-    | None -> failwith("You have not transfer")
-    ];
-    (*После прочтения удаляем запись из big_map*)
-    const updated_map : transfer_amount = Big_map.remove (Tezos.sender, s.transfers_amounts);
-    s := s with record [transfers_amounts = updated_map]; 
     (*проверяем больши ли одного теза в контракте *)
-    if value_bool.value < 1tez
+    if amount_tokens < 10000n
     then failwith("Error balance HTLC contract")
     else skip;
     
@@ -90,8 +70,9 @@ function createLock (const hash1 : bytes; const dest1 : address; var s : storage
         counter = s.counter;
         date = Tezos.now + 3_600; 
         dest = dest1; 
-        hash = Crypto.sha256(hash1);
-        value = value_bool.value+0.1tez;
+        hash = hash1;
+        value = amount_tokens; //-1n;
+        id_tokens = id_tokens;
          ];
      const updated_map: chest = Big_map.update(Tezos.sender, Some(data), s.chests);
      s := s with record [chests = updated_map]; 
@@ -100,15 +81,16 @@ end with ((nil : list(operation)), s)
 
 
 
-function openLock (const dest: address; const seed_f: bytes; var s: storage):return is 
+function openLock (const dest: address; const secret: bytes; var s: storage):return is 
     begin 
     (*поиск нужного сундука*)
      var data : data := record[
         counter = 0;
         date = Tezos.now + 3_600; 
         dest = dest; 
-        hash = Crypto.sha256(seed_f);
-        value = 0tez;
+        hash = Crypto.sha256(secret);
+        value = 0n;
+        id_tokens=0;
          ];
     case Big_map.find_opt(Tezos.sender, s.chests) of[
     | Some (c) -> data := c
@@ -122,8 +104,8 @@ function openLock (const dest: address; const seed_f: bytes; var s: storage):ret
     
     var transfer_destination1 : transfer_destination := record[
         to_ = dest;
-        token_id=1;
-        amount= 1n;
+        token_id=data.id_tokens;
+        amount= data.value;
     ];
     const transfer_receiver : transfer = record[
         from_ = Tezos.self_address;
@@ -132,8 +114,8 @@ function openLock (const dest: address; const seed_f: bytes; var s: storage):ret
 
     var transfer_destination : transfer_destination := record[
         to_ = Tezos.sender;
-        token_id=1;
-        amount= 1n;
+        token_id=data.id_tokens;
+        amount= data.value;
     ];
     const transfer_owner : transfer = record[
         from_ = Tezos.self_address;
@@ -141,7 +123,7 @@ function openLock (const dest: address; const seed_f: bytes; var s: storage):ret
     ];
 
     (*адресс контракта токенов *)
-    const tokenAddress : address = ("KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1":address);
+    const tokenAddress : address = ("KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s":address);
 
     
     // 
@@ -158,7 +140,7 @@ function openLock (const dest: address; const seed_f: bytes; var s: storage):ret
         operations := Tezos.transaction(transfer_owner, 0mutez,  entry_point) # operations;
     }
     else {
-        if Crypto.sha256(seed_f) = data.hash
+        if Crypto.sha256(secret) = data.hash
         then{
             operations := Tezos.transaction(transfer_receiver, 0mutez,  entry_point) # operations;
         }
@@ -173,7 +155,6 @@ end with (operations, s)
 
 function main(const p:parameter; var s:storage): return is 
 case p of [
-| Default(params) -> default(s)
-| CreateLock(params)-> createLock(params.0,params.1,s)
+| CreateLock(params)-> createLock(params.0,params.1.0,params.1.1.0, params.1.1.1,s)
 | OpenLock(params)-> openLock(params.0,params.1, s)
 ]
