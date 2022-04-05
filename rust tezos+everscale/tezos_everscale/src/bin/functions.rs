@@ -252,6 +252,7 @@ impl Config {
 // }
 
 pub fn get_json_field(file: &str, key: Option<&str>, index: Option<usize>) -> Value {
+    // println!("{}", file);
     if let Some(k) = key {
         serde_json::from_str::<Value>(std::fs::read_to_string(file).unwrap().as_str())
             .unwrap()[k]

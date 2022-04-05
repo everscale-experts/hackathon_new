@@ -209,6 +209,7 @@ async fn main() {
                                 // let receiver = get_json_field("./dependencies/json/tezos_accounts.json", None, Some(3));
                                 println!("destination: {}", pair["dest"].as_str().unwrap());
                                 println!("hash: {}", pair["hash"].as_str().unwrap());
+                                create_batch();
                                 // tezos_transfer(
                                 //     sender["address"].as_str().unwrap(),
                                 //     std::str::from_utf8(

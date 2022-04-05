@@ -12,7 +12,7 @@ type Error = Box<dyn std::error::Error>;
 const BASE_FEE: u64 = 100;
 const MIN_NTEZ_PER_GAS: u64 = 100;
 const MIN_NTEZ_PER_BYTE: u64 = 1000;
-const CONFIG: &str = "./dependencies/json/config/json";
+const CONFIG: &str = "./dependencies/json/config.json";
 
 struct OperationResult {
     consumed_gas: String,
@@ -28,6 +28,7 @@ fn get_block_hash(agent: ureq::Agent, endpoint: String) -> String {
 }
 
 fn get_address_counter(agent: ureq::Agent, endpoint: String, address: String) -> u64 {
+    println!("{}/v1/accounts/{}/counter", endpoint, address);
     agent.get(format!("{}/v1/accounts/{}/counter", endpoint, address).as_str())
         .call().unwrap()
         .into_json().unwrap()
@@ -208,7 +209,7 @@ fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoin
        .into_json()?)
 }
 
-pub fn create_batch(htlc2: &str) {
+pub fn create_batch() {
     let rpc = "https://hangzhounet.api.tez.ie";
     let endpoint = "https://api.hangzhounet.tzkt.io";
     let agent = Agent::new();
