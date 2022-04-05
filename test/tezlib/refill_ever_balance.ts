@@ -1,7 +1,7 @@
 import { TonClient } from "@tonclient/core";
 import { libNode } from "@tonclient/lib-node";
-import { Wallet, TokenWallet} from "./everscale/everlib";
-import config from "./config.json"
+import { Wallet, TokenWallet} from "./everscale";
+import config from "./everscale_transfer.config.json"
 
 TonClient.useBinaryLibrary(libNode);
 
@@ -18,9 +18,9 @@ async function getFreeEver(address: string){
 
 async function main() {
     const tokenWallet = new TokenWallet(client, {
-        public: config.everscale_token_sender.keys.public,
-        secret: config.everscale_token_sender.keys.secret
-    }, config.everscale_token_sender.address)
+        public: config.account.keys.public,
+        secret: config.account.keys.secret
+    }, config.account.address)
 
     console.log("[!] Sender balance:", await tokenWallet.getBalance())
     console.log(`[!] Giving ${tokenWallet.address} 1 ever...`)

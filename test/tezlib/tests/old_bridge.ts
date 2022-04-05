@@ -1,6 +1,6 @@
 import { TonClient } from "@tonclient/core"
 import { libNode } from "@tonclient/lib-node";
-import { Wallet } from "../everscale/everlib";
+import { Wallet } from "../everscale";
 import { Tezos } from "../tezos"
 
 const accountCredentials1 = require("./everscale/accounts/account1.json")
@@ -43,15 +43,15 @@ async function main() {
     const wallet8 = new Tezos(TezosRPC, accountCredentials8);
 
     wallet2.onTransaction(async (data) => {
-        console.log(`[everscale] wallet2 recieved ${data.amount} coins, initializing transfer from wallet7 to wallet8...`);
+        console.log(`[everscale] wallet2 received ${data.amount} coins, initializing transfer from wallet7 to wallet8...`);
         const hash = await wallet7.transfer(data.payload, Math.ceil(data.amount));
         console.log(`[tezos] autosend from ${accountCredentials7.pkh} to ${accountCredentials8.pkh} succeeded! Hash: ${hash}`);
     })
 
     wallet6.subscribe(async (data) => {
-        const recieved = Number(data.amount) / 1000000;
-        console.log(`[tezos] wallet6 recieved ${recieved} coins, initializing transfer from wallet3 to wallet4...`);
-        const info = await wallet3.transfer(await wallet4.getAddress(), recieved, "test 123");
+        const received = Number(data.amount) / 1000000;
+        console.log(`[tezos] wallet6 received ${received} coins, initializing transfer from wallet3 to wallet4...`);
+        const info = await wallet3.transfer(await wallet4.getAddress(), received, "test 123");
         console.log(`[everscale] autosend from ${await wallet3.getAddress()} to ${await wallet4.getAddress()} succeeded! TXID: ${info.transaction.id}`);
     })
 
