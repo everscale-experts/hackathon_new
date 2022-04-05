@@ -123,7 +123,7 @@ function openLock (const dest: address; const secret: bytes; var s: storage):ret
     ];
 
     (*адресс контракта токенов *)
-    const tokenAddress : address = ("KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s":address);
+    const tokenAddress : address = ("KT1VKyokYCeTidBzepRJrBVrQDJPq6RH8RYn":address);
 
     
     // 

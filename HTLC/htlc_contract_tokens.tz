@@ -119,7 +119,7 @@
              CONS ;
              SELF_ADDRESS ;
              PAIR ;
-             PUSH address "KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s" ;
+             PUSH address "KT1VKyokYCeTidBzepRJrBVrQDJPq6RH8RYn" ;
              CONTRACT %transfer
                (pair (address %from_) (list %txs (pair (address %to_) (int %token_id) (nat %amount)))) ;
              IF_NONE { PUSH string "01" ; FAILWITH } {} ;

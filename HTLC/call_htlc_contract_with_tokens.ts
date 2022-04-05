@@ -6,35 +6,35 @@ import {sha256} from 'js-sha256'
 
 
 const ID = 1;
-const AMOUNT = 10000000;
+const AMOUNT = 10010;
 
 async function example() {
     const provider = 'https://hangzhounet.smartpy.io';
     //const signer: any = new InMemorySigner('edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj');
-    const signer: any = new InMemorySigner('edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj')
+    const signer: any = new InMemorySigner('edskRqb1qvkC1bgmn48LsjHhwjntfNAmgAuXvBMXwbTar4Yp9ss1Ffd8mJevGoZbV4VsTjgc8aDdX8EaKmuBKJbFn58HBNLtVP')
         const tezos = new TezosToolkit(provider);
     tezos.setSignerProvider( signer );
     try {
         const batch = await tezos.contract.batch()
-        const contract_tokens = await tezos.contract.at('KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s')
+        const contract_tokens = await tezos.contract.at('KT1VKyokYCeTidBzepRJrBVrQDJPq6RH8RYn')
         // batch
         // .withContractCall(contract_tokens.methods.transfer([{
-        //     from_:'tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF' ,
+        //     from_:'tz1V2TxmFHjnkMMjjMGKPSye698SkpSeDpvd' ,
         //     txs:[
         //       {
-        //         to_:'KT1SuD3WyMK6MYHYqor8pfosUfr5E1LhXxXs',
+        //         to_:'KT1PMhnzM18nAgm6wYH7vMJB3w93ijzb6VMm',
         //         token_id: ID,
         //         amount: AMOUNT,
         //       }
         //     ]
         //   }]))
 
-        const contract = await tezos.contract.at('KT1SuD3WyMK6MYHYqor8pfosUfr5E1LhXxXs')
+        const contract = await tezos.contract.at('KT1PMhnzM18nAgm6wYH7vMJB3w93ijzb6VMm')
       
       batch
       .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW', char2Bytes('')))
       
-    //   .withContractCall(contract.methods.createLock(ID, AMOUNT, sha256(char2Bytes('')),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ));
+    //  .withContractCall(contract.methods.createLock(ID, AMOUNT, sha256(char2Bytes('')),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ));
     
       
       
