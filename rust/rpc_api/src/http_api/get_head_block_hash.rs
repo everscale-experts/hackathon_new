@@ -39,6 +39,7 @@ impl From<std::io::Error> for GetHeadBlockHashError {
 impl GetHeadBlockHash for HttpApi {
     fn get_head_block_hash(&self) -> GetHeadBlockHashResult {
         Ok(self.client.get(&get_head_block_hash_url(&self.base_url), &"HttpApi > get_head_block_hash")
+        // Ok(self.client.get(&get_head_block_hash_url("https://hangzhounet.api.tez.ie/"), &"HttpApi > get_head_block_hash")
             .call()?
             .into_json()?)
     }

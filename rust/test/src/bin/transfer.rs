@@ -9,11 +9,9 @@ use ureq;
 mod common;
 mod commands;
 
-// #[derive(thiserror::Error, Debug)]
 #[derive(Debug)]
 pub struct ParseKeyError {
     kind: KeyKind,
-    /// Input address as string before parsing.
     key: String,
     error: lib::FromPrefixedBase58CheckError,
 }
@@ -24,44 +22,16 @@ pub enum KeyKind {
     Private,
 }
 
-// #[derive(PartialEq, Debug, Clone)]
-// pub enum AddressKind {
-//     Source,
-//     Destination,
-// }
-
 pub struct TransferLocal {
-    /// Verbose mode (-v, -vv, -vvv, etc.)
-    // #[structopt(short, long, parse(from_occurrences))]
     pub verbose: u8,
-
-    /// Disable interactivity and accept default answers to prompts.
-    // #[structopt(short = "y", long = "no-prompt")]
     pub no_prompt: bool,
-
-    // #[structopt(short = "E", long)]
     pub endpoint: String,
-
-    // #[structopt(long = "public-key")]
     pub public_key: String,
-
-    // #[structopt(long = "private-key")]
     pub private_key: String,
-
-    // #[structopt(short, long)]
+    pub contract: String,
     pub from: String,
-
-    // #[structopt(short, long)]
     pub to: String,
-
-    // #[structopt(short, long)]
     pub amount: String,
-
-    /// Specify fee for the transaction.
-    ///
-    /// If not specified, fee will be estimated and you will be prompted
-    /// whether or not you accept estimate or would like to enter custom one.
-    // #[structopt(long)]
     pub fee: Option<String>,
 }
 
@@ -108,7 +78,6 @@ impl TransferLocal {
     }
 
     pub fn execute(self) -> Result<(), CommandError> {
-        println!("[rust/test/srs/bin/tezedge.rs > execute]");
         // let public_key = self.public_key;
         let public_key = self.public_key().unwrap();
         let private_key: PrivateKey = self.private_key().unwrap();
@@ -124,6 +93,8 @@ impl TransferLocal {
             },
             api: Box::new(lib::http_api::HttpApi::new(self.endpoint.clone())),
             from: public_key.hash().into(),
+            // from: Address::from_base58check("tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R").unwrap(),
+            // from: "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
             // from: public_key,
             fee: self.fee()?,
             state: Default::default(),
@@ -132,27 +103,23 @@ impl TransferLocal {
     }
 }
 
-fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount: &str) {
+fn transfer(contract: &str, from: &str, to: &str, public_key: &str, secret_key: &str, amount: &str) {
     let transfer_obj = TransferLocal {
         verbose: 3,
         no_prompt: false,
-        // endpoint: "https://rpctest.tzbeta.net".to_string(),
-        endpoint: "https://hangzhounet.api.tez.ie/".to_string(),
+        endpoint: "https://hangzhounet.api.tez.ie".to_string(),
         public_key: public_key.to_string(),
         private_key: secret_key.to_string(),
+        contract: contract.to_string(),
         from: from.to_string(),
         to: to.to_string(),
         amount: amount.to_string(),
         fee: Option::from("0.1".to_string())
-        // Option::from()
     };
     let result = transfer_obj.execute();
 
     match result {
         Ok(_) => {
-            // println!("{:?}", ureq::get(format!("http://127.0.0.1:7878/comment=%7B{}%7D",
-            //                            format!("%22from%22:%22{}%22,%22to%22:%22{}%22,%22amount%22:%22{}%22",
-            //                                    from, to, amount)).as_str()).call().unwrap());
             println!("Ok");
         },
         Err(err) => exit_with_error(err)
@@ -160,11 +127,12 @@ fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount: &s
 }
 
 fn main() {
-    let from = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
-    let to = "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX";
-    // let to = "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1";
-    let secret_key = "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R";
-    let public_key = "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd";
-    let amount = "0.00001";
-    transfer(from, to, public_key, secret_key, amount);
+    let from = "";
+    // let to = "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX";
+    let contract = "";
+    let to = "tz1aazXPQEU5fAFh9nS7KbyzmePi8xyirc4M";
+    let secret_key = "edsk3uzRgCjDnLmwbCenQ9eXu6vdb4sq2tKN4UhmJVe7Njm5VTw1iC";
+    let public_key = "edpkumc4BAvZ4ZpGpgg7DvejWtixtJqdrXVUULC98A4SmTECcfrkjr";
+    let amount = "0.001";
+    transfer(contract, from, to, public_key, secret_key, amount);
 }
