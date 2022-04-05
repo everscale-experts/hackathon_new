@@ -1,0 +1,740 @@
+/*
+* Copyright 2018-2021 TON Labs LTD.
+*
+* Licensed under the SOFTWARE EVALUATION License (the "License"); you may not use
+* this file except in compliance with the License.
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific TON DEV software governing permissions and
+* limitations under the License.
+*/
+
+use crate::client::{ClientEnv, FetchMethod};
+use crate::error::{AddNetworkUrl, ClientError, ClientResult};
+use crate::net::endpoint::Endpoint;
+use crate::net::ton_gql::GraphQLQuery;
+use crate::net::websocket_link::WebsocketLink;
+use crate::net::{
+    Error, GraphQLQueryEvent, NetworkConfig, ParamsOfAggregateCollection, ParamsOfQueryCollection,
+    ParamsOfQueryCounterparties, ParamsOfQueryOperation, ParamsOfWaitForCollection, PostRequest,
+};
+use futures::{Future, Stream, StreamExt};
+use rand::seq::SliceRandom;
+use serde_json::Value;
+use std::cmp::{max, min};
+use std::collections::{HashMap, HashSet};
+use std::pin::Pin;
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::sync::Arc;
+use tokio::sync::{watch, Mutex, RwLock};
+
+pub const MAX_TIMEOUT: u32 = std::i32::MAX as u32;
+pub const MIN_RESUME_TIMEOUT: u32 = 500;
+pub const MAX_RESUME_TIMEOUT: u32 = 3000;
+
+struct EndpointsReplacement<'a> {
+    url: &'a str,
+    aliases: &'a [&'a str],
+}
+
+const ENDPOINTS_REPLACE: [EndpointsReplacement; 2] = [
+    EndpointsReplacement {
+        url: "main.ton.dev",
+        aliases: &[
+            "eri01.main.everos.dev",
+            "gra01.main.everos.dev",
+            "gra02.main.everos.dev",
+            "lim01.main.everos.dev",
+            "rbx01.main.everos.dev",
+        ],
+    },
+    EndpointsReplacement {
+        url: "net.ton.dev",
+        aliases: &[
+            "eri01.net.everos.dev",
+            "rbx01.net.everos.dev",
+            "gra01.net.everos.dev",
+        ],
+    },
+];
+
+pub(crate) struct Subscription {
+    pub unsubscribe: Pin<Box<dyn Future<Output = ()> + Send>>,
+    pub data_stream: Pin<Box<dyn Stream<Item = ClientResult<Value>> + Send>>,
+}
+
+struct SuspendRegulation {
+    sender: watch::Sender<bool>,
+    internal_suspend: bool,
+    external_suspend: bool,
+}
+
+pub(crate) enum EndpointStat {
+    MessageDelivered,
+    MessageUndelivered,
+}
+
+pub(crate) struct NetworkState {
+    client_env: Arc<ClientEnv>,
+    config: NetworkConfig,
+    endpoint_addresses: RwLock<Vec<String>>,
+    bad_delivery_addresses: RwLock<HashSet<String>>,
+    suspended: watch::Receiver<bool>,
+    suspend_regulation: Arc<Mutex<SuspendRegulation>>,
+    resume_timeout: AtomicU32,
+    query_endpoint: RwLock<Option<Arc<Endpoint>>>,
+    time_checked: AtomicBool,
+}
+
+async fn query_by_url(client_env: &ClientEnv, address: &str, query: &str, timeout: u32) -> ClientResult<Value> {
+    let response = client_env
+        .fetch(
+            &format!("{}?query={}", address, query),
+            FetchMethod::Get,
+            None,
+            None,
+            timeout,
+        )
+        .await?;
+
+    response.body_as_json()
+}
+
+impl NetworkState {
+    pub fn new(
+        client_env: Arc<ClientEnv>,
+        config: NetworkConfig,
+        endpoint_addresses: Vec<String>,
+    ) -> Self {
+        let (sender, receiver) = watch::channel(false);
+        let regulation = SuspendRegulation {
+            sender,
+            internal_suspend: false,
+            external_suspend: false,
+        };
+        Self {
+            client_env,
+            config,
+            endpoint_addresses: RwLock::new(endpoint_addresses),
+            bad_delivery_addresses: RwLock::new(HashSet::new()),
+            suspended: receiver,
+            suspend_regulation: Arc::new(Mutex::new(regulation)),
+            resume_timeout: AtomicU32::new(0),
+            query_endpoint: RwLock::new(None),
+            time_checked: AtomicBool::new(false),
+        }
+    }
+
+    async fn suspend(&self, sender: &watch::Sender<bool>) {
+        if !*self.suspended.borrow() {
+            let _ = sender.broadcast(true);
+            *self.query_endpoint.write().await = None;
+        }
+    }
+
+    async fn resume(sender: &watch::Sender<bool>) {
+        let _ = sender.broadcast(false);
+    }
+
+    pub async fn external_suspend(&self) {
+        let mut regulation = self.suspend_regulation.lock().await;
+        regulation.external_suspend = true;
+        self.suspend(&regulation.sender).await;
+    }
+
+    pub async fn external_resume(&self) {
+        let mut regulation = self.suspend_regulation.lock().await;
+        regulation.external_suspend = false;
+        if !regulation.internal_suspend {
+            Self::resume(&regulation.sender).await;
+        }
+    }
+
+    pub async fn internal_suspend(&self) {
+        let mut regulation = self.suspend_regulation.lock().await;
+        if regulation.internal_suspend {
+            return;
+        }
+
+        regulation.internal_suspend = true;
+        self.suspend(&regulation.sender).await;
+
+        let timeout = self.resume_timeout.load(Ordering::Relaxed);
+        let next_timeout = min(max(timeout * 2, MIN_RESUME_TIMEOUT), MAX_RESUME_TIMEOUT); // 0, 0.5, 1, 2, 3, 3, 3...
+        self.resume_timeout.store(next_timeout, Ordering::Relaxed);
+        log::debug!("Internal resume timeout {}", timeout);
+
+        let env = self.client_env.clone();
+        let regulation = self.suspend_regulation.clone();
+
+        self.client_env.spawn(async move {
+            let _ = env.set_timer(timeout as u64).await;
+            let mut regulation = regulation.lock().await;
+            regulation.internal_suspend = false;
+            if !regulation.external_suspend {
+                Self::resume(&regulation.sender).await;
+            }
+        });
+    }
+
+    pub async fn set_endpoint_addresses(&self, addresses: Vec<String>) {
+        *self.endpoint_addresses.write().await = addresses;
+    }
+
+    pub async fn get_addresses_for_sending(&self) -> Vec<String> {
+        let mut addresses = self.endpoint_addresses.read().await.clone();
+        addresses.shuffle(&mut rand::thread_rng());
+        let bad_delivery = self.bad_delivery_addresses.read().await.clone();
+        if !bad_delivery.is_empty() {
+            let mut i = 0;
+            let mut processed = 0;
+            while processed < addresses.len() {
+                if bad_delivery.contains(&addresses[i]) {
+                    let address = addresses.remove(i);
+                    addresses.push(address);
+                } else {
+                    i += 1;
+                }
+                processed += 1;
+            }
+        }
+        addresses
+    }
+
+    pub async fn update_stat(&self, addresses: &Vec<String>, stat: EndpointStat) {
+        let bad_delivery = self.bad_delivery_addresses.read().await.clone();
+        let addresses: HashSet<_> = addresses.iter().cloned().collect();
+        let new_bad_delivery = match stat {
+            EndpointStat::MessageDelivered => &bad_delivery - &addresses,
+            EndpointStat::MessageUndelivered => &bad_delivery | &addresses,
+        };
+        if new_bad_delivery != bad_delivery {
+            *self.bad_delivery_addresses.write().await = new_bad_delivery;
+        }
+    }
+
+    pub async fn invalidate_querying_endpoint(&self) {
+        *self.query_endpoint.write().await = None
+    }
+
+    pub async fn refresh_query_endpoint(&self) -> ClientResult<()> {
+        let endpoint_guard = self.query_endpoint.write().await;
+        if let Some(endpoint) = endpoint_guard.as_ref() {
+            endpoint.refresh(&self.client_env, &self.config).await
+        } else {
+            Ok(())
+        }
+    }
+
+    pub async fn config_servers(&self) -> Vec<String> {
+        self.endpoint_addresses.read().await.clone()
+    }
+
+    pub async fn query_endpoint(&self) -> Option<Arc<Endpoint>> {
+        self.query_endpoint.read().await.clone()
+    }
+
+    async fn check_time_delta(
+        &self,
+        endpoint: &Endpoint,
+        out_of_sync_threshold: u32,
+    ) -> ClientResult<()> {
+        let server_time_delta = endpoint.time_delta().abs();
+        if server_time_delta >= out_of_sync_threshold as i64 {
+            Err(Error::clock_out_of_sync(
+                server_time_delta,
+                out_of_sync_threshold,
+            ))
+        } else {
+            Ok(())
+        }
+    }
+
+    async fn check_sync(&self) -> ClientResult<()> {
+        if self.time_checked.load(Ordering::Relaxed) {
+            return Ok(());
+        }
+
+        let endpoint = self.get_query_endpoint().await?;
+        self.check_time_delta(&endpoint, self.config.out_of_sync_threshold)
+            .await?;
+
+        self.time_checked.store(true, Ordering::Relaxed);
+
+        Ok(())
+    }
+
+    async fn select_querying_endpoint(&self) -> ClientResult<Endpoint> {
+        let is_better = |a: &ClientResult<Endpoint>, b: &ClientResult<Endpoint>| match (a, b) {
+            (Ok(a), Ok(b)) => a.latency() < b.latency(),
+            (Ok(_), Err(_)) => true,
+            (Err(_), Err(_)) => true,
+            _ => false,
+        };
+        let mut retry_count = 0i8;
+        loop {
+            let mut futures = vec![];
+            for address in self.endpoint_addresses.read().await.iter() {
+                let address = address.clone();
+                futures.push(Box::pin(async move {
+                    Endpoint::resolve(&self.client_env, &self.config, &address).await
+                }));
+            }
+            let mut selected = Err(crate::client::Error::net_module_not_init());
+            while futures.len() != 0 {
+                let (result, _, remain_futures) = futures::future::select_all(futures).await;
+                if let Ok(endpoint) = &result {
+                    if endpoint.latency() <= self.config.max_latency as u64 {
+                        return result;
+                    }
+                }
+                futures = remain_futures;
+                if is_better(&result, &selected) {
+                    selected = result;
+                }
+            }
+            if selected.is_ok() {
+                return selected;
+            }
+            retry_count += 1;
+            if retry_count > self.config.network_retries_count {
+                return selected;
+            }
+            if retry_count > 1 {
+                let delay = (100 * (retry_count - 1) as u64).max(5000);
+                let _ = self.client_env.set_timer(delay).await;
+            }
+        }
+    }
+
+    pub async fn get_query_endpoint(&self) -> ClientResult<Arc<Endpoint>> {
+        // wait for resume
+        let mut suspended = self.suspended.clone();
+        while Some(true) == suspended.recv().await {}
+
+        if let Some(endpoint) = &*self.query_endpoint.read().await {
+            return Ok(endpoint.clone());
+        }
+
+        let mut locked_query_endpoint = self.query_endpoint.write().await;
+        if let Some(endpoint) = &*locked_query_endpoint {
+            return Ok(endpoint.clone());
+        }
+        let fastest = Arc::new(self.select_querying_endpoint().await?);
+        *locked_query_endpoint = Some(fastest.clone());
+        Ok(fastest)
+    }
+
+    pub async fn get_all_endpoint_addresses(&self) -> ClientResult<Vec<String>> {
+        Ok(self.endpoint_addresses.read().await.clone())
+    }
+}
+
+pub(crate) struct ServerLink {
+    config: NetworkConfig,
+    pub(crate) client_env: Arc<ClientEnv>,
+    websocket_link: WebsocketLink,
+    state: Arc<NetworkState>,
+}
+
+fn strip_endpoint(endpoint: &str) -> &str {
+    endpoint.trim_start_matches("https://").trim_start_matches("http://").trim_end_matches("/").trim_end_matches("\\")
+}
+
+fn replace_endpoints(mut endpoints: Vec<String>) -> Vec<String> {
+    for entry in &ENDPOINTS_REPLACE {
+        let len = endpoints.len();
+        endpoints.retain(|endpoint| strip_endpoint(&endpoint) != entry.url);
+        if len != endpoints.len() {
+            endpoints.extend_from_slice(&entry.aliases.iter().map(|val| (*val).to_owned()).collect::<Vec<String>>());
+        }
+    }
+
+    let mut result: Vec<String> = vec![];
+
+    for endpoint in endpoints {
+        if !result.iter().any(|val| strip_endpoint(val) == strip_endpoint(&endpoint)) {
+            result.push(endpoint);
+        }
+    }
+
+    result
+}
+
+impl ServerLink {
+    pub fn new(config: NetworkConfig, client_env: Arc<ClientEnv>) -> ClientResult<Self> {
+        let endpoint_addresses = config
+            .endpoints
+            .clone()
+            .or(config.server_address.clone().map(|address| vec![address]))
+            .ok_or(crate::client::Error::net_module_not_init())?;
+        if endpoint_addresses.len() == 0 {
+            return Err(crate::client::Error::net_module_not_init());
+        }
+        let endpoint_addresses = replace_endpoints(endpoint_addresses);
+
+        let state = Arc::new(NetworkState::new(
+            client_env.clone(),
+            config.clone(),
+            endpoint_addresses,
+        ));
+
+        Ok(ServerLink {
+            config: config.clone(),
+            client_env: client_env.clone(),
+            state: state.clone(),
+            websocket_link: WebsocketLink::new(client_env, state, config),
+        })
+    }
+
+    pub fn config(&self) -> &NetworkConfig {
+        &self.config
+    }
+
+    pub async fn config_servers(&self) -> Vec<String> {
+        self.state.config_servers().await
+    }
+
+    pub async fn state(&self) -> Arc<NetworkState> {
+        self.state.clone()
+    }
+
+    // Returns Stream with updates database fields by provided filter
+    pub async fn subscribe_collection(
+        &self,
+        table: &str,
+        filter: &Value,
+        fields: &str,
+    ) -> ClientResult<Subscription> {
+        let event_receiver = self
+            .websocket_link
+            .start_operation(GraphQLQuery::with_collection_subscription(table, filter, fields))
+            .await?;
+
+        let operation_id = Arc::new(Mutex::new(0u32));
+        let unsubscribe_operation_id = operation_id.clone();
+
+        let link = self.websocket_link.clone();
+        let unsubscribe = async move {
+            let id = *unsubscribe_operation_id.lock().await;
+            link.stop_operation(id).await;
+        };
+
+        let collection_name = table.to_string();
+        let data_receiver = event_receiver.filter_map(move |event| {
+            let operation_id = operation_id.clone();
+            let collection_name = collection_name.clone();
+            async move {
+                match event {
+                    GraphQLQueryEvent::Id(id) => {
+                        *operation_id.lock().await = id;
+                        None
+                    }
+                    GraphQLQueryEvent::Data(value) => Some(Ok(value[&collection_name].clone())),
+                    GraphQLQueryEvent::Error(error) => Some(Err(error)),
+                    GraphQLQueryEvent::Complete => Some(Ok(Value::Null)),
+                }
+            }
+        });
+        Ok(Subscription {
+            data_stream: Box::pin(data_receiver),
+            unsubscribe: Box::pin(unsubscribe),
+        })
+    }
+
+    // Returns Stream with updates database fields by provided filter
+    pub async fn subscribe(
+        &self,
+        subscription: String,
+        variables: Option<Value>,
+    ) -> ClientResult<Subscription> {
+        let event_receiver = self
+            .websocket_link
+            .start_operation(GraphQLQuery::with_subscription(subscription, variables))
+            .await?;
+
+        let operation_id = Arc::new(Mutex::new(0u32));
+        let unsubscribe_operation_id = operation_id.clone();
+
+        let link = self.websocket_link.clone();
+        let unsubscribe = async move {
+            let id = *unsubscribe_operation_id.lock().await;
+            link.stop_operation(id).await;
+        };
+
+        let data_receiver = event_receiver.filter_map(move |event| {
+            let operation_id = operation_id.clone();
+            async move {
+                match event {
+                    GraphQLQueryEvent::Id(id) => {
+                        *operation_id.lock().await = id;
+                        None
+                    }
+                    GraphQLQueryEvent::Data(value) => Some(Ok(value.clone())),
+                    GraphQLQueryEvent::Error(error) => Some(Err(error)),
+                    GraphQLQueryEvent::Complete => Some(Ok(Value::Null)),
+                }
+            }
+        });
+        Ok(Subscription {
+            data_stream: Box::pin(data_receiver),
+            unsubscribe: Box::pin(unsubscribe),
+        })
+    }
+
+    pub fn try_extract_error(value: &Value) -> Option<ClientError> {
+        let errors = if let Some(payload) = value.get("payload") {
+            payload.get("errors")
+        } else {
+            value.get("errors")
+        };
+
+        if let Some(errors) = errors {
+            if let Some(errors) = errors.as_array() {
+                return Some(Error::graphql_server_error(None, errors));
+            }
+        }
+
+        return None;
+    }
+
+    pub(crate) async fn query(
+        &self,
+        query: &GraphQLQuery,
+        endpoint: Option<&Endpoint>,
+    ) -> ClientResult<Value> {
+        let request = json!({
+            "query": query.query,
+            "variables": query.variables,
+        })
+        .to_string();
+
+        let mut headers = HashMap::new();
+        headers.insert("content-type".to_owned(), "application/json".to_owned());
+        for (name, value) in Endpoint::http_headers() {
+            headers.insert(name, value);
+        }
+
+        let network_retries_count = self.config.network_retries_count;
+        let mut current_endpoint: Option<Arc<Endpoint>>;
+        let mut retry_count = 0;
+        'retries: loop {
+            let endpoint = if let Some(endpoint) = endpoint {
+                endpoint
+            } else {
+                current_endpoint = Some(self.state.get_query_endpoint().await?.clone());
+                current_endpoint.as_ref().unwrap()
+            };
+            let result = self
+                .client_env
+                .fetch(
+                    &endpoint.query_url,
+                    FetchMethod::Post,
+                    Some(headers.clone()),
+                    Some(request.clone()),
+                    query.timeout.unwrap_or(self.config.query_timeout),
+                )
+                .await;
+
+            let result = match result {
+                Err(err) => Err(err),
+                Ok(response) => match response.body_as_json() {
+                    Err(err) => Err(err),
+                    Ok(value) => match Self::try_extract_error(&value) {
+                        Some(err) => Err(err),
+                        None => Ok(value)
+                    }
+                }
+            };
+
+            if let Err(err) = &result {
+                if crate::client::Error::is_network_error(err) {
+                    self.state.internal_suspend().await;
+                    self.websocket_link.suspend().await;
+                    self.websocket_link.resume().await;
+                    retry_count += 1;
+                    if retry_count <= network_retries_count {
+                        continue 'retries;
+                    }
+                }
+            }
+
+            return result;
+        }
+    }
+
+    pub async fn batch_query(
+        &self,
+        params: &[ParamsOfQueryOperation],
+        endpoint: Option<Endpoint>,
+    ) -> ClientResult<Vec<Value>> {
+        let latency_detection_required = if endpoint.is_none() {
+            let endpoint = self.state.get_query_endpoint().await?;
+            self.client_env.now_ms() > endpoint.next_latency_detection_time()
+        } else {
+            false
+        };
+        let mut query = GraphQLQuery::build(
+            params,
+            latency_detection_required,
+            self.config.wait_for_timeout,
+        );
+        let info_request_time = self.client_env.now_ms();
+        let mut result = self.query(&query, endpoint.as_ref()).await?;
+        if latency_detection_required {
+            let current_endpoint = self.state.get_query_endpoint().await?;
+            let server_info = query.get_server_info(&params, &result)?;
+            current_endpoint.apply_server_info(
+                &self.client_env,
+                &self.config,
+                info_request_time,
+                &server_info,
+            )?;
+            current_endpoint
+                .refresh(&self.client_env, &self.config)
+                .await?;
+            if current_endpoint.latency() > self.config.max_latency as u64 {
+                self.invalidate_querying_endpoint().await;
+                query = GraphQLQuery::build(params, false, self.config.wait_for_timeout);
+                result = self.query(&query, endpoint.as_ref()).await?;
+            }
+        }
+        query.get_results(params, &result)
+    }
+
+    pub async fn query_collection(
+        &self,
+        params: ParamsOfQueryCollection,
+        endpoint: Option<Endpoint>,
+    ) -> ClientResult<Value> {
+        Ok(self
+            .batch_query(&[ParamsOfQueryOperation::QueryCollection(params)], endpoint)
+            .await?
+            .remove(0))
+    }
+
+    pub async fn wait_for_collection(
+        &self,
+        params: ParamsOfWaitForCollection,
+        endpoint: Option<Endpoint>,
+    ) -> ClientResult<Value> {
+        Ok(self
+            .batch_query(
+                &[ParamsOfQueryOperation::WaitForCollection(params)],
+                endpoint,
+            )
+            .await?
+            .remove(0))
+    }
+
+    pub async fn aggregate_collection(
+        &self,
+        params: ParamsOfAggregateCollection,
+        endpoint: Option<Endpoint>,
+    ) -> ClientResult<Value> {
+        Ok(self
+            .batch_query(
+                &[ParamsOfQueryOperation::AggregateCollection(params)],
+                endpoint,
+            )
+            .await?
+            .remove(0))
+    }
+
+    pub async fn query_counterparties(
+        &self,
+        params: ParamsOfQueryCounterparties,
+    ) -> ClientResult<Value> {
+        Ok(self
+            .batch_query(&[ParamsOfQueryOperation::QueryCounterparties(params)], None)
+            .await?
+            .remove(0))
+    }
+
+    // Sends message to node
+    pub async fn send_message(
+        &self,
+        key: &[u8],
+        value: &[u8],
+        endpoint: Option<Endpoint>,
+    ) -> ClientResult<Option<ClientError>> {
+        let request = PostRequest {
+            id: base64::encode(key),
+            body: base64::encode(value),
+        };
+
+        self.state.check_sync().await?;
+
+        let result = self
+            .query(
+                &GraphQLQuery::with_post_requests(&[request]),
+                endpoint.as_ref(),
+            )
+            .await;
+
+        // send message is always successful in order to process case when server received message
+        // but client didn't receive response
+        if let Err(err) = &result {
+            log::warn!("Post message error: {}", err.message);
+        }
+
+        Ok(result.err())
+    }
+
+    pub async fn suspend(&self) {
+        self.state.external_suspend().await;
+        self.websocket_link.suspend().await;
+    }
+
+    pub async fn resume(&self) {
+        self.state.external_resume().await;
+        self.websocket_link.resume().await;
+    }
+
+    pub async fn fetch_endpoint_addresses(&self) -> ClientResult<Vec<String>> {
+        let endpoint = self.state.get_query_endpoint().await?;
+
+        let result = query_by_url(
+            &self.client_env,
+            &endpoint.query_url,
+            "%7Binfo%7Bendpoints%7D%7D",
+            self.config.query_timeout,
+        )
+        .await
+        .add_network_url(&self)
+        .await?;
+
+        serde_json::from_value(result["data"]["info"]["endpoints"].clone()).map_err(|_| {
+            Error::invalid_server_response(format!(
+                "Can not parse endpoints from response: {}",
+                result
+            ))
+        })
+    }
+
+    pub async fn set_endpoints(&self, endpoints: Vec<String>) {
+        self.state.set_endpoint_addresses(endpoints).await;
+    }
+
+    pub async fn get_addresses_for_sending(&self) -> Vec<String> {
+        self.state.get_addresses_for_sending().await
+    }
+
+    pub async fn get_query_endpoint(&self) -> ClientResult<Arc<Endpoint>> {
+        self.state.get_query_endpoint().await
+    }
+
+    pub async fn get_all_endpoint_addresses(&self) -> ClientResult<Vec<String>> {
+        self.state.get_all_endpoint_addresses().await
+    }
+
+    pub async fn update_stat(&self, addresses: &Vec<String>, stat: EndpointStat) {
+        self.state.update_stat(addresses, stat).await
+    }
+
+    pub async fn invalidate_querying_endpoint(&self) {
+        self.state.invalidate_querying_endpoint().await
+    }
+}
