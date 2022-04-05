@@ -69,21 +69,7 @@ const tokenAddress : address = ("KT1VKyokYCeTidBzepRJrBVrQDJPq6RH8RYn":address);
 
 
 function createLock (const id_tokens : nat;const amount_tokens: nat; const hash1 : bytes; const dest1 : address; var s : storage): return is
-    begin
-
-    var operations: list(operation) := nil;
-
-    var transfer_destination : transfer_destination := record[
-        to_ = Tezos.self_address;
-        token_id=id_tokens;
-        amount= amount_tokens;
-    ];
-    const transfer_owner : transfer = record[
-        from_ = Tezos.sender;
-        txs = list[transfer_destination];
-    ];
-     
-     operations := Tezos.transaction(list[transfer_owner], 0mutez,  entry_point) # operations;
+    begin  
     (*счеткик *)
     s.counter := s.counter + 1;
     (*проверяем больши ли одного теза в контракте *)

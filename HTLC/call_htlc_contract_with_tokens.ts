@@ -19,22 +19,22 @@ async function example() {
         const contract_tokens = await tezos.contract.at('KT1VKyokYCeTidBzepRJrBVrQDJPq6RH8RYn')
         // batch
         // .withContractCall(contract_tokens.methods.transfer([{
-        //     from_:'tz1V2TxmFHjnkMMjjMGKPSye698SkpSeDpvd' ,
+        //     from_:'tz1V2TxmFHjnkMMjjMGKPSye698SkpSeDpvd' ,  // перевод от куда 
         //     txs:[
         //       {
-        //         to_:'KT1PMhnzM18nAgm6wYH7vMJB3w93ijzb6VMm',
+        //         to_:'KT1Wuuaw6WSQ5akVLCrDs4DGQbEnYBFEKesp',  // кому(адрессу HTLC)
         //         token_id: ID,
         //         amount: AMOUNT,
         //       }
         //     ]
         //   }]))
 
-        const contract = await tezos.contract.at('KT1PMhnzM18nAgm6wYH7vMJB3w93ijzb6VMm')
+        const contract = await tezos.contract.at('KT1Wuuaw6WSQ5akVLCrDs4DGQbEnYBFEKesp')
       
       batch
-      .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW', char2Bytes('')))
+    //   .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW', char2Bytes('')))
       
-    //  .withContractCall(contract.methods.createLock(ID, AMOUNT, sha256(char2Bytes('')),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ));
+     .withContractCall(contract.methods.createLock(ID, AMOUNT, sha256(char2Bytes('')),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ));
     
       
       
