@@ -10,7 +10,8 @@ import * as fs from 'fs';
 import {char2Bytes} from '@taquito/utils';
 import { readFileSync } from "fs";
 
-const htlc_contract: string = fs.readFileSync('./htlc_contract_tokens.tz').toString();
+// чтение кода из файла 
+const htlc_contract: string = fs.readFileSync('./htlc_contract_tokens.tz').toString(); 
 const provider = 'https://hangzhounet.smartpy.io'
 
 async function deploy() {

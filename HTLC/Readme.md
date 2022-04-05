@@ -15,3 +15,5 @@ https://ide.ligolang.org/ - ide ligo
 
 # использование HTLC 
 
+Для деплоя HTLC контракта переходим в [файл](/HTLC/deploy_htlc_contract.ts) yf 14 строчке меняем название файла на htlc_contract_token1.tz  
+после деплоя для совершения транзакции переходим в [файл](call_htlc_contract.ts) и делаем одновременно бач с трансфером токеном и creatLock иначе работать не будет  
