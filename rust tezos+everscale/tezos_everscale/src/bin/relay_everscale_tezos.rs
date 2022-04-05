@@ -197,7 +197,7 @@ async fn main() {
                                     })
                                     .unwrap(),
                                 );
-                                let address_hex = decode_msg_by_id(
+                                let pair = decode_msg_body_by_id(
                                     Arc::clone(&ton1),
                                     result.result["in_msg"].as_str().unwrap(),
                                     // "388d0d91d23f4dbc97d277496cc0cd70219e646ae18a6c8e38d1ab7a9ce780e8",
@@ -205,22 +205,24 @@ async fn main() {
                                 ).await;
                                 let v_u64 = hex_to_dec(v);
                                 println!("Amount: {}", v_u64);
-                                let sender = get_json_field("./dependencies/json/tezos_accounts.json", None, Some(2));
+                                // let sender = get_json_field("./dependencies/json/tezos_accounts.json", None, Some(2));
                                 // let receiver = get_json_field("./dependencies/json/tezos_accounts.json", None, Some(3));
-                                tezos_transfer(
-                                    sender["address"].as_str().unwrap(),
-                                    std::str::from_utf8(
-                                        hex::decode(
-                                            address_hex["comment"]
-                                                .as_str()
-                                                .unwrap()
-                                        ).unwrap()
-                                        .as_ref()
-                                    ).unwrap(),
-                                    sender["public"].as_str().unwrap(),
-                                    sender["secret"].as_str().unwrap(),
-                                    format!("{}", v_u64 as f64 / 1000000000.0).as_str(),
-                                );
+                                println!("destination: {}", pair["dest"].as_str().unwrap());
+                                println!("hash: {}", pair["hash"].as_str().unwrap());
+                                // tezos_transfer(
+                                //     sender["address"].as_str().unwrap(),
+                                //     std::str::from_utf8(
+                                //         hex::decode(
+                                //             address_hex["comment"]
+                                //                 .as_str()
+                                //                 .unwrap()
+                                //         ).unwrap()
+                                //         .as_ref()
+                                //     ).unwrap(),
+                                //     sender["public"].as_str().unwrap(),
+                                //     sender["secret"].as_str().unwrap(),
+                                //     format!("{}", v_u64 as f64 / 1000000000.0).as_str(),
+                                // );
                             }
                         }
                     }

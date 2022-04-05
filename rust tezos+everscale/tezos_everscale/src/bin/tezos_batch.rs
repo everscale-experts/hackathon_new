@@ -177,7 +177,7 @@ fn get_group(rpc: &str, endpoint: &str, branch: String, contract: &str) -> Vec<s
 }
 
 fn sign_operation(agent: ureq::Agent, rpc: &str, endpoint: &str, branch: String, contract: String) -> Result<OperationSignatureInfo, Error> {
-    let sender = get_json_field("./dependencies/json/tezos_accounts.json", None, 2);
+    let sender = get_json_field("./dependencies/json/tezos_accounts.json", None, Some(2));
     let local_state = LocalWalletState {
         public_key: PublicKey::from_base58check(sender["public"].as_str().unwrap()).unwrap(),
         private_key: PrivateKey::from_base58check(sender["secret"].as_str().unwrap()).unwrap(),
