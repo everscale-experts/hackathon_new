@@ -18,7 +18,6 @@ const recipient = "0:2bb4a0e8391e7ea8877f4825064924bd41ce110fce97e939d3323999e1e
 const addressFile = path.join(__dirname, "address.txt");
 const address = fs.readFileSync(addressFile, "utf8");
 
-const transferAbi = JSON.parse(fs.readFileSync(path.resolve(__dirname, "transfer.abi.json")).toString());
 
 const multisigContractPackage = {
     abi: JSON.parse(fs.readFileSync(path.resolve(__dirname, "HelloEvents.abi.json")).toString()),
@@ -70,7 +69,7 @@ async function main() {
 
     console.log("Name:");
 
-    const name = await acc.run('name',{}).catch(e => console.log("ERROR:", e));
+    const name = await acc.runLocal('name',{answerId:0}).catch(e => console.log("ERROR:", e));
     console.log("Name of token", name)
     //const balance = await acc.getBalance().catch(e => console.log("ERROR:", e));
     //console.log("Account balance now is", parseInt(balance || "undefined"));

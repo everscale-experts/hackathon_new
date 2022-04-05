@@ -5,6 +5,22 @@ rustup override set 1.52.1
 cargo run --bin listener  
 ```  
 ---  
+# Run  
+Go to `rust/tests/src/bin/tezedge`  
+change variable `public_key` to the correct one on line 150  
+change variable `private_key` to the correct one on line 152  
+change variable `from` to the correct one on line 154  
+change variable `to` to the correct one on line 156  
+Also you can change `amount` and `fee` on lines 157 and 158  
+```bash  
+cd ./test  
+cargo run --bin tezedge  
+```  
+If not working, try  
+```bash  
+rustup toolchain install 1.52.1  
+```
+---  
   
 # Helpful (or not) links  
 ##### Tezos API (b-b)  
@@ -74,45 +90,50 @@ changing ureq version
 
 ## [ERROR] getting version information failed! Reason: Unknown! Http status: (405, Method Not Allowed), message: Unsupported HTTP method  
 ### error: process didn't exit successfully: 'target\debug\tezedge.exe' (exit code: 1)  
+##### ***Working on solution***  
+  
+## [ERROR] getting version information failed! Reason: Unknown! Http status: (405, Method Not Allowed), message: Unsupported HTTP method  
+### error: process didn't exit successfully: 'target\debug\tezedge.exe' (exit code: 1)  
 ##### ***Fixed***  
-  
-  
+
+
 ## [ERROR] operation simulation failed! Reason: Failed to read JSON: missing field `consumed_gas` at line 1 column 1014  
 ### error: process didn't exit successfully: `target\debug\tezedge.exe` (exit code: 1)  
 ##### ***Working on solution***  
-  
-  
+
+
 ## Algorithm  
 ### build parameters (https://api.hangzhounet.tzkt.io/v1/contracts/{address}/entrypoints/transfer/build)  
 ```json
 {
-  "from": "<address>",
-  "to": "<address>",
-  "value": "<amount>"
+"from": "<address>",
+"to": "<address>",
+"value": "<amount>"
 }
 ```
 ### forge transaction through rpc (https://hangzhounet.api.tez.ie/chains/main/blocks/head/helpers/forge/operations)  
 ```json
 {
-  "branch": "<hash>",
-  "contents": [
-    {
-      "kind": "transaction",
-      "sourse": "<address>",
-      "destination": "<address>",
-      "fee": "<fee>",
-      "counter": "<counter>",
-      "gas_limit": "<gas limit>",
-      "storage_limit": "<storage limit>",
-      "amount": "<amount>"
-    }
-  ]
+"branch": "<hash>",
+"contents": [
+{
+"kind": "transaction",
+"sourse": "<address>",
+"destination": "<address>",
+"fee": "<fee>",
+"counter": "<counter>",
+"gas_limit": "<gas limit>",
+"storage_limit": "<storage limit>",
+"amount": "<amount>"
+}
+]
 }
 ```
 ### sign and send bytes through rpc (https://hangzhounet.api.tez.ie/injection/operation)  
 ```json
 "<hex-string>"
 ```
+  
   
   
 ## From Slack  
@@ -127,3 +148,5 @@ RPC тестнета: https://rpc.hangzhounet.teztnets.xyz
 Explorer тестнета: https://hangzhou.tzstats.com  
 Кран тестнета: https://teztnets.xyz/hangzhounet-faucet  
 @tezos_faucet_bot - бот для получения тестовых монет, вдруг кому пригодится  
+
+
