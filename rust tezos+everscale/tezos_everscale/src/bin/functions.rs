@@ -1,6 +1,7 @@
 pub use ton_client::ClientContext;
 pub use serde_json::Value;
 use ton_client::abi::ParamsOfDecodeMessage;
+use ton_client::abi::ParamsOfDecodeMessageBody;
 pub use std::sync::Arc;
 use std::collections::BTreeMap;
 use std::time::SystemTime;
@@ -251,6 +252,7 @@ impl Config {
 // }
 
 pub fn get_json_field(file: &str, key: Option<&str>, index: Option<usize>) -> Value {
+    // println!("{}", file);
     if let Some(k) = key {
         serde_json::from_str::<Value>(std::fs::read_to_string(file).unwrap().as_str())
             .unwrap()[k]
@@ -733,6 +735,15 @@ pub async fn decode_msg_by_id(ton: Arc<ClientContext>, msg_id: &str, abi: Abi) -
     ton_client::abi::decode_message(ton, ParamsOfDecodeMessage {
         abi,
         message: msg,
+    }).await.unwrap().value.unwrap()
+}
+
+pub async fn decode_msg_body_by_id(ton: Arc<ClientContext>, msg_id: &str, abi: Abi) -> Value {
+    let msg = get_msg_by_id(ton.clone(), msg_id).await;
+    ton_client::abi::decode_message_body(ton, ParamsOfDecodeMessageBody {
+        abi,
+        is_internal: true,
+        body: msg,
     }).await.unwrap().value.unwrap()
 }
 
