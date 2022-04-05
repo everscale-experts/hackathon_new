@@ -111,7 +111,7 @@ contract HelloWallet {
     }
 
     function openLock(address dest, string secret) public {
-        tvm.log(secret);
+//        tvm.log(secret);
 
         optional(Lock) lockInfo = locker.fetch(dest);
         require(lockInfo.hasValue(), THE_LOCK_DOES_NOT_EXIST);

@@ -1,5 +1,5 @@
 import { Account, AccountType } from '@tonclient/appkit';
-import { signerKeys, TonClient } from '@tonclient/core';
+import { ResultOfProcessMessage, signerKeys, TonClient } from '@tonclient/core';
 import { libNode } from '@tonclient/lib-node';
 import { ClientError, CryptoModule, KeyPair } from '@tonclient/core/dist/modules';
 import { ContractPackage } from '@tonclient/appkit/dist/account';
@@ -83,7 +83,7 @@ async function main(client: TonClient) {
     });
 
     const address = await lockerContract.getAddress();
-    console.log(`Future address of the contract will be: ${address}`);
+    console.log(`Future address of the locker contract will be: ${address}`);
 
     const account = await lockerContract.getAccount();
     if (account.acc_type === AccountType.nonExist) {
@@ -92,9 +92,9 @@ async function main(client: TonClient) {
         // Deploy `hello` contract.
         await lockerContract.deploy({useGiver: true});
 
-        console.log(`Hello contract was deployed at address: ${address}`);
+        console.log(`Locker contract was deployed at address: ${address}`);
     } else {
-        console.log(`Hello contract was exist at address: ${address}`);
+        console.log(`Locker contract was exist at address: ${address}`);
     }
 
 
@@ -108,14 +108,17 @@ async function main(client: TonClient) {
         .sha256({
             data: Buffer
                 .from(secret, 'binary')
-                .toString('ascii'),
+                .toString('base64'),
         })
         .then(resultOfHash => `0x` + resultOfHash.hash);
     console.log(`hash=`, hash);
 
     // sendTransaction - for 1 custodian only;
     // submitTransaction - for
-    let response = await multisig.run('submitTransaction', {
+    let response: ResultOfProcessMessage;
+
+// if(false) {
+    response = await multisig.run('submitTransaction', {
         dest: address,
         value: 1_700_000_000,
         bounce: true,
@@ -133,7 +136,8 @@ async function main(client: TonClient) {
     });
     console.log('Contract reacted to your submitTransaction(),' +
         'target address will recieve:', response.fees.total_output);
-
+// }
+    // TODO: subscribe to return messages from locker to multisig
 
     response = await lockerContract.run('openLock', {
         dest: randomAddress,

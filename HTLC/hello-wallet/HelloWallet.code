@@ -1,4 +1,4 @@
-.version sol 0.58.1
+.version sol 0.58.2
 
 .macro constructor
 DROP
@@ -406,11 +406,6 @@ THROW 0
 CALL $openLock_internal_macro$
 
 .macro openLock_internal_macro
-.loc HelloWallet.sol, 114
-DUP
-CTOS
-STRDUMP
-DROP
 .loc HelloWallet.sol, 116
 OVER
 GETGLOB 11
