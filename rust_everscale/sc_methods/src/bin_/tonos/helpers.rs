@@ -190,7 +190,6 @@ pub async fn query_account_field(ton: TonClient, address: &str, field: &str) -> 
     Ok(data.unwrap().to_string())
 }
 
-
 pub async fn decode_msg_body(
     ton: TonClient,
     abi: &str,

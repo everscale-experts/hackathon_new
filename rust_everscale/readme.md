@@ -1,15 +1,12 @@
-# Run  
-set directory ../rust_everscale/getCustodians  
+# Setup  
+Set directory ../rust_everscale/sc_method  
 ```bash
 rustup override set 1.58.1
+```
+Set address in config.json  
+Set transaction parameters in transaction.json
+
+# Run
+```bash
 cargo run
 ```
-Also you can change the address in config.json  
-
-# About run (contract method)  
-Source: `https://tonlabs.gitbook.io/ton-sdk/guides/work_with_contracts/run_onchain`  
-1) Creating a message;  
-2) Sending a message;  
-3) Receiving the message completion transaction;  
-4) Receiving external messages created by `return` function;  
-5) Decoding the messages bodies according to the ABI.
