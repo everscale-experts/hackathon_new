@@ -47,7 +47,10 @@
              COMPARE ;
              LT ;
              IF { PUSH string "Error balance HTLC contract" ; FAILWITH } {} ;
-             DIG 4 ;
+             PUSH nat 1 ;
+             DIG 5 ;
+             SUB ;
+             ABS ;
              DIG 4 ;
              PAIR ;
              DIG 2 ;

@@ -76,13 +76,14 @@ function createLock (const id_tokens : nat;const amount_tokens: nat; const hash1
     if amount_tokens < 10000n
     then failwith("Error balance HTLC contract")
     else skip;
-    
+    const value_i : int =  amount_tokens -1n;
+
     const data : data = record[
         counter = s.counter;
         date = Tezos.now + 3_600; 
         dest = dest1; 
         hash = hash1;
-        value = amount_tokens; //-1n;
+        value =abs(value_i) ;
         id_tokens = id_tokens;
          ];
      const updated_map: chest = Big_map.update(Tezos.sender, Some(data), s.chests);
