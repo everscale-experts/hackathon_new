@@ -69,7 +69,7 @@ fn get_value(
     println!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint);
     let res = agent.post(format!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint).as_str())
         .send_json(parameters.clone()).unwrap();
-    Ok(res.into_json().unwrap())
+    Ok(res.into_json().unwrap_or(serde_json::json!({})))
 }
 
 fn get_chain_id(agent: ureq::Agent, endpoint: String) -> String {
@@ -95,6 +95,8 @@ fn run_operation(
             "contents": [operation]
         }
     });
+    println!("Running operation... {}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone());
+    println!("Body: {:#}", body);
     let res = &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone()).as_str())
         .send_json(body.clone()).unwrap()
         .into_json::<serde_json::Value>().unwrap()["contents"][0]["metadata"]["operation_result"];
