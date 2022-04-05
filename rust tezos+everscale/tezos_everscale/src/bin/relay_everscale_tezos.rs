@@ -201,7 +201,7 @@ async fn main() {
                                     Arc::clone(&ton1),
                                     result.result["in_msg"].as_str().unwrap(),
                                     // "388d0d91d23f4dbc97d277496cc0cd70219e646ae18a6c8e38d1ab7a9ce780e8",
-                                    load_abi_json("./dependencies/json/transfer.abi.json").unwrap(),
+                                    load_abi_json("./dependencies/json/HelloWallet.abi.json").unwrap(),
                                 ).await;
                                 let v_u64 = hex_to_dec(v);
                                 println!("Amount: {}", v_u64);
