@@ -1,5 +1,6 @@
 pub use ton_client::ClientContext;
 pub use serde_json::Value;
+use ton_client::abi::ParamsOfDecodeMessage;
 pub use std::sync::Arc;
 use std::collections::BTreeMap;
 use std::time::SystemTime;
@@ -269,11 +270,15 @@ pub fn hex_to_dec(v: &str) -> u64 {
     u64::from_str_radix(v.trim_start_matches("0x"), 16).unwrap()
 }
 
-fn load_abi(abi: &str) -> Result<Abi, String> {
+pub fn load_abi(abi: &str) -> Result<Abi, String> {
     Ok(Abi::Contract(
         serde_json::from_str::<AbiContract>(abi)
             .map_err(|e| format!("ABI is not a valid json: {}", e))?,
     ))
+}
+
+pub fn load_abi_json(file: &str) -> Result<Abi, String> {
+    Ok(Abi::Json(std::fs::read_to_string(file).unwrap()))
 }
 
 fn read_keys(filename: &str) -> Result<KeyPair, String> {
@@ -694,6 +699,43 @@ pub fn create_client_verbose(conf: &Config) -> Result<Arc<ClientContext>, String
     create_client(conf)
 }
 
+pub async fn get_msg_by_id(ton: Arc<ClientContext>, msg_id: &str) -> String {
+    ton_client::net::query_collection(
+        ton,
+        ParamsOfQueryCollection {
+            collection: "messages".to_string(),
+            filter: Some(serde_json::json!({
+                "id": {
+                    "in": msg_id
+                }
+            })),
+            result: "body".to_string(),
+            limit: None,
+            order: None,
+        }
+    ).await.unwrap().result[0]["body"].as_str().unwrap().to_string()
+}
+
+pub async fn decode_msg(ton: Arc<ClientContext>, msg: &str, abi: Abi) -> Value {
+    // ton_client::abi::decode_message_body(ton.clone(), ton_client::abi::ParamsOfDecodeMessageBody {
+    //     abi,
+    //     body: msg.to_owned(),
+    //     is_internal: true,
+    // }).await.unwrap().value.unwrap()
+    ton_client::abi::decode_message(ton, ParamsOfDecodeMessage {
+        abi,
+        message: msg.to_owned(),
+    }).await.unwrap().value.unwrap()
+}
+
+pub async fn decode_msg_by_id(ton: Arc<ClientContext>, msg_id: &str, abi: Abi) -> Value {
+    let msg = get_msg_by_id(ton.clone(), msg_id).await;
+    ton_client::abi::decode_message(ton, ParamsOfDecodeMessage {
+        abi,
+        message: msg,
+    }).await.unwrap().value.unwrap()
+}
+
 fn create_client(conf: &Config) -> Result<Arc<ClientContext>, String> {
     let cli_conf = ClientConfig {
         abi: AbiConfig {
@@ -727,3 +769,5 @@ fn create_client(conf: &Config) -> Result<Arc<ClientContext>, String> {
         ClientContext::new(cli_conf).map_err(|e| format!("failed to create tonclient: {}", e))?;
     Ok(Arc::new(cli))
 }
+
+fn main() {}
