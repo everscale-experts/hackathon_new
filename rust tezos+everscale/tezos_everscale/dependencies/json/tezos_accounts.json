@@ -1,0 +1,22 @@
+[
+    {
+        "address": "tz1dwZpejoja6MyRvKnm3UvqFLJybwHFm4nD",
+        "public": "edpkvU4vxMHkm2xL7iX3KiwaFJpggy8w9oLpuxFNoo2aNCA6GXo48E",
+        "secret": "edsk2kiRNpouXG3Aq7jSC2h87Urg7xKS5tSH5p5oHr8CiqNGVEbfAa"
+    },
+    {
+        "address": "tz1aazXPQEU5fAFh9nS7KbyzmePi8xyirc4M",
+        "public": "edpkvArjdHfx282LtiJ91f3Rm8sZXG4eBtJGGWNRF4rqDPLNdbxPUj",
+        "secret": "edsk4N5fXSSUCFWJoiiZQ9YX1gwZ4qSaXd65Uw6ZD4D3mzgYu4c5Ym"
+    },
+    {
+        "address": "tz1fvA7dhcWSZCgdYLtFtiDnoqGTBzTaNbCJ",
+        "public": "edpkumc4BAvZ4ZpGpgg7DvejWtixtJqdrXVUULC98A4SmTECcfrkjr",
+        "secret": "edsk3uzRgCjDnLmwbCenQ9eXu6vdb4sq2tKN4UhmJVe7Njm5VTw1iC"
+    },
+    {
+        "address": "tz1cQdRqT4pqzjR4zj3yJFPU1ZsKYmde1Xvt",
+        "public": "edpktnnhWXtKPqB8hwmL5ejxMpSrQbzuxaMCf1i6dnHv8iiGtoLBiV",
+        "secret": "edsk4MkrUtFqKH5z7spD6dRLvib6VbH7nog3PMxJurSdd34uQRWa7f"
+    }
+]

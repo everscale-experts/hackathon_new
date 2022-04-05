@@ -19,10 +19,16 @@ thiserror = "1.0.24"
 serde = { version = "1.0.123", features = ["derive"] }
 crypto = { path = "../crypto" }
 lib = { path = "../lib" }
+types = { path = "../types" }
 # emojies = { package = "cli_emojies", path = "../cli_emojies" }
 ureq = { path = "../urequ" }
+rpc_api = { path = "../rpc_api" }
 structopt = "0.3.21"
+http = "0.1.5"
+serde_json = "1.0.62"
+reqwest = "0.10.0"
 console = "0.14.0"
+hex = "0.4.3"
 dialoguer = "0.8"
 
 [dependencies.url]
