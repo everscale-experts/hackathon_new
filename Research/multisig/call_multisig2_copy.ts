@@ -3,7 +3,7 @@ import {InMemorySigner} from '@taquito/signer';
 import {KeyToken} from '@taquito/michelson-encoder/dist/types/tokens/key';
 import {b58cencode, char2Bytes, Prefix, prefix} from '@taquito/utils';
 import {schema_param} from './schema_msig_coin'
-const acc = require('./Account.json');
+
 
 const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz';
 //const CONTRACT = 'KT1SYmWUEZu13tycy5cLEaYuDtoG6Zf6DsxL'; //адрес опубликованного multisig
