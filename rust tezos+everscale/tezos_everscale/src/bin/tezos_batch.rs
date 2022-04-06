@@ -62,22 +62,14 @@ fn get_transactions_vec(hash: &str, address: &str) -> Result<serde_json::Value, 
             [
                 {
                     "contract": get_json_field(CONFIG, Some("tezos_multisig"), None).as_str().unwrap(),
-                    "entrypoint": "main",
+                    "entrypoint": "execute_proposal",
                     "parameters": {
-                        "sigs": [
-                            "edsigtj8W5Jd3EuTYEqEv6EemEwdEmXABzkfL9x9GAHnLLZhSWuEtKVCv6YFbmfhRjcuEqyxyWpzds5efKF3cuHy9fB5tpfiXFd"
-                        ],
-                        "payload": {
-                            "action": {
-                                "operation": format!(r#"[{{"prim":"DROP"}},{{"prim":"NIL","args":[{{"prim":"operation"}}]}},{{"prim":"PUSH","args":[{{"prim":"key_hash"}},{{"string":"{}"}}]}},{{"prim":"IMPLICIT_ACCOUNT"}},{{"prim":"PUSH","args":[{{"prim":"mutez"}},{{"int":"1"}}]}},{{"prim":"UNIT"}},{{"prim":"TRANSFER_TOKENS"}},{{"prim":"CONS"}}]"#, htlc2.as_str().unwrap())
-                            },
-                            "counter": "4"
-                        }
+                        "nat": 0,
                     }
                 },
                 {
                     "contract": get_json_field(CONFIG, Some("tezos_multisig"), None).as_str().unwrap(),
-                    "entrypoint": "main",
+                    "entrypoint": "execute_proposal",
                     "parameters": {
                         "sigs": [
                             "edsigtj8W5Jd3EuTYEqEv6EemEwdEmXABzkfL9x9GAHnLLZhSWuEtKVCv6YFbmfhRjcuEqyxyWpzds5efKF3cuHy9fB5tpfiXFd"
@@ -174,67 +166,134 @@ pub fn estimate_operation_fee(
         + 2
 }
 
+// fn get_group(rpc: &str, endpoint: &str, branch: String, contract: &str, hash: &str, address: &str) -> Vec<serde_json::Value> {
+//     let mut group = Vec::<serde_json::Value>::new();
+//     let sender = get_json_field("./dependencies/json/tezos_accounts.json", None, Some(2));
+//     let counter = get_address_counter(
+//         ureq::Agent::new(),
+//         endpoint.to_string(),
+//         // get_json_field(CONFIG, Some("tezos_multisig"), None).as_str().unwrap().to_string(),
+//         sender["address"].as_str().unwrap().to_string(),
+//     ) + 1;
+//     let transactions = get_transactions_vec(hash, address).unwrap();
+//     for i in 0..transactions.as_array().unwrap().len() {
+//         let test_op = serde_json::json!({
+//             "kind": "transaction",
+//             "source": sender["address"].as_str().unwrap(),
+//             "destination": transactions[i].clone()["contract"],
+//             "fee": "100000",
+//             "counter": format!("{}", counter as u64),
+//             "gas_limit": "10300",
+//             "storage_limit": "100",
+//             "amount": "0",
+//             "parameters": {
+//                 "entrypoint": transactions[i].clone()["entrypoint"],
+//                 "value": get_value(
+//                     ureq::Agent::new(),
+//                     endpoint.to_string(),
+//                     transactions[i].clone()["contract"].as_str().unwrap().to_string(),
+//                     transactions[i].clone()["entrypoint"].as_str().unwrap().to_string(),
+//                     transactions[i]["parameters"].clone(),
+//                 ).unwrap()
+//             }
+//         });
+//         let run_op_res = run_operation(
+//             ureq::Agent::new(),
+//             rpc.to_string(),
+//             branch.clone(),
+//             test_op,
+//         ).unwrap();
+//         group.push(serde_json::json!({
+//             "kind": "transaction",
+//             "source": sender["address"].as_str().unwrap(),
+//             "destination": transactions[i].clone()["contract"],
+//             "fee":format!("{}", estimate_operation_fee(
+//                 &run_op_res.consumed_gas.parse::<u64>().unwrap(),
+//                 &run_op_res.storage_size.parse::<u64>().unwrap(),
+//             )),
+//             "counter": format!("{}", counter + i as u64),
+//             "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
+//             "storage_limit": "100",
+//             "amount": "0",
+//             "parameters": {
+//                 "entrypoint": transactions[i].clone()["entrypoint"],
+//                 "value": get_value(
+//                     ureq::Agent::new(),
+//                     endpoint.to_string(),
+//                     transactions[i].clone()["contract"].as_str().unwrap().to_string(),
+//                     transactions[i].clone()["entrypoint"].as_str().unwrap().to_string(),
+//                     transactions[i]["parameters"].clone(),
+//                 ).unwrap()
+//             }
+//         }));
+//     }
+//     group
+// }
+
 fn get_group(rpc: &str, endpoint: &str, branch: String, contract: &str, hash: &str, address: &str) -> Vec<serde_json::Value> {
     let mut group = Vec::<serde_json::Value>::new();
-    let sender = get_json_field("./dependencies/json/tezos_accounts.json", None, Some(2));
+    let sender = get_json_field("./dependencies/json/tezos_msig_custodians.json", None, Some(0));
     let counter = get_address_counter(
         ureq::Agent::new(),
         endpoint.to_string(),
         // get_json_field(CONFIG, Some("tezos_multisig"), None).as_str().unwrap().to_string(),
         sender["address"].as_str().unwrap().to_string(),
     ) + 1;
-    let transactions = get_transactions_vec(hash, address).unwrap();
-    for i in 0..transactions.as_array().unwrap().len() {
-        let test_op = serde_json::json!({
-            "kind": "transaction",
-            "source": sender["address"].as_str().unwrap(),
-            "destination": transactions[i].clone()["contract"],
-            "fee": "100000",
-            "counter": format!("{}", counter as u64),
-            "gas_limit": "10300",
-            "storage_limit": "100",
-            "amount": "0",
-            "parameters": {
-                "entrypoint": transactions[i].clone()["entrypoint"],
-                "value": get_value(
-                    ureq::Agent::new(),
-                    endpoint.to_string(),
-                    transactions[i].clone()["contract"].as_str().unwrap().to_string(),
-                    transactions[i].clone()["entrypoint"].as_str().unwrap().to_string(),
-                    transactions[i]["parameters"].clone(),
-                ).unwrap()
-            }
-        });
-        let run_op_res = run_operation(
-            ureq::Agent::new(),
-            rpc.to_string(),
-            branch.clone(),
-            test_op,
-        ).unwrap();
-        group.push(serde_json::json!({
-            "kind": "transaction",
-            "source": sender["address"].as_str().unwrap(),
-            "destination": transactions[i].clone()["contract"],
-            "fee":format!("{}", estimate_operation_fee(
-                &run_op_res.consumed_gas.parse::<u64>().unwrap(),
-                &run_op_res.storage_size.parse::<u64>().unwrap(),
-            )),
-            "counter": format!("{}", counter + i as u64),
-            "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
-            "storage_limit": "100",
-            "amount": "0",
-            "parameters": {
-                "entrypoint": transactions[i].clone()["entrypoint"],
-                "value": get_value(
-                    ureq::Agent::new(),
-                    endpoint.to_string(),
-                    transactions[i].clone()["contract"].as_str().unwrap().to_string(),
-                    transactions[i].clone()["entrypoint"].as_str().unwrap().to_string(),
-                    transactions[i]["parameters"].clone(),
-                ).unwrap()
-            }
-        }));
-    }
+    let test_op = serde_json::json!({
+        "kind": "transaction",
+        "source": "tz1WLfP4Cd5A7Mqp3f12cjuozUxrVXYdtx5d",
+        "destination": "KT19abGaPe5DfuaqevoR8wEgk7TzvFuGLSbu",
+        "fee": "100000",
+        "counter": format!("{}", counter as u64),
+        "gas_limit": "10300",
+        "storage_limit": "100",
+        "amount": "1",
+        "parameters": {
+            "entrypoint": "transfer_mutez_proposal",
+            "value": get_value(
+                ureq::Agent::new(),
+                endpoint.to_string(),
+                "KT19abGaPe5DfuaqevoR8wEgk7TzvFuGLSbu".to_string(),
+                "transfer_mutez_proposal".to_string(),
+                serde_json::json!({
+                    "mutez_amount": "1",
+                    "destination": "KT1Wuuaw6WSQ5akVLCrDs4DGQbEnYBFEKesp"
+                }),
+            ).unwrap(),
+        }
+    });
+    let run_op_res = run_operation(
+        ureq::Agent::new(),
+        rpc.to_string(),
+        branch.clone(),
+        test_op,
+    ).unwrap();
+    group.push(serde_json::json!({
+        "kind": "transaction",
+        "source": "tz1WLfP4Cd5A7Mqp3f12cjuozUxrVXYdtx5d",
+        "destination": "KT19abGaPe5DfuaqevoR8wEgk7TzvFuGLSbu",
+        "fee": format!("{}", estimate_operation_fee(
+            &run_op_res.consumed_gas.parse::<u64>().unwrap(),
+            &run_op_res.storage_size.parse::<u64>().unwrap(),
+        )),
+        "counter": format!("{}", counter as u64),
+        "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
+        "storage_limit": "100",
+        "amount": "1",
+        "parameters": {
+            "entrypoint": "transfer_mutez_proposal",
+            "value": get_value(
+                ureq::Agent::new(),
+                endpoint.to_string(),
+                "KT19abGaPe5DfuaqevoR8wEgk7TzvFuGLSbu".to_string(),
+                "transfer_mutez_proposal".to_string(),
+                serde_json::json!({
+                    "mutez_amount": "1",
+                    "destination": "KT1Wuuaw6WSQ5akVLCrDs4DGQbEnYBFEKesp"
+                }),
+            ).unwrap(),
+        }
+    }));
     group
 }
 

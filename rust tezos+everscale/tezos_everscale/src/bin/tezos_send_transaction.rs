@@ -122,11 +122,11 @@ pub fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount
     }
 }
 
-// fn main() {
+fn main() {
 //     let contract = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
 //     let to = "tz1aazXPQEU5fAFh9nS7KbyzmePi8xyirc4M";
 //     let secret_key = "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R";
 //     let public_key = "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd";
 //     let amount = "0.001";
 //     transfer(contract, from, to, public_key, secret_key, amount);
-// }
+}
