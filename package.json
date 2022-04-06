@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@taquito/rpc": "^11.2.0",
-    "cmd-ts": "^0.10.0"
-  }
-}
