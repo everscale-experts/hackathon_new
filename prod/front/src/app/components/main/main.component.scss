@@ -1,0 +1,29 @@
+.container .mat-form-field + .mat-form-field {
+  margin-left: 8px;
+}
+
+
+mat-grid-tile {
+  //background: lightblue;
+}
+
+mat-form-field {
+  /*width: 416px;
+  height: 83px;
+  background: #292929;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  box-shadow: inset -5px -5px 15px rgba(255, 255, 255, 0.06), inset 5px 5px 15px rgba(0, 0, 0, 0.29);
+  border-radius: 34px;*/
+  display: block;
+/*  margin:auto;
+  margin-top: 36px;
+  color:#FFF;
+  padding-left: 15px;*/
+
+}
+mat-grid-list{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}

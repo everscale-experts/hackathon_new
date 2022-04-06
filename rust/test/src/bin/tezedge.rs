@@ -136,7 +136,8 @@ fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount: &s
     let transfer_obj = TransferLocal {
         verbose: 3,
         no_prompt: false,
-        endpoint: "https://rpctest.tzbeta.net".to_string(),
+        // endpoint: "https://rpctest.tzbeta.net".to_string(),
+        endpoint: "https://hangzhounet.api.tez.ie/".to_string(),
         public_key: public_key.to_string(),
         private_key: secret_key.to_string(),
         from: from.to_string(),
@@ -149,9 +150,9 @@ fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount: &s
 
     match result {
         Ok(_) => {
-            println!("{:?}", ureq::get(format!("http://127.0.0.1:7878/comment=%7B{}%7D",
-                                       format!("%22from%22:%22{}%22,%22to%22:%22{}%22,%22amount%22:%22{}%22",
-                                               from, to, amount)).as_str()).call().unwrap());
+            // println!("{:?}", ureq::get(format!("http://127.0.0.1:7878/comment=%7B{}%7D",
+            //                            format!("%22from%22:%22{}%22,%22to%22:%22{}%22,%22amount%22:%22{}%22",
+            //                                    from, to, amount)).as_str()).call().unwrap());
             println!("Ok");
         },
         Err(err) => exit_with_error(err)
@@ -159,10 +160,11 @@ fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount: &s
 }
 
 fn main() {
-    let from = "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX";
+    let from = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
     let to = "tz1WtthyqxFXaC46kBC18UXdqboeTqEjqwtX";
-    let secret_key = "edsk3atvetN6HVmRj7TDG5jJaJNAb9Kj6mCPuaEsw51yWJKNAF7TyD";
-    let public_key = "edpkvXvxZNviW3BKegDRPdVAaU5inNudDdTdccHvbHLgYUeNSFuCgH";
-    let amount = "1";
+    // let to = "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1";
+    let secret_key = "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R";
+    let public_key = "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd";
+    let amount = "0.00001";
     transfer(from, to, public_key, secret_key, amount);
 }

@@ -79,6 +79,7 @@ impl<T> GetContractManagerAddress for T
     fn get_contract_manager_address(&self, addr: &Address) -> GetContractManagerAddressResult {
         Ok(match addr {
             Address::Implicit(addr) => addr.clone(),
+            // Address::Originated(addr) => addr.clone()
             Address::Originated(addr) => {
                 let storage = self.get_contract_storage(addr)?;
                 let manager_str = storage["string"].as_str()

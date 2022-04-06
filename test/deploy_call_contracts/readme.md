@@ -1,4 +1,22 @@
-<<<<<<< HEAD
+# Как сделать токен с метаданными
+
+## Установите компилятор Ligo
+
+```bash
+wget https://gitlab.com/ligolang/ligo/-/jobs/2045251914/artifacts/raw/ligo
+chmod +x ./ligo
+```
+## Скомпилируй контракт
+
+```bash
+./ligo compile contract smart-contracts/single_asset/ligo/src/fa2_single_asset.mligo --entry-point single_asset_main
+```
+
+
+
+
+
+
 # Install
 
 yarn
@@ -42,14 +60,10 @@ function main (const parameter : action ; const store : storage) :
   } with ((nil : list(operation)), result)
 =======
 # Install  
-  
+
 yarn  
-  
-  
+
+
 # Links  
-  
+
 - https://ide.ligolang.org  
-  
-  
-  
->>>>>>> e69c7e2df7d6bc94de10ff347ca990def50d2aec

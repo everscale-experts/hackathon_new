@@ -1,11 +1,11 @@
 use crate::api::{TransportError, GetVersionInfo, GetVersionInfoResult, GetVersionInfoError};
 use crate::http_api::HttpApi;
 
-fn get_version_info_url(base_url: &str) -> String {
-    let res: String = format!("{}/version", base_url);
-    println!("[... > transfer > execute > build_operation_group > get_version_info > get_version_info_url]");
-    res
-}
+// fn get_version_info_url(base_url: &str) -> String {
+//     let res: String = format!("{}/version", base_url);
+//     println!("[... > transfer > execute > build_operation_group > get_version_info > get_version_info_url]");
+//     res
+// }
 
 impl From<ureq::Error> for GetVersionInfoError {
     fn from(error: ureq::Error) -> Self {
@@ -37,11 +37,12 @@ impl From<std::io::Error> for GetVersionInfoError {
 
 impl GetVersionInfo for HttpApi {
     fn get_version_info(&self) -> GetVersionInfoResult {
-        println!("[... > execute > transfer > execute > build_operation_group > get_version_info]");
-        let value: String = get_version_info_url(&self.base_url);
-        println!("{}", value);
+        // println!("[... > execute > transfer > execute > build_operation_group > get_version_info]");
+        // let value: String = get_version_info_url(&self.base_url);
+        // println!("{}", value);
+        let value: String = "https://hangzhounet.api.tez.ie/version".to_string();
         // let value: String = "https://rpctest.tzbeta.net/version".to_string();
-        Ok(self.client.get(&value, &"HttpApi > get_version_info")
+        Ok(self.client.get(&value, "HttpApi > get_version_info")
             .call()?
             .into_json()?)
     }
