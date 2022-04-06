@@ -1,0 +1,17 @@
+[
+  {
+    "name": "wTXZ",
+    "type": "TIP-3.1",
+    "desc": "Wrapped Tezos"
+  },
+  {
+    "name": "SOON",
+    "type": "TIP-3",
+    "desc": "Soon"
+  },
+  {
+    "name": "BRIDGE",
+    "type": "TIP-3.1",
+    "desc": "Bridge token"
+  }
+]
