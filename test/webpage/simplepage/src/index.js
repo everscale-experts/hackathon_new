@@ -12,7 +12,7 @@ import {
   TonClient,
   MessageBodyType,
   signerNone,
-  //abiContract,
+  abiContract,
 } from "@tonclient/core";
 import { libWeb } from '@tonclient/lib-web';
 import {
@@ -34,6 +34,42 @@ const amount = 10;
 const sender = "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM";
 const receiver = 'tz1KfoG6WnXeeRxipcmvod34BQX2KUu34VFY';
 
+
+const transferCommentAbi = {
+  "ABI version": 2,
+  "functions": [
+    {
+      "name": "transfer",
+      "id": "0x00000000",
+      "inputs": [{"name":"comment","type":"bytes"}],
+      "outputs": []
+    }
+  ],
+  "events": [],
+  "data": []
+}
+
+async function getCommentPayload(){
+  const client = new TonClient({
+    network: {
+      endpoints: ['net.ton.dev']
+    }
+  });
+  const text = "tz1KfoG6WnXeeRxipcmvod34BQX2KUu34VFY!";
+  const payload = (await client.abi.encode_message_body({
+    abi: abiContract(transferCommentAbi),
+    call_set: {
+      function_name: "transfer",
+      input: {
+        comment: Buffer.from(text).toString("hex"),
+      },
+    },
+    is_internal: true,
+    signer: signerNone(),
+  })).body;
+  console.log(payload)
+}
+window.getCommentPayload = getCommentPayload;
 
 
 
@@ -85,9 +121,8 @@ async function send_with_tezos(){
       },
     });
     console.log(auth);
-    //const AMOUNT = 2 //количество токенов для отправки. Можете ввести другое число
 
-    /*Tezos.wallet
+    Tezos.wallet
     .at('KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark')
     .then((contract) => contract.methods.transfer([{
     from_: "tz1eGERZcJeTuBy5HxbTr8j3PzJdPrSUhHmn",
@@ -248,6 +283,7 @@ async function send_everwallet(){
     walletInfo.address,
     address_recepient,
     tokenvalue.toString(),
+
   );
 
   console.log(send);
