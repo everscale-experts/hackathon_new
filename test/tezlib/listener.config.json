@@ -1,0 +1,9 @@
+{
+    "tezos": {
+        "token_contract": "KT1MPrXmeAhHMdz9L3V25D38PndpT4cDwAi8",
+        "address": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+    },
+    "everscale": {
+        "address": "0:bdd066bacf2357ca05e3571422d38d12b7dffb584682d9fa6a33b0ea940375f1"
+    }
+}
