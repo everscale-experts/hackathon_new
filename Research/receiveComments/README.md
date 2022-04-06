@@ -38,4 +38,9 @@ npx ts-node Comment.ts
 https://ligolang.org/docs/language-basics/unit-option-pattern-matching#optional-values
   
   
-  
+информация о том, как сохранять и взаимодействовать(удалять, добовлять) с большим количеством данных в ligo [тут](https://ligolang.org/docs/language-basics/maps-records)  
+информация о списках, словарях и sets [тут](https://ligolang.org/docs/language-basics/sets-lists-tuples)  
+
+
+
+

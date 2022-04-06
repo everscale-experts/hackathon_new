@@ -53,7 +53,7 @@ async function deploy() {
                 minimum_votes:2,
                 proposals,
                 // владельцы кошелька
-                users:['tz1LpyieamcZRUAEqXxRz6k7yEG1GfMkX3At','tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF'],
+                users:['tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF','tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'],
                 votes,
               },
       })

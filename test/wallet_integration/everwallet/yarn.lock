@@ -2,6 +2,15 @@
 # yarn lockfile v1
 
 
+"@rsquad/ton-utils@^1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@rsquad/ton-utils/-/ton-utils-1.3.1.tgz#bb6434fa4216f648a46309cd8c8ac0ec5754d813"
+  integrity sha512-FMlPUMnP+GEYgq24TeLX5oRad/nX+obz+hryDV/9iXG6MHA6XB7YfLP0+42MDGC5oKrP4tv2NOEwMy5Qcu+H0g==
+  dependencies:
+    "@tonclient/core" "^1.20.0"
+    "@tonclient/lib-node" "^1.20.0"
+    typescript "^4.3.5"
+
 "@tonclient/appkit@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@tonclient/appkit/-/appkit-0.3.0.tgz#bf5f975c5753ea426c9ef9f5dc0e849f6aad816d"
@@ -9,12 +18,12 @@
   dependencies:
     "@tonclient/core" "^1"
 
-"@tonclient/core@^1", "@tonclient/core@^1.30.0":
+"@tonclient/core@^1", "@tonclient/core@^1.20.0", "@tonclient/core@^1.30.0":
   version "1.30.0"
   resolved "https://registry.yarnpkg.com/@tonclient/core/-/core-1.30.0.tgz#789d919e51c8aa86a9718521b5658666e75b521d"
   integrity sha512-/3ECtGoyOs22U3QjD0stxxPOS39tumFvkx2xly3QJmIUhZccoFMwgWzah8QelLz4+nzzaDJxGeVgiknfgsGSZg==
 
-"@tonclient/lib-node@^1.30.0":
+"@tonclient/lib-node@^1.20.0", "@tonclient/lib-node@^1.30.0":
   version "1.30.0"
   resolved "https://registry.yarnpkg.com/@tonclient/lib-node/-/lib-node-1.30.0.tgz#2ae938959f6d55ce93810b0920d4059088a5f6ab"
   integrity sha512-gp2l5E0rDOJOYA3J9U0RxDu/kkUVkvGrQfOieyc6qd1EcwS+Zuac4KJvmrpxITkUBNDCJd2dhLeXoyOIjdQe/g==
@@ -34,7 +43,22 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.16.tgz#e3733f46797b9df9e853ca9f719c8a6f7b84cd26"
   integrity sha512-ydLaGVfQOQ6hI1xK2A5nVh8bl0OGoIfYMxPWHqqYe9bTkWCfqiVvZoh2I/QF2sNSkZzZyROBoTefIEI+PB6iIA==
 
+js-sha256@^0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/js-sha256/-/js-sha256-0.9.0.tgz#0b89ac166583e91ef9123644bd3c5334ce9d0966"
+  integrity sha512-sga3MHh9sgQN2+pJ9VYZ+1LPwXOxuBJBA5nrR5/ofPfuiJBE2hnjsaN8se8JznOmGLN2p49Pe5U/ttafcs/apA==
+
+typescript@^4.3.5:
+  version "4.6.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.6.2.tgz#fe12d2727b708f4eef40f51598b3398baa9611d4"
+  integrity sha512-HM/hFigTBHZhLXshn9sN37H085+hQGeJHJ/X7LpBWLID/fbc2acUMfU+lGD98X81sKP+pFa9f0DZmCwB9GnbAg==
+
 typescript@^4.5.5:
   version "4.5.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.5.tgz#d8c953832d28924a9e3d37c73d729c846c5896f3"
   integrity sha512-TCTIul70LyWe6IJWT8QSYeA54WQe8EjQFU4wY52Fasj5UKx88LNYKCgBEHcOMOrFF1rKGbD8v/xcNWVUq9SymA==
+
+uint@^21.6.2:
+  version "21.6.2"
+  resolved "https://registry.yarnpkg.com/uint/-/uint-21.6.2.tgz#3a076d09166164b5e6dc49e67603736ef76f1ddd"
+  integrity sha512-2kdYektVZzHjg8Rhs4YgSnGZQkBnOa8/Xkt67YRhBMo8T36cjxbb3MnQrEgqAMSh36RAvxJWiiSOI9ySLbtwpA==

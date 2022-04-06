@@ -5,7 +5,7 @@ import { b58cencode, char2Bytes, Prefix, prefix } from '@taquito/utils';
 import {SchemaOfParams1} from './schema1';
 import {SchemaOfParams2} from './schema2';
 
-const acc = require('./Account.json');
+
 
 const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz';
 const CONTRACT_MSIG = 'KT1NKRT1sdGZjpsN8qNNEX3fqNnSi6ReujSK'; //адрес опубликованного multisig
