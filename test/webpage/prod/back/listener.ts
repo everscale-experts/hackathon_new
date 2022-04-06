@@ -3,8 +3,18 @@ import { TonClient, abiContract } from "@tonclient/core";
 import { libNode } from "@tonclient/lib-node";
 import { TokenWallet } from "./everscale";
 import config from "./listener.config.json";
+import { token_transfer } from './token-transfer'
+import { Tezos } from "./tezos";
+
+
 
 const RPC = "https://rpc.hangzhounet.teztnets.xyz";
+const RPC_URL = 'https://rpc.hangzhounet.teztnets.xyz'
+const CONTRACT = 'KT1WhqQJyuznPdGD3JM3iqMpaRveeUuVSz9k' //адрес опубликованного контракта
+const SENDER = 'tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF' //публичный адрес отправителя — возьмите его из accaunt1.json
+const RECEIVER = 'tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7' //публичный адрес получателя — возьмите его из кошелька Tezos, который вы создали
+const AMOUNT = 167 //количество токенов для отправки в сатошах, меньших единицах токена. Можете ввести другое число
+const ID=1
 
 TonClient.useBinaryLibrary(libNode);
 
@@ -23,8 +33,11 @@ async function main() {
     console.log(`[*] TEZOS: Listening ${config.tezos.token_contract} for incoming tokens...`)
     console.log("\n");
 
-    everscale.onTokenReceived(data => {
+    everscale.onTokenReceived(async data => {
         console.log(`[*] EVERSCALE: Token received!\n | Amount: ${data.amount}\n | Payload: ${data.payload}`);
+        new token_transfer(RPC_URL).transfer(CONTRACT, SENDER, RECEIVER, AMOUNT, ID)
+
+
     })
 
     const tezosSubscription = tezos.stream.subscribeOperation({

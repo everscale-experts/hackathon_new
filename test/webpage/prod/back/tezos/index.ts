@@ -21,10 +21,10 @@ export class Tezos {
     this.tezos = new TezosToolkit(this.rpcUrl)
     this.account = account;
 
-    this.tezos.setProvider({ 
-      config: { 
-        shouldObservableSubscriptionRetry: true, 
-        streamerPollingIntervalMilliseconds: 15000 
+    this.tezos.setProvider({
+      config: {
+        shouldObservableSubscriptionRetry: true,
+        streamerPollingIntervalMilliseconds: 15000
       }
     });
 
@@ -121,11 +121,12 @@ export class Tezos {
    * @param contract_address Адрес контракта токена
    * @param receiver Адрес получателя
    * @param amount Сумма перевода
+   * @param id ID токена
    * @returns Hash операции
    */
-  public async transferToken(contract_address: string, receiver: string, amount: number) {
+  public async transferToken(contract_address: string, receiver: string, amount: number,id:number) {
     const contract = await this.tezos.contract.at(contract_address);
-    const op = await contract.methods.transfer(this.account.pkh, receiver, amount).send()
+    const op = await contract.methods.transfer(this.account.pkh, receiver, amount,id).send()
     return op.confirmation(1).then(() => op.hash)
   }
 
@@ -209,15 +210,15 @@ export class MassListener {
     token_targets: ITokenListenerTarget[]
   ){
     this.tezos = new TezosToolkit(rpcUrl);
-    this.tezos.setProvider({ 
-      config: { 
-        shouldObservableSubscriptionRetry: true, 
+    this.tezos.setProvider({
+      config: {
+        shouldObservableSubscriptionRetry: true,
         streamerPollingIntervalMilliseconds: 5000,
       }
     });
-    
+
     const parsed_tokens = token_targets.map(target => ([target.contract, {
-      symbol: target.symbol, 
+      symbol: target.symbol,
       wallet: target.wallet
     }] as [string, ITokenEntry]));
 
@@ -255,7 +256,7 @@ export class MassListener {
       address: data.destination,
       isToken: false,
       contract: null,
-      symbol: null 
+      symbol: null
     })
   }
 

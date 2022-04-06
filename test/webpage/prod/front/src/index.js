@@ -55,7 +55,7 @@ async function getCommentPayload(){
       endpoints: ['net.ton.dev']
     }
   });
-  const text = "tz1KfoG6WnXeeRxipcmvod34BQX2KUu34VFY!";
+  const text = "tz1KfoG6WnXeeRxipcmvod34BQX2KUu34VFY";
   const payload = (await client.abi.encode_message_body({
     abi: abiContract(transferCommentAbi),
     call_set: {
