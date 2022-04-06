@@ -148,7 +148,7 @@ fn run_operation(
         .into_json::<serde_json::Value>().unwrap().to_string()).unwrap();
     Ok(OperationResult{
         consumed_gas: res["consumed_gas"].as_str().unwrap_or("5000").to_string(),
-        storage_size: res["storage_size"].as_str().unwrap_or("100").to_string(),
+        storage_size: res["storage_size"].as_str().unwrap_or("256").to_string(),
     })
 }
 
@@ -246,7 +246,7 @@ fn get_group(rpc: &str, endpoint: &str, branch: String, contract: &str, hash: &s
         "fee": "100000",
         "counter": format!("{}", counter as u64),
         "gas_limit": "10300",
-        "storage_limit": "100",
+        "storage_limit": "256",
         "amount": "1",
         "parameters": {
             "entrypoint": "transfer_mutez_proposal",
@@ -278,7 +278,7 @@ fn get_group(rpc: &str, endpoint: &str, branch: String, contract: &str, hash: &s
         )),
         "counter": format!("{}", counter as u64),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
-        "storage_limit": "100",
+        "storage_limit": "256",
         "amount": "1",
         "parameters": {
             "entrypoint": "transfer_mutez_proposal",
@@ -306,7 +306,7 @@ fn sign_operation(
     hash: &str,
     address: &str,
 ) -> Result<OperationSignatureInfo, Error> {
-    let sender = get_json_field("./dependencies/json/tezos_accounts.json", None, Some(2));
+    let sender = get_json_field("./dependencies/json/tezos_msig_custodians.json", None, Some(0));
     let local_state = LocalWalletState {
         public_key: PublicKey::from_base58check(sender["public"].as_str().unwrap()).unwrap(),
         private_key: PrivateKey::from_base58check(sender["secret"].as_str().unwrap()).unwrap(),
@@ -331,6 +331,7 @@ fn sign_operation(
 }
 
 fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoint: &str) -> lib::api::InjectOperationsResult {
+    println!("{}", operation_with_signature);
     let operation_with_signature_json = serde_json::Value::String(operation_with_signature.to_owned());
 
     Ok(agent.post(format!("{}/injection/operation", endpoint).as_str())
