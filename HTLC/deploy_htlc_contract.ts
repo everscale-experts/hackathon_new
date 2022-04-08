@@ -30,7 +30,7 @@ async function deploy() {
         code: htlc_contract,
         //значение хранилища
         storage: {
-                counter:0,
+                counter:0, 
                 chests,
                 balances_token,
                 chests_for_check

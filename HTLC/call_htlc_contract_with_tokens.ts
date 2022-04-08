@@ -31,11 +31,11 @@ async function example() {
 
         const contract = await tezos.contract.at('KT1Wj3U8oHeBqTG6G6mpm5e7zZqCACMVJRmZ')
       
-      batch
+      batch//                                            адрес получателя                   секрет
       .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW', char2Bytes('')))
-      
+      //                                               адрес контракта токенов                            хэш секрета               адрес получателя токенов  
     //  .withContractCall(contract.methods.createLock('KT1VKyokYCeTidBzepRJrBVrQDJPq6RH8RYn',ID, AMOUNT, sha256(char2Bytes('')),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ));
-    //  .withContractCall(contract.methods.addToken('KT1VKyokYCeTidBzepRJrBVrQDJPq6RH8RYn', 2));
+    
     
       
       
