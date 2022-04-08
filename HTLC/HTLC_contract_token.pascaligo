@@ -1,5 +1,5 @@
 
-
+// объявляем тип для данных в сундуке
 type data is record[
   counter: int;
   date   : timestamp;
@@ -9,6 +9,7 @@ type data is record[
   id_tokens : nat;
   addressToken : address;
 ]
+// тип даных которые берет token_default и вписывает их в сундук и проверяет количество твокенов 
 type data_for_check is record[
   owner:address;
   date   : timestamp;
@@ -19,16 +20,11 @@ type data_for_check is record[
   addressToken : address;
 ]
 
-type value_bool is record [
-    value  : tez;
-]
-
+// типы big map стореджа
 type balance_token is record[amount:nat];
 type balance_token_id is map(nat, balance_token);
-// адресс токенов 
 type balances_token is big_map(address,balance_token_id)
 type chest is big_map(address, data)
-
 type chests_for_check is big_map(int,data_for_check)
 
 (*объявляем тип storage*)
@@ -40,6 +36,7 @@ type storage is record [
 ]
 
 type token_id is nat;
+// типы для трансфера токенов 
 type transfer_destination is
 [@layout:comb]
 record [
@@ -54,7 +51,7 @@ record [
  from_ : address;
  txs : list(transfer_destination);
 ]
-
+// типы для вызова метода контракта токена balance_of
 type balance_of_request is
 [@layout:comb]
 record [
@@ -75,7 +72,7 @@ record [
  requests : list(balance_of_request);
  callback : contract (list(balance_of_response));
 ]
-
+// тип для добаления адресса с нулевым балансом 
 type addTokenParams_for_entrypoint is record[
     addressContractToken : address;
     id_tokens:token_id
@@ -101,6 +98,7 @@ type return is list(operation) * storage
 // фуекция которую вызывает контракт токенов 
 function default_token(const callback_f :list(balance_of_response); var s :storage): return is 
     begin
+    // делаем из списка объект с которым можно работать 
     const df : option(balance_of_response) =List.head_opt(callback_f);
     const df :balance_of_response =
     case (List.head_opt(callback_f): option(balance_of_response)) of [
@@ -124,7 +122,7 @@ function default_token(const callback_f :list(balance_of_response); var s :stora
     var balance_before: nat:= balance_tok.amount;
     // обновляем баланс этого токена 
     balance_tok := record[amount=df.balance];
-
+    
     const update_map: balance_token_id = Map.update(df.request.token_id, Some(balance_tok),value_stored);
 
     const updated_big_map: balances_token = Big_map.update(Tezos.sender, Some(update_map), s.balances_token);
@@ -134,12 +132,13 @@ function default_token(const callback_f :list(balance_of_response); var s :stora
 
       //записыаем количество переведенных токенов на баланс 
     const amount_tokens_check:nat= abs(balance_before-balance_after);
-
+    // находим в big map по counter значеия которые будем записывать в сундук 
     const value_chest : data_for_check = 
     case Big_map.find_opt(s.counter, s.chests_for_check) of[
         | Some (c) -> c
         | None -> failwith("Error balance token")
     ];
+    // делаем так чтобы этот метод не могли вызввать поьзовотели 
     if Tezos.sender =/= value_chest.addressToken
     then failwith("Error: call method contract")
     else skip;
@@ -147,17 +146,21 @@ function default_token(const callback_f :list(balance_of_response); var s :stora
     if value_chest.value > amount_tokens_check
     then failwith("Error transfer amount")
     else skip;
+    // записываем в сундук данные 
     const data : data = record[
         counter=s.counter;
         date = Tezos.now + 3_600; 
         dest = value_chest.dest; 
         hash = value_chest.hash;
-        value =value_chest.value;
+        value =abs(value_chest.value-1n);
         id_tokens = value_chest.id_tokens;
         addressToken= value_chest.addressToken;
          ];
      const updated_map: chest = Big_map.update(value_chest.owner, Some(data), s.chests);
      s := s with record [chests = updated_map]; 
+     (*После прочтения удаляем запись из big_map*)
+    const updated_map : chests_for_check = Big_map.remove (s.counter, s.chests_for_check);
+    s := s with record [chests_for_check = updated_map]; 
 
 end with((nil : list(operation)),s)
 
@@ -238,7 +241,6 @@ function createLock (const tokenAddress:address;const id_tokens : nat;const amou
     if amount_tokens < 2n
     then failwith("Error: you have transfered few tokens")
     else skip;
-    const value_i : int =  amount_tokens -1n;
 
     const data_for_check : data_for_check = record[
         owner=Tezos.sender;
@@ -318,7 +320,26 @@ function openLock (const dest: address; const secret: bytes; var s: storage):ret
         else {
             operations := Tezos.transaction(list[transfer_owner], 0mutez,  entry_point) # operations;
         }
-    }
+    };
+    // вычетаем сумму из баланса, которую перевели при открытии сундука 
+    // ищем балансы контракта токенов
+    const value_stored : balance_token_id = 
+    case Big_map.find_opt(data.addressToken, s.balances_token) of[
+        | Some (c) -> c
+        | None -> failwith("Error balance token")
+    ];
+    // ищем баланс токена по его id 
+    var balance_tok1 : balance_token := 
+    case Map.find_opt(data.id_tokens, value_stored) of[
+        | Some (b) -> b
+        | None -> failwith("Error balance id token")
+    ];
+    const balanse_now =abs(balance_tok1.amount-data.value);
+    // обновляем баланс этого токена 
+    balance_tok := record[amount=balanse_now];
+    const update_map: balance_token_id = Map.update(data.id_tokens, Some(balance_tok),value_stored);
+    const updated_big_map: balances_token = Big_map.update(data.addressToken, Some(update_map), s.balances_token);
+     s := s with record [balances_token = updated_big_map];
 
 end with (operations, s)
 

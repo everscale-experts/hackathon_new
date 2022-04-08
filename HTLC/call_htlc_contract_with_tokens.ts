@@ -6,7 +6,7 @@ import {sha256} from 'js-sha256'
 
 
 const ID = 1;
-const AMOUNT = 10010;
+const AMOUNT = 100000;
 
 async function example() {
     const provider = 'https://hangzhounet.smartpy.io';
@@ -22,14 +22,14 @@ async function example() {
         //     from_:'tz1V2TxmFHjnkMMjjMGKPSye698SkpSeDpvd' ,  // перевод от куда 
         //     txs:[
         //       {
-        //         to_:'KT1Wj3U8oHeBqTG6G6mpm5e7zZqCACMVJRmZ',  // кому(адрессу HTLC)
+        //         to_:'KT1Dum1swTW6G9GRPsUTH2ep6UKM8DccMRcv',  // кому(адрессу HTLC)
         //         token_id: ID,
         //         amount: AMOUNT,
         //       }
         //     ]
         //   }]))
 
-        const contract = await tezos.contract.at('KT1Wj3U8oHeBqTG6G6mpm5e7zZqCACMVJRmZ')
+        const contract = await tezos.contract.at('KT1Dum1swTW6G9GRPsUTH2ep6UKM8DccMRcv')
       
       batch//                                            адрес получателя                   секрет
       .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW', char2Bytes('')))
