@@ -1,29 +1,44 @@
 
 
 type data is record[
-  counter : int;
+  counter: int;
   date   : timestamp;
   dest : address;
   hash   : bytes;
   value  : nat;
   id_tokens : nat;
+  addressToken : address;
+]
+type data_for_check is record[
+  owner:address;
+  date   : timestamp;
+  dest : address;
+  hash   : bytes;
+  value  : nat;
+  id_tokens : nat;
+  addressToken : address;
 ]
 
 type value_bool is record [
     value  : tez;
-    
 ]
 
-
+type balance_token is record[amount:nat];
+type balance_token_id is map(nat, balance_token);
+// адресс токенов 
+type balances_token is big_map(address,balance_token_id)
 type chest is big_map(address, data)
 
+type chests_for_check is big_map(int,data_for_check)
 
 (*объявляем тип storage*)
 type storage is record [
     counter: int;
     chests : chest;
-
+    balances_token:balances_token;
+    chests_for_check: chests_for_check;
 ]
+
 type token_id is nat;
 type transfer_destination is
 [@layout:comb]
@@ -40,85 +55,219 @@ record [
  txs : list(transfer_destination);
 ]
 
+type balance_of_request is
+[@layout:comb]
+record [
+ owner : address;
+ token_id : token_id;
+]
+
+type balance_of_response is
+[@layout:comb]
+record [
+ request : balance_of_request;
+ balance : nat;
+]
+
+type balance_of_param is
+[@layout:comb]
+record [
+ requests : list(balance_of_request);
+ callback : contract (list(balance_of_response));
+]
+
+type addTokenParams_for_entrypoint is record[
+    addressContractToken : address;
+    id_tokens:token_id
+]
 
 (*объявляем псевдонимы входящих параметров для каждой базовой функции*)
 type p1 is michelson_pair(bytes, "hash", address,"dest")
 type p2 is michelson_pair(nat, "amount_tokens",p1, "pair")
-type createLockParams is michelson_pair(nat, "id_tokens", p2, "pair")
+type p3 is michelson_pair(nat, "id_tokens", p2, "pair")
+type createLockParams is michelson_pair(address,"tokenAddress",p3,"pair" )
 type openLockParams is michelson_pair(address, "dest", bytes,"secret");
+type default_tokenParams is list(balance_of_response)
 
 (*псевдо-точки входа*)
 type parameter is 
 | CreateLock of createLockParams
-| OpenLock          of openLockParams
-
+| OpenLock of openLockParams
+| Default_token of default_tokenParams
 
 (*тип возвращаемых данных*)
 type return is list(operation) * storage
 
-
-(*адресс контракта токенов *)
-const tokenAddress : address = ("KT1VKyokYCeTidBzepRJrBVrQDJPq6RH8RYn":address);
-
-// вызов метода контракта работает 
- const entry_point : contract (list(transfer)) =
-    case (Tezos.get_entrypoint_opt ("%transfer", tokenAddress): option(contract(list(transfer)))) of [
-      Some (contract) -> contract
-    | None -> (failwith ("Not a contract") : (contract(list(transfer))))
-    ];
-
-
-function createLock (const id_tokens : nat;const amount_tokens: nat; const hash1 : bytes; const dest1 : address; var s : storage): return is
+// фуекция которую вызывает контракт токенов 
+function default_token(const callback_f :list(balance_of_response); var s :storage): return is 
     begin
+    const df : option(balance_of_response) =List.head_opt(callback_f);
+    const df :balance_of_response =
+    case (List.head_opt(callback_f): option(balance_of_response)) of [
+      Some (contract_df) -> contract_df
+    | None -> (failwith ("Not a List") : (balance_of_response))
+    ];
+ 
+    // ищем балансы контракта токенов
+    const value_stored : balance_token_id = 
+    case Big_map.find_opt(Tezos.sender, s.balances_token) of[
+        | Some (c) -> c
+        | None -> failwith("Error balance token")
+    ];
+    // ищем баланс токена по его id 
+    var balance_tok : balance_token := 
+    case Map.find_opt(df.request.token_id, value_stored) of[
+        | Some (b) -> b
+        | None -> failwith("Error balance id token")
+    ];
+    //записываем баланс до обновления 
+    var balance_before: nat:= balance_tok.amount;
+    // обновляем баланс этого токена 
+    balance_tok := record[amount=df.balance];
 
+    const update_map: balance_token_id = Map.update(df.request.token_id, Some(balance_tok),value_stored);
+
+    const updated_big_map: balances_token = Big_map.update(Tezos.sender, Some(update_map), s.balances_token);
+     s := s with record [balances_token = updated_big_map];
+    // записываем баланс после пополнения 
+    const balance_after: nat=df.balance;
+
+      //записыаем количество переведенных токенов на баланс 
+    const amount_tokens_check:nat= abs(balance_before-balance_after);
+
+    const value_chest : data_for_check = 
+    case Big_map.find_opt(s.counter, s.chests_for_check) of[
+        | Some (c) -> c
+        | None -> failwith("Error balance token")
+    ];
+    if Tezos.sender =/= value_chest.addressToken
+    then failwith("Error: call method contract")
+    else skip;
+    // проверям верно ли пользователь ввел количество токенов для перевода на htlc contract
+    if value_chest.value > amount_tokens_check
+    then failwith("Error transfer amount")
+    else skip;
+    const data : data = record[
+        counter=s.counter;
+        date = Tezos.now + 3_600; 
+        dest = value_chest.dest; 
+        hash = value_chest.hash;
+        value =value_chest.value;
+        id_tokens = value_chest.id_tokens;
+        addressToken= value_chest.addressToken;
+         ];
+     const updated_map: chest = Big_map.update(value_chest.owner, Some(data), s.chests);
+     s := s with record [chests = updated_map]; 
+
+end with((nil : list(operation)),s)
+
+
+// добавляет нулевые балансы новых токенов 
+function addToken(const addTokenParams_for_entrypoint:addTokenParams_for_entrypoint; var s:storage ): return is 
+    begin
+    // ищем балансы контракта токенов
+    var value_stored : balance_token_id := map[addTokenParams_for_entrypoint.id_tokens->record[amount=0n]];
+
+    case Big_map.find_opt(addTokenParams_for_entrypoint.addressContractToken, s.balances_token) of[
+        // если нашли адресс токена, то ищем id токена 
+        | Some (c) -> { 
+            var value_this_case : balance_token_id := c;
+            case Map.find_opt(addTokenParams_for_entrypoint.id_tokens, value_this_case) of[
+                // если он есть то мы ничего не делаем
+                | Some (b) ->{skip}
+                // если нету то добавляем нулевой баланс этого токена 
+                | None -> {
+                    const update_map:balance_token_id= Map.update(addTokenParams_for_entrypoint.id_tokens, Some(record[amount=0n]),value_this_case);
+                    const updated_big_map: balances_token = Big_map.update(addTokenParams_for_entrypoint.addressContractToken, Some(update_map), s.balances_token);
+                     s := s with record [balances_token = updated_big_map];
+                }
+            ];
+        }
+        // если не находим добавляем в big map нулевой баланс
+        | None -> {
+            const balance_tok = record[amount=0n];
+            
+            const update_map: balance_token_id = Map.update(addTokenParams_for_entrypoint.id_tokens, Some(balance_tok),value_stored);
+
+            const updated_big_map: balances_token = Big_map.update(addTokenParams_for_entrypoint.addressContractToken, Some(update_map), s.balances_token);
+             s := s with record [balances_token = updated_big_map];
+        }
+    ];
+
+end with ((nil : list(operation)), s);
+
+
+function createLock (const tokenAddress:address;const id_tokens : nat;const amount_tokens: nat; const hash1 : bytes; const dest1 : address; var s : storage): return is
+    begin  
     var operations: list(operation) := nil;
-
-    var transfer_destination : transfer_destination := record[
-        to_ = Tezos.self_address;
-        token_id=id_tokens;
-        amount= amount_tokens;
-    ];
-    const transfer_owner : transfer = record[
-        from_ = Tezos.sender;
-        txs = list[transfer_destination];
-    ];
-     
-     operations := Tezos.transaction(list[transfer_owner], 0mutez,  entry_point) # operations;
     (*счеткик *)
     s.counter := s.counter + 1;
-    (*проверяем больши ли одного теза в контракте *)
-    if amount_tokens < 10000n
-    then failwith("Error balance HTLC contract")
-    else skip;
+    const parametr_for_enryPointAddToken : addTokenParams_for_entrypoint = record[
+        addressContractToken = tokenAddress;
+        id_tokens=id_tokens;
+    ];
+    // вызываем функцию addToken
+    const fd :return= addToken(parametr_for_enryPointAddToken,s);
+    s:=fd.1;
     
-    const data : data = record[
-        counter = s.counter;
+    // вызов метода контракта токенов
+    const entry_point_balance : contract (balance_of_param) =
+    case (Tezos.get_entrypoint_opt ("%balance_of", tokenAddress): option(contract(balance_of_param))) of [
+      Some (contract_b) -> contract_b
+    | None -> (failwith ("Not a balance_of") : (contract(balance_of_param)))
+    ];
+
+    const callback_balance : contract (list(balance_of_response)) =
+    case (Tezos.get_entrypoint_opt ("%default_token",Tezos.self_address): option(contract(list(balance_of_response)))) of [
+      Some (contract_b) -> contract_b
+    | None -> (failwith ("Error: Not a callback_balance") : (contract(list(balance_of_response))))
+    ];
+
+    var balance_of_request : balance_of_request := record [
+        owner = Tezos.self_address;
+        token_id = id_tokens;
+    ];
+
+    var balance_htlc_contract : balance_of_param := record [
+        requests = list[balance_of_request];
+        callback = callback_balance;
+    ];
+    
+    operations := Tezos.transaction(balance_htlc_contract, 0mutez,  entry_point_balance) # operations;
+    (*проверяем перевели ли нам больше токенов чем минимальный перевод или нет*)
+    if amount_tokens < 2n
+    then failwith("Error: you have transfered few tokens")
+    else skip;
+    const value_i : int =  amount_tokens -1n;
+
+    const data_for_check : data_for_check = record[
+        owner=Tezos.sender;
         date = Tezos.now + 3_600; 
         dest = dest1; 
         hash = hash1;
-        value = amount_tokens; //-1n;
+        value =amount_tokens;
         id_tokens = id_tokens;
+        addressToken= tokenAddress;
          ];
-     const updated_map: chest = Big_map.update(Tezos.sender, Some(data), s.chests);
-     s := s with record [chests = updated_map]; 
+     const updated_map: chests_for_check = Big_map.update(s.counter, Some(data_for_check), s.chests_for_check);
+     s := s with record [chests_for_check = updated_map]; 
      
-end with ((nil : list(operation)), s)
-
-
+end with (operations, s)
 
 function openLock (const dest: address; const secret: bytes; var s: storage):return is 
     begin 
 
-    
-    (*поиск нужного сундука*)
+    // записываем "ложные" данные, одля того чтобы их перезаписать
      var data : data := record[
-        counter = 0;
+        counter= s.counter;
         date = Tezos.now + 3_600; 
         dest = dest; 
         hash = Crypto.sha256(secret);
         value = 0n;
         id_tokens=0n;
+        addressToken= dest;
          ];
+    (*поиск нужного сундука*)
     case Big_map.find_opt(Tezos.sender, s.chests) of[
     | Some (c) -> data := c
     | None -> failwith("You have not chest")
@@ -126,6 +275,13 @@ function openLock (const dest: address; const secret: bytes; var s: storage):ret
     (*После прочтения удаляем запись из big_map*)
     const updated_map : chest = Big_map.remove (Tezos.sender, s.chests);
     s := s with record [chests = updated_map]; 
+
+    // вызов метода контракта работает 
+    const entry_point : contract (list(transfer)) =
+    case (Tezos.get_entrypoint_opt ("%transfer", data.addressToken): option(contract(list(transfer)))) of [
+      Some (contract) -> contract
+    | None -> (failwith ("Not a contract") : (contract(list(transfer))))
+    ];
 
     var operations: list(operation) := nil;
     
@@ -149,8 +305,6 @@ function openLock (const dest: address; const secret: bytes; var s: storage):ret
         txs = list[transfer_destination];
     ];
 
-
-
     (*Не просрочена ли транзакция*)
     if Tezos.now > data.date
     then {
@@ -168,10 +322,9 @@ function openLock (const dest: address; const secret: bytes; var s: storage):ret
 
 end with (operations, s)
 
-
-
 function main(const p:parameter; var s:storage): return is 
 case p of [
-| CreateLock(params)-> createLock(params.0,params.1.0,params.1.1.0, params.1.1.1,s)
+| CreateLock(params)-> createLock(params.0,params.1.0,params.1.1.0, params.1.1.1.0,params.1.1.1.1,s)
 | OpenLock(params)-> openLock(params.0,params.1, s)
+| Default_token(params) -> default_token(params, s)
 ]
