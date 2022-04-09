@@ -36,9 +36,9 @@ fn get_address_counter(agent: ureq::Agent, endpoint: String, address: String) ->
 
 fn get_value(
     agent: ureq::Agent,
-    endpoint: String,
-    contract: String,
-    entrypoint: String,
+    endpoint: &str,
+    contract: &str,
+    entrypoint: &str,
     parameters: ureq::SerdeValue,
 ) -> Result<serde_json::Value, Error> {
     println!("Building... {}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint);
@@ -149,6 +149,65 @@ fn vote_method(
     })
 }
 
+fn transfer_mutez_proposal(
+    rpc: &str,
+    endpoint: &str,
+    branch: &str,
+    tme_id: usize,
+    mutez: u64,
+) -> serde_json::Value {
+    let sender = get_address_by_tme(tme_id);
+    let counter = get_address_counter(
+        ureq::Agent::new(),
+        endpoint.to_string(),
+        sender["address"].as_str().unwrap().to_string(),
+    ) + 1;
+    let parameters = serde_json::json!({
+        "entrypoint": "transfer_mutez_proposal",
+        "value": get_value(
+            ureq::Agent::new(),
+            endpoint,
+            tezos_multisig().as_str(),
+            "transfer_mutez_proposal",
+            serde_json::json!({
+                "mutez_amount": mutez.max(1),
+                "destination": tezos_htlc(),
+            }),
+        ).unwrap(),
+    });
+    let test_op = serde_json::json!({
+        "kind": "transaction",
+        "source": sender["address"],
+        "destination": tezos_multisig(),
+        "fee": "100000",
+        "counter": format!("{}", counter as u64),
+        "gas_limit": "10300",
+        "storage_limit": "256",
+        "amount": "1",
+        "parameters": parameters,
+    });
+    let run_op_res = run_operation(
+        ureq::Agent::new(),
+        rpc,
+        branch,
+        test_op,
+    ).unwrap();
+    serde_json::json!({
+        "kind": "transaction",
+        "source": sender["address"],
+        "destination": tezos_multisig(),
+        "fee": format!("{}", estimate_operation_fee(
+            &run_op_res.consumed_gas.parse::<u64>().unwrap(),
+            &run_op_res.storage_size.parse::<u64>().unwrap(),
+        )),
+        "counter": format!("{}", counter as u64),
+        "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
+        "storage_limit": "256",
+        "amount": "1",
+        "parameters": parameters,
+    })
+}
+
 fn get_address_by_tme(tme_id: usize) -> serde_json::Value {
     get_json_field("./dependencies/json/tezos_msig_custodians.json", None, Some(tme_id))
 }
@@ -157,17 +216,14 @@ fn msig_to_htlc_group(
     rpc: &str,
     endpoint: &str,
     branch: &str,
-    contract: &str,
-    hash: &str,
-    address: &str,
-    tme_id: usize
+    tme_id: usize,
+    prop_id: u64,
 ) -> Vec<serde_json::Value> {
     let mut group = Vec::<serde_json::Value>::new();
     let sender = get_address_by_tme(tme_id);
     let counter = get_address_counter(
         ureq::Agent::new(),
         endpoint.to_string(),
-        // get_json_field(CONFIG, Some("tezos_multisig"), None).as_str().unwrap().to_string(),
         sender["address"].as_str().unwrap().to_string(),
     ) + 1;
     let test_op = serde_json::json!({
@@ -181,7 +237,7 @@ fn msig_to_htlc_group(
         "amount": "1",
         "parameters": {
             "entrypoint": "execute_proposal",
-            "value": { "int" : 1u64}
+            "value": { "int" : prop_id}
         }
     });
     let run_op_res = run_operation(
@@ -204,7 +260,7 @@ fn msig_to_htlc_group(
         "amount": "1",
         "parameters": {
             "entrypoint": "execute_proposal",
-            "value": {"int": 1u64},
+            "value": {"int": prop_id},
         }
     }));
     group
@@ -267,6 +323,25 @@ fn get_proposal_id(endpoint: &str) -> u64 {
     res["counter"].as_u64().unwrap()
 }
 
+fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
+    let agent = ureq::Agent::new();
+    let msig = tezos_multisig();
+    let group = vec![transfer_mutez_proposal(rpc, endpoint, branch, 0, 1000)];
+    let sign_res = sign_operation(
+        agent.clone(),
+        rpc,
+        branch,
+        0,
+        group,
+    ).unwrap();
+    let inject_res = inject_operations(
+        agent.clone(),
+        sign_res.operation_with_signature.as_str(),
+        rpc,
+    );
+    println!("Creating proposal: {}", if inject_res.is_ok() { "ok" } else { "failed" });
+}
+
 fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
     let agent = ureq::Agent::new();
     let msig = tezos_multisig();
@@ -283,7 +358,8 @@ fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
         let inject_res = inject_operations(
             agent.clone(),
             sign_res.operation_with_signature.as_str(),
-            rpc);
+            rpc,
+        );
         println!("Vote {}: {}", i + 1, if inject_res.is_ok() { "ok" } else { "failed" });
     }
     prop_id
@@ -301,10 +377,8 @@ pub fn create_batch(hash: &str, address: &str) {
         rpc,
         endpoint,
         branch,
-        contract.as_str(),
-        hash,
-        address,
-        tezos_msig_executor
+        tezos_msig_executor,
+        prop_id,
     );
     let res = sign_operation(
         agent.clone(),
