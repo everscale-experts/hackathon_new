@@ -8,7 +8,6 @@ use tezos_batch::create_batch;
 use ureq::Agent;
 use std::fs;
 use serde_json::Value;
-use tezos_send_transaction::transfer as tezos_transfer;
 
 async fn submit_transaction(
     ton: Arc<ClientContext>,
