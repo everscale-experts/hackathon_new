@@ -45,7 +45,7 @@ fn get_value(
     println!("Parameters: {:#}", parameters);
     let res = agent.post(format!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint).as_str())
         .send_json(parameters.clone()).unwrap();
-    Ok(res.into_json().unwrap_or(serde_json::json!({})))
+    Ok(res.into_json().unwrap_or(parameters))
 }
 
 fn get_chain_id(agent: ureq::Agent, endpoint: &str) -> String {
@@ -114,7 +114,16 @@ fn vote_method(
     ) + 1;
     let parameters = serde_json::json!({
         "entrypoint": "vote_proposal",
-        "value": { "int": prop_id}
+        "value": get_value(
+            ureq::Agent::new(),
+            endpoint,
+            tezos_multisig().as_ref(),
+            "vote_proposal",
+            serde_json::json!({
+                "proposal_id": prop_id,
+                "approval": true,
+            }),
+        ).unwrap()
     });
     let test_op = serde_json::json!({
         "kind": "transaction",
@@ -231,13 +240,13 @@ fn msig_to_htlc_group(
         "source": sender["address"],
         "destination": tezos_multisig(),
         "fee": "100000",
-        "counter": format!("{}", counter as u64),
+        "counter": format!("{}", counter as u64 + 1),
         "gas_limit": "10300",
         "storage_limit": "256",
         "amount": "1",
         "parameters": {
             "entrypoint": "execute_proposal",
-            "value": { "int" : prop_id}
+            "value": { "int" : format!("{}", prop_id)}
         }
     });
     let run_op_res = run_operation(
@@ -254,13 +263,13 @@ fn msig_to_htlc_group(
             &run_op_res.consumed_gas.parse::<u64>().unwrap(),
             &run_op_res.storage_size.parse::<u64>().unwrap(),
         )),
-        "counter": format!("{}", counter as u64),
+        "counter": format!("{}", counter as u64 + 1),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
         "storage_limit": "256",
         "amount": "1",
         "parameters": {
             "entrypoint": "execute_proposal",
-            "value": {"int": prop_id},
+            "value": {"int": format!("{}", prop_id)},
         }
     }));
     group
@@ -284,7 +293,7 @@ fn sign_operation(
             "contents": transactions,
         });
         println!("\n\n\n\n\nForging... {:#}", body);
-        println!("{}", format!("{}/chains/main/blocks/head/helpers/forge/operations", rpc));
+        println!("{}/chains/main/blocks/head/helpers/forge/operations", rpc);
         let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", rpc).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
@@ -320,31 +329,33 @@ fn get_proposal_id(endpoint: &str) -> u64 {
     let res: serde_json::Value = ureq::Agent::new().get(path.as_str())
         .call().unwrap()
         .into_json().unwrap();
-    res["counter"].as_u64().unwrap()
+    println!("{}/v1/contracts/{}/storage", endpoint, tezos_multisig());
+    res["counter"].as_str().unwrap().parse::<u64>().unwrap()
 }
 
 fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
     let agent = ureq::Agent::new();
-    let msig = tezos_multisig();
-    let group = vec![transfer_mutez_proposal(rpc, endpoint, branch, 0, 1000)];
+    let tme_id = 2;
+    let group = vec![transfer_mutez_proposal(rpc, endpoint, branch, tme_id, 1000)];
     let sign_res = sign_operation(
         agent.clone(),
         rpc,
         branch,
-        0,
+        tme_id,
         group,
     ).unwrap();
     let inject_res = inject_operations(
         agent.clone(),
         sign_res.operation_with_signature.as_str(),
         rpc,
-    );
-    println!("Creating proposal: {}", if inject_res.is_ok() { "ok" } else { "failed" });
+    ).unwrap();
+    // println!("Creating proposal: {}", if inject_res.is_ok() { "ok" } else { "failed" });
+    std::thread::sleep(std::time::Duration::from_secs(3));
 }
 
 fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
     let agent = ureq::Agent::new();
-    let msig = tezos_multisig();
+    create_proposal(rpc, endpoint, branch);
     let prop_id = get_proposal_id(endpoint);
     for i in 0..3 {
         let group = vec![vote_method(rpc, endpoint, branch, i, prop_id)];
@@ -362,6 +373,7 @@ fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
         );
         println!("Vote {}: {}", i + 1, if inject_res.is_ok() { "ok" } else { "failed" });
     }
+    std::thread::sleep(std::time::Duration::from_secs(3));
     prop_id
 }
 
@@ -370,20 +382,19 @@ pub fn create_batch(hash: &str, address: &str) {
     let rpc = "https://hangzhounet.api.tez.ie";
     let endpoint = "https://api.hangzhounet.tzkt.io";
     let agent = Agent::new();
-    let branch = get_block_hash(agent.clone(), rpc).as_str();
-    let prop_id = vote_all(rpc, endpoint, branch);
-    let contract = tezos_multisig();
+    let branch = get_block_hash(agent.clone(), rpc);
+    let prop_id = vote_all(rpc, endpoint, branch.as_str());
     let group = msig_to_htlc_group(
         rpc,
         endpoint,
-        branch,
+        branch.as_str(),
         tezos_msig_executor,
         prop_id,
     );
     let res = sign_operation(
         agent.clone(),
         rpc,
-        branch,
+        branch.as_str(),
         tezos_msig_executor,
         group,
     ).unwrap();
