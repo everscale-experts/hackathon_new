@@ -240,7 +240,7 @@ fn msig_to_htlc_group(
         "source": sender["address"],
         "destination": tezos_multisig(),
         "fee": "100000",
-        "counter": format!("{}", counter as u64 + 1),
+        "counter": format!("{}", counter as u64),
         "gas_limit": "10300",
         "storage_limit": "256",
         "amount": "1",
@@ -263,7 +263,7 @@ fn msig_to_htlc_group(
             &run_op_res.consumed_gas.parse::<u64>().unwrap(),
             &run_op_res.storage_size.parse::<u64>().unwrap(),
         )),
-        "counter": format!("{}", counter as u64 + 1),
+        "counter": format!("{}", counter as u64),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
         "storage_limit": "256",
         "amount": "1",
@@ -350,7 +350,7 @@ fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
         rpc,
     ).unwrap();
     // println!("Creating proposal: {}", if inject_res.is_ok() { "ok" } else { "failed" });
-    std::thread::sleep(std::time::Duration::from_secs(3));
+    std::thread::sleep(std::time::Duration::from_secs(5));
 }
 
 fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
@@ -371,9 +371,12 @@ fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
             sign_res.operation_with_signature.as_str(),
             rpc,
         );
+        if i == 1 {
+            std::thread::sleep(std::time::Duration::from_secs(5));
+        }
         println!("Vote {}: {}", i + 1, if inject_res.is_ok() { "ok" } else { "failed" });
     }
-    std::thread::sleep(std::time::Duration::from_secs(3));
+    std::thread::sleep(std::time::Duration::from_secs(10));
     prop_id
 }
 
