@@ -81,7 +81,9 @@ fn run_operation(
         .send_json(body.clone()).unwrap()
         .into_json::<serde_json::Value>().unwrap().to_string()).unwrap();
     Ok(OperationResult{
-        consumed_gas: res["consumed_gas"].as_str().unwrap_or("5000").to_string(),
+        consumed_gas: if let Some(gas) = res["consumed_gas"].as_str() {
+            gas.to_string()
+        } else { panic!("operation simulation failed!") },
         storage_size: res["storage_size"].as_str().unwrap_or("256").to_string(),
     })
 }
@@ -240,6 +242,7 @@ fn msig_to_htlc_group(
         endpoint.to_string(),
         sender["address"].as_str().unwrap().to_string(),
     ) + 1;
+    println!("{}", counter);
     let test_op = serde_json::json!({
         "kind": "transaction",
         "source": sender["address"],
@@ -322,7 +325,7 @@ fn msig_to_htlc_group(
             &run_op_res.consumed_gas.parse::<u64>().unwrap(),
             &run_op_res.storage_size.parse::<u64>().unwrap(),
         )),
-        "counter": format!("{}", counter as u64),
+        "counter": format!("{}", counter as u64 + 1),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
         "storage_limit": "256",
         "amount": "1",
@@ -457,7 +460,6 @@ fn await_confirmation(hash: &str) -> bool {
 }
 
 fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
-    let agent = ureq::Agent::new();
     let tme_id = 2;
     let group = vec![transfer_token_proposal(rpc, endpoint, branch, tme_id, 1000)];
     let sign_res = sign_operation(
