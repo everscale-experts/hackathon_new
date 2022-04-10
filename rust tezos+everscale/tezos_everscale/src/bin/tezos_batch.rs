@@ -368,8 +368,8 @@ fn sign_operation(
             "branch": branch,
             "contents": transactions,
         });
-        println!("\n\n\n\n\nForging... {:#}", body);
-        println!("{}/chains/main/blocks/head/helpers/forge/operations", rpc);
+        // println!("\n\n\n\n\nForging... {:#}", body);
+        // println!("{}/chains/main/blocks/head/helpers/forge/operations", rpc);
         let bytes: serde_json::Value = ureq::Agent::new().post(format!("{}/chains/main/blocks/head/helpers/forge/operations", rpc).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
@@ -383,14 +383,14 @@ fn sign_operation(
     }
 }
 
-fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoint: &str) -> lib::api::InjectOperationsResult {
+fn inject_operations(operation_with_signature: &str, endpoint: &str) -> lib::api::InjectOperationsResult {
     println!("\n\n\nInjection... {}", format!("{}/injection/operation", endpoint).as_str());
     println!("{}", operation_with_signature);
     let operation_with_signature_json = serde_json::Value::String(operation_with_signature.to_owned());
 
-    Ok(agent.post(format!("{}/injection/operation", endpoint).as_str())
-       .send_json(operation_with_signature_json)?
-       .into_json()?)
+    Ok(ureq::Agent::new().post(format!("{}/injection/operation", endpoint).as_str())
+       .send_json(operation_with_signature_json).unwrap()
+       .into_json().unwrap())
 }
 
 fn tezos_multisig() -> String {
@@ -447,13 +447,9 @@ fn get_status(hash: &str) -> String {
 fn await_confirmation(hash: &str) -> bool {
     let timer = std::time::Instant::now();
     println!("Awaiting confirmation...");
-    let millis = timer.elapsed().as_millis();
-    while millis <= AWAIT_TIMEOUT && get_confirmations(hash) < 1 {
-        print!("\rAwaiting confirmation... {}", AWAIT_TIMEOUT - millis);
-        millis = timer.elapsed().as_millis();
-        // std::thread::sleep(std::time::Duration::from_millis(100));
+    while timer.elapsed().as_millis() <= AWAIT_TIMEOUT && get_confirmations(hash) < 1 {
+        std::thread::sleep(std::time::Duration::from_millis(100));
     }
-    println!();
     match get_status(hash).as_str() {
         "applied" => true,
         _ => false
@@ -471,7 +467,6 @@ fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
         group,
     ).unwrap();
     let hash = inject_operations(
-        agent.clone(),
         sign_res.operation_with_signature.as_str(),
         rpc,
     ).unwrap().as_str().unwrap().to_string();
@@ -492,7 +487,6 @@ fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
             group,
         ).unwrap();
         let hash = inject_operations(
-            agent.clone(),
             sign_res.operation_with_signature.as_str(),
             rpc,
         ).unwrap().as_str().unwrap().to_string();
@@ -525,7 +519,7 @@ pub fn create_batch(hash: &str, address: &str) {
         tezos_msig_executor,
         group,
     ).unwrap();
-    let inject_res = inject_operations(agent.clone(), res.operation_with_signature.as_str(), rpc).unwrap();
+    let inject_res = inject_operations(res.operation_with_signature.as_str(), rpc).unwrap();
     println!("https://hangzhou2net.tzkt.io/{}", inject_res.as_str().unwrap());
     println!("{}", inject_res);
 }
