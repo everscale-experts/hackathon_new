@@ -305,14 +305,15 @@ fn msig_to_htlc_group(
             "value": { "int" : format!("{}", prop_id)}
         }
     }]);
-    let additional_gas = get_gas_for_execution(
-        rpc,
-        endpoint,
-        branch,
-        tokens,
-        counter,
-        sender.clone(),
-    );
+    // let additional_gas = get_gas_for_execution(
+    //     rpc,
+    //     endpoint,
+    //     branch,
+    //     tokens,
+    //     counter,
+    //     sender.clone(),
+    // );
+    let additional_gas = 7000;
     let run_op_res = run_operation(
         ureq::Agent::new(),
         rpc,
