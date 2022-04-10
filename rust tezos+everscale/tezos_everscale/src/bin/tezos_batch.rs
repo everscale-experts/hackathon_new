@@ -13,6 +13,7 @@ const BASE_FEE: u64 = 100;
 const MIN_NTEZ_PER_GAS: u64 = 100;
 const MIN_NTEZ_PER_BYTE: u64 = 1000;
 const CONFIG: &str = "./dependencies/json/config.json";
+const AWAIT_TIMEOUT: u128 = 5000; // ms
 
 struct OperationResult {
     consumed_gas: String,
@@ -23,12 +24,12 @@ fn get_block_hash(agent: ureq::Agent, endpoint: &str) -> String {
     let value = agent.get(format!("{}/chains/main/blocks/head/hash", endpoint).as_str())
         .call().unwrap()
         .into_json().unwrap();
-    println!("Block hash: {}", value);
+    // println!("Block hash: {}", value);
     value
 }
 
 fn get_address_counter(agent: ureq::Agent, endpoint: String, address: String) -> u64 {
-    println!("{}/v1/accounts/{}/counter", endpoint, address);
+    // println!("{}/v1/accounts/{}/counter", endpoint, address);
     agent.get(format!("{}/v1/accounts/{}/counter", endpoint, address).as_str())
         .call().unwrap()
         .into_json().unwrap()
@@ -41,8 +42,8 @@ fn get_value(
     entrypoint: &str,
     parameters: ureq::SerdeValue,
 ) -> Result<serde_json::Value, Error> {
-    println!("Building... {}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint);
-    println!("Parameters: {:#}", parameters);
+    // println!("Building... {}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint);
+    // println!("Parameters: {:#}", parameters);
     let res = agent.post(format!("{}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint).as_str())
         .send_json(parameters.clone()).unwrap();
     Ok(res.into_json().unwrap_or(parameters))
@@ -71,8 +72,8 @@ fn run_operation(
             "contents": [operation]
         }
     });
-    println!("Running operation... {}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone());
-    println!("Body: {:#}", body);
+    // println!("Running operation... {}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone());
+    // println!("Body: {:#}", body);
     let res = &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone()).as_str())
         .send_json(body.clone()).unwrap()
         .into_json::<serde_json::Value>().unwrap()["contents"][0]["metadata"]["operation_result"];
@@ -368,12 +369,12 @@ fn sign_operation(
             "branch": branch,
             "contents": transactions,
         });
-        println!("\n\n\n\n\nForging... {:#}", body);
-        println!("{}/chains/main/blocks/head/helpers/forge/operations", rpc);
+        // println!("\n\n\n\n\nForging... {:#}", body);
+        // println!("{}/chains/main/blocks/head/helpers/forge/operations", rpc);
         let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", rpc).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
-        println!("bytes length: {}\n", bytes.as_str().unwrap().len());
+        // println!("bytes length: {}\n", bytes.as_str().unwrap().len());
         let sig_info = state.signer().sign_forged_operation_bytes(
             &Vec::from_hex(bytes.as_str().unwrap()).unwrap()[..],
         );
@@ -384,7 +385,7 @@ fn sign_operation(
 }
 
 fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoint: &str) -> lib::api::InjectOperationsResult {
-    println!("{}", operation_with_signature);
+    // println!("{}", operation_with_signature);
     let operation_with_signature_json = serde_json::Value::String(operation_with_signature.to_owned());
 
     Ok(agent.post(format!("{}/injection/operation", endpoint).as_str())
@@ -409,8 +410,38 @@ fn get_proposal_id(endpoint: &str) -> u64 {
     let res: serde_json::Value = ureq::Agent::new().get(path.as_str())
         .call().unwrap()
         .into_json().unwrap();
-    println!("{}/v1/contracts/{}/storage", endpoint, tezos_multisig());
+    // println!("{}/v1/contracts/{}/storage", endpoint, tezos_multisig());
     res["counter"].as_str().unwrap().parse::<u64>().unwrap()
+}
+
+fn get_operation_info(hash: &str) -> serde_json::Value {
+    let agent = ureq::Agent::new();
+    let path = format!("https://api.hangzhou.tzstats.com/explorer/op/{}", hash);
+    let res = agent.get(&path)
+        .call().unwrap()
+        .into_string().unwrap();
+    serde_json::from_str::<serde_json::Value>(res.as_str()).unwrap()
+}
+
+fn get_confirmations(hash: &str) -> u64 {
+    let res = get_operation_info(hash);
+    res[0]["confirmations"].as_u64().unwrap()
+}
+
+fn get_status(hash: &str) -> String {
+    let res = get_operation_info(hash);
+    res[0]["status"].as_str().unwrap().to_string()
+}
+
+fn await_confirmation(hash: &str) -> bool {
+    let timer = std::time::Instant::now();
+    while timer.elapsed().as_millis() <= AWAIT_TIMEOUT && get_confirmations(hash) < 2 {
+        std::thread::sleep(std::time::Duration::from_millis(50));
+    }
+    match get_status(hash).as_str() {
+        "applied" => true,
+        _ => false
+    }
 }
 
 fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
@@ -424,13 +455,13 @@ fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
         tme_id,
         group,
     ).unwrap();
-    let inject_res = inject_operations(
+    let hash = inject_operations(
         agent.clone(),
         sign_res.operation_with_signature.as_str(),
         rpc,
-    ).unwrap();
-    println!("{:#}", inject_res);
-    std::thread::sleep(std::time::Duration::from_secs(10));
+    ).unwrap().as_str().unwrap();
+    println!("{}", hash.to_string());
+    println!("{}", if await_confirmation(hash) { "Applied" } else { "Failed" });
 }
 
 fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
@@ -446,17 +477,14 @@ fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
             i,
             group,
         ).unwrap();
-        let inject_res = inject_operations(
+        let hash = inject_operations(
             agent.clone(),
             sign_res.operation_with_signature.as_str(),
             rpc,
-        );
-        if i == 1 {
-            std::thread::sleep(std::time::Duration::from_secs(5));
-        }
-        println!("Vote {}: {}", i + 1, if inject_res.is_ok() { "ok" } else { "failed" });
+        ).unwrap().as_str().unwrap();
+        // println!("Vote {}: {}", i + 1, if inject_res.is_ok() { "ok" } else { "failed" });
+        println!("{}", if await_confirmation(hash) { "Applied" } else { "Failed" });
     }
-    std::thread::sleep(std::time::Duration::from_secs(10));
     prop_id
 }
 
