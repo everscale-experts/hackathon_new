@@ -13,7 +13,7 @@ const BASE_FEE: u64 = 100;
 const MIN_NTEZ_PER_GAS: u64 = 100;
 const MIN_NTEZ_PER_BYTE: u64 = 1000;
 const CONFIG: &str = "./dependencies/json/config.json";
-const AWAIT_TIMEOUT: u128 = 5000; // ms
+const AWAIT_TIMEOUT: u128 = 60000; // ms
 
 struct OperationResult {
     consumed_gas: String,
@@ -353,7 +353,6 @@ fn msig_to_htlc_group(
 }
 
 fn sign_operation(
-    agent: ureq::Agent,
     rpc: &str,
     branch: &str,
     tme_id: usize,
@@ -369,9 +368,9 @@ fn sign_operation(
             "branch": branch,
             "contents": transactions,
         });
-        // println!("\n\n\n\n\nForging... {:#}", body);
-        // println!("{}/chains/main/blocks/head/helpers/forge/operations", rpc);
-        let bytes: serde_json::Value = agent.post(format!("{}/chains/main/blocks/head/helpers/forge/operations", rpc).as_str())
+        println!("\n\n\n\n\nForging... {:#}", body);
+        println!("{}/chains/main/blocks/head/helpers/forge/operations", rpc);
+        let bytes: serde_json::Value = ureq::Agent::new().post(format!("{}/chains/main/blocks/head/helpers/forge/operations", rpc).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();
         // println!("bytes length: {}\n", bytes.as_str().unwrap().len());
@@ -385,7 +384,8 @@ fn sign_operation(
 }
 
 fn inject_operations(agent: ureq::Agent, operation_with_signature: &str, endpoint: &str) -> lib::api::InjectOperationsResult {
-    // println!("{}", operation_with_signature);
+    println!("\n\n\nInjection... {}", format!("{}/injection/operation", endpoint).as_str());
+    println!("{}", operation_with_signature);
     let operation_with_signature_json = serde_json::Value::String(operation_with_signature.to_owned());
 
     Ok(agent.post(format!("{}/injection/operation", endpoint).as_str())
@@ -411,33 +411,49 @@ fn get_proposal_id(endpoint: &str) -> u64 {
         .call().unwrap()
         .into_json().unwrap();
     // println!("{}/v1/contracts/{}/storage", endpoint, tezos_multisig());
-    res["counter"].as_str().unwrap().parse::<u64>().unwrap()
+    res["counter"].as_str().unwrap().parse::<u64>().unwrap() - 1
 }
 
-fn get_operation_info(hash: &str) -> serde_json::Value {
+fn get_operation_info(hash: &str) -> Option<serde_json::Value> {
     let agent = ureq::Agent::new();
     let path = format!("https://api.hangzhou.tzstats.com/explorer/op/{}", hash);
+    // println!("{}", path);
     let res = agent.get(&path)
-        .call().unwrap()
-        .into_string().unwrap();
-    serde_json::from_str::<serde_json::Value>(res.as_str()).unwrap()
+        .call();
+    if res.is_ok() {
+        Some(res.unwrap().into_json().unwrap())
+    } else {
+        None
+    }
+    // serde_json::from_str::<serde_json::Value>(res.as_str()).unwrap()
 }
 
 fn get_confirmations(hash: &str) -> u64 {
-    let res = get_operation_info(hash);
-    res[0]["confirmations"].as_u64().unwrap()
+    if let Some(res) = get_operation_info(hash) {
+        res[0]["confirmations"].as_u64().unwrap()
+    } else {
+        0
+    }
 }
 
 fn get_status(hash: &str) -> String {
-    let res = get_operation_info(hash);
-    res[0]["status"].as_str().unwrap().to_string()
+    if let Some(res) = get_operation_info(hash) {
+        res[0]["status"].as_str().unwrap().to_string()
+    } else {
+        "unknown".to_string()
+    }
 }
 
 fn await_confirmation(hash: &str) -> bool {
     let timer = std::time::Instant::now();
-    while timer.elapsed().as_millis() <= AWAIT_TIMEOUT && get_confirmations(hash) < 2 {
-        std::thread::sleep(std::time::Duration::from_millis(50));
+    println!("Awaiting confirmation...");
+    let millis = timer.elapsed().as_millis();
+    while millis <= AWAIT_TIMEOUT && get_confirmations(hash) < 1 {
+        print!("\rAwaiting confirmation... {}", AWAIT_TIMEOUT - millis);
+        millis = timer.elapsed().as_millis();
+        // std::thread::sleep(std::time::Duration::from_millis(100));
     }
+    println!();
     match get_status(hash).as_str() {
         "applied" => true,
         _ => false
@@ -449,7 +465,6 @@ fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
     let tme_id = 2;
     let group = vec![transfer_token_proposal(rpc, endpoint, branch, tme_id, 1000)];
     let sign_res = sign_operation(
-        agent.clone(),
         rpc,
         branch,
         tme_id,
@@ -459,9 +474,9 @@ fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
         agent.clone(),
         sign_res.operation_with_signature.as_str(),
         rpc,
-    ).unwrap().as_str().unwrap();
-    println!("{}", hash.to_string());
-    println!("{}", if await_confirmation(hash) { "Applied" } else { "Failed" });
+    ).unwrap().as_str().unwrap().to_string();
+    println!("{}", hash);
+    println!("{}", if await_confirmation(hash.as_str()) { "Applied" } else { "Failed" });
 }
 
 fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
@@ -471,7 +486,6 @@ fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
     for i in 0..3 {
         let group = vec![vote_method(rpc, endpoint, branch, i, prop_id)];
         let sign_res = sign_operation(
-            agent.clone(),
             rpc,
             branch,
             i,
@@ -481,9 +495,10 @@ fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
             agent.clone(),
             sign_res.operation_with_signature.as_str(),
             rpc,
-        ).unwrap().as_str().unwrap();
+        ).unwrap().as_str().unwrap().to_string();
+        println!("Vote {}: {}", i + 1, hash);
         // println!("Vote {}: {}", i + 1, if inject_res.is_ok() { "ok" } else { "failed" });
-        println!("{}", if await_confirmation(hash) { "Applied" } else { "Failed" });
+        println!("{}", if await_confirmation(hash.as_str()) { "Applied" } else { "Failed" });
     }
     prop_id
 }
@@ -505,7 +520,6 @@ pub fn create_batch(hash: &str, address: &str) {
         address,
     );
     let res = sign_operation(
-        agent.clone(),
         rpc,
         branch.as_str(),
         tezos_msig_executor,
