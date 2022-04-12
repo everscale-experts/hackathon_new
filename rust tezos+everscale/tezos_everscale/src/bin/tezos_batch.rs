@@ -72,8 +72,8 @@ fn run_operation(
             "contents": operations
         }
     });
-    println!("Running operation... {}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone());
-    println!("Body: {:#}", body);
+    // println!("Running operation... {}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone());
+    // println!("Body: {:#}", body);
     let res = &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone()).as_str())
         .send_json(body.clone()).unwrap()
         .into_json::<serde_json::Value>().unwrap()["contents"][0]["metadata"]["operation_result"];
@@ -82,7 +82,7 @@ fn run_operation(
         .into_json::<serde_json::Value>().unwrap().to_string()).unwrap();
     Ok(OperationResult{
         consumed_gas: if let Some(gas) = res["consumed_gas"].as_str() {
-            println!("{}", gas);
+            // println!("{}", gas);
             gas.to_string()
         } else { panic!("operation simulation failed!") },
         storage_size: res["storage_size"].as_str().unwrap_or("256").to_string(),
@@ -290,7 +290,7 @@ fn msig_to_htlc_group(
         endpoint.to_string(),
         sender["address"].as_str().unwrap().to_string(),
     ) + 1;
-    println!("{}", counter);
+    // println!("{}", counter);
     let test_op = serde_json::json!([{
         "kind": "transaction",
         "source": sender["address"],
@@ -313,7 +313,7 @@ fn msig_to_htlc_group(
     //     counter,
     //     sender.clone(),
     // );
-    let additional_gas = 7000;
+    let additional_gas = 7000; // for token transfer
     let run_op_res = run_operation(
         ureq::Agent::new(),
         rpc,
@@ -337,6 +337,7 @@ fn msig_to_htlc_group(
             "value": {"int": format!("{}", prop_id)},
         }
     }));
+    // let params_for_create_lock = serde_json::json!();
     let run_op_res = run_operation(
         ureq::Agent::new(),
         rpc,
@@ -359,6 +360,7 @@ fn msig_to_htlc_group(
                     "createLock",
                     serde_json::json!({
                         "tokenAddress": tezos_token_address(),
+                        // "tokenAddress": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
                         "pair": {
                             "id_tokens": 1u64,
                             "pair": {
@@ -395,6 +397,7 @@ fn msig_to_htlc_group(
                 "createLock",
                 serde_json::json!({
                     "tokenAddress": tezos_token_address(),
+                    // "tokenAddress": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
                     "pair": {
                         "id_tokens": 1u64,
                         "pair": {
@@ -444,8 +447,8 @@ fn sign_operation(
 }
 
 fn inject_operations(operation_with_signature: &str, endpoint: &str) -> lib::api::InjectOperationsResult {
-    println!("\n\n\nInjection... {}", format!("{}/injection/operation", endpoint).as_str());
-    println!("{}", operation_with_signature);
+    // println!("\n\n\nInjection... {}", format!("{}/injection/operation", endpoint).as_str());
+    // println!("{}", operation_with_signature);
     let operation_with_signature_json = serde_json::Value::String(operation_with_signature.to_owned());
 
     Ok(ureq::Agent::new().post(format!("{}/injection/operation", endpoint).as_str())
@@ -562,14 +565,14 @@ pub fn create_batch(hash: &str, address: &str) {
     let endpoint = "https://api.hangzhounet.tzkt.io";
     let agent = Agent::new();
     let branch = get_block_hash(agent.clone(), rpc);
-    // let prop_id = vote_all(rpc, endpoint, branch.as_str());
+    let prop_id = vote_all(rpc, endpoint, branch.as_str());
     let group = msig_to_htlc_group(
         rpc,
         endpoint,
         branch.as_str(),
         tezos_msig_executor,
-        // prop_id,
-        59,
+        prop_id,
+        // 61,
         hash,
         address,
         1000,
