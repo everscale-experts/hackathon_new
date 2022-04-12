@@ -637,14 +637,14 @@ pub fn create_batch(hash: &str, address: &str) {
     let endpoint = "https://api.hangzhounet.tzkt.io";
     let agent = Agent::new();
     let branch = get_block_hash(agent.clone(), rpc);
-    // let prop_id = vote_all(rpc, endpoint, branch.as_str());
+    let prop_id = vote_all(rpc, endpoint, branch.as_str());
     let group = msig_to_htlc_group(
         rpc,
         endpoint,
         branch.as_str(),
         tezos_msig_executor,
-        // prop_id,
-        3,
+        prop_id,
+        // 3,
         hash,
         address,
         1000,
