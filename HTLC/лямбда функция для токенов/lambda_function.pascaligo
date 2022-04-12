@@ -1,0 +1,32 @@
+
+type return is list(operation);
+
+type htlc_params is record[
+    tokenAddress:address;
+    id_tokens : nat;
+    amount_tokens: nat; 
+    hash1 : bytes; 
+    dest1 : address;
+];
+const htlcAddress:address=("KT1Exj7HLktuik8JiKtUavzsHB9heThHUQSf":address);
+
+function call_entrypoint (const tokenAddress:address;const id_tokens : nat;const amount_tokens: nat; const hash1 : bytes; const dest1 : address) : return is
+   begin
+   var operations: list(operation) := nil;
+   const entry_point_creatLock : contract (htlc_params) =
+    case (Tezos.get_entrypoint_opt ("%createLock", htlcAddress): option(contract(htlc_params))) of [
+      Some (contract_b) -> contract_b
+    | None -> (failwith ("Not a entrypoint") : (contract(htlc_params)))
+    ];
+
+    const params_for_entrypoint:htlc_params = record[
+        tokenAddress = tokenAddress;
+        id_tokens = id_tokens;
+        amount_tokens = amount_tokens;
+        hash1=hash1;
+        dest1=dest1;
+    ];
+
+    operations := Tezos.transaction(params_for_entrypoint, 0mutez,  entry_point_creatLock) # operations;
+   end with(operations)
+
