@@ -84,7 +84,7 @@ fn run_operation(
         consumed_gas: if let Some(gas) = res["consumed_gas"].as_str() {
             // println!("{}", gas);
             gas.to_string()
-        } else { panic!("operation simulation failed!") },
+        } else { panic!("Operation simulation failed! Body: {:#}\n", body);},
         storage_size: res["storage_size"].as_str().unwrap_or("256").to_string(),
     })
 }
@@ -273,6 +273,99 @@ fn get_gas_for_execution(
     ).unwrap().consumed_gas.parse::<u64>().unwrap()
 }
 
+fn get_gas_for_default_token(
+    rpc: &str,
+    endpoint: &str,
+    branch: &str,
+    tokens: u64,
+    counter: u64,
+    sender: serde_json::Value,
+) -> u64 {
+    run_operation(
+        ureq::Agent::new(),
+        rpc,
+        branch,
+        serde_json::json!([{
+            "kind": "transaction",
+            "source": tezos_token_address(),
+            "destination": tezos_htlc(),
+            "fee": "100000",
+            "counter": format!("{}", counter as u64),
+            "gas_limit": "10300",
+            "storage_limit": "256",
+            "amount": "0",
+            "parameters": {
+                "entrypoint": "default_token",
+                "value": get_value(
+                    ureq::Agent::new(),
+                    endpoint,
+                    tezos_token_address().as_str(),
+                    "transfer",
+                    serde_json::json!({
+                        "balance": format!("{}", "10000001000"),
+                        "requests": [
+                            {
+                                "owner": tezos_htlc(),
+                                "token_id": "1",
+                            }
+                        ]
+                    }),
+                ).unwrap(),
+            }
+        }]),
+    ).unwrap().consumed_gas.parse::<u64>().unwrap()
+}
+
+fn get_gas_for_lock(
+    rpc: &str,
+    endpoint: &str,
+    branch: &str,
+    tokens: u64,
+    counter: u64,
+    sender: serde_json::Value,
+) -> u64 {
+    run_operation(
+        ureq::Agent::new(),
+        rpc,
+        branch,
+        serde_json::json!([{
+            "kind": "transaction",
+            "source": tezos_htlc(),
+            "destination": tezos_token_address(),
+            "fee": "100000",
+            "counter": format!("{}", counter as u64),
+            "gas_limit": "10300",
+            "storage_limit": "256",
+            "amount": "0",
+            "parameters": {
+                "entrypoint": "balance_of",
+                "value": get_value(
+                    ureq::Agent::new(),
+                    endpoint,
+                    tezos_token_address().as_str(),
+                    "transfer",
+                    serde_json::json!({
+                        "callback": format!("{}%{}", tezos_htlc(), "default_token"),
+                        "requests": [
+                            {
+                                "owner": tezos_htlc(),
+                                "token_id": "1",
+                            }
+                        ]
+                    }),
+                ).unwrap(),
+            }
+        }]),
+    ).unwrap().consumed_gas.parse::<u64>().unwrap() + get_gas_for_default_token(
+        rpc,
+        endpoint,
+        branch,
+        tokens,
+        counter,
+        sender,
+    )
+}
+
 fn msig_to_htlc_group(
     rpc: &str,
     endpoint: &str,
@@ -375,7 +468,8 @@ fn msig_to_htlc_group(
             "parameters": params_for_create_lock,
         }]),
     ).unwrap();
-    let additional_gas: u64 = 6200;
+    let additional_gas: u64 = 6100;
+    // let additional_gas: u64 = get_gas_for_lock(rpc, endpoint, branch, tokens, counter, sender.clone());
     group.push(serde_json::json!({
         "kind": "transaction",
         "source": sender["address"],
