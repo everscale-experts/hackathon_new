@@ -1,0 +1,10 @@
+[package]
+name = "listener"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+json = "0.12.4"
+itertools = "0.10.3"
+ureq = { path = "../ureq" }
+serde_json = "1.0.62"
