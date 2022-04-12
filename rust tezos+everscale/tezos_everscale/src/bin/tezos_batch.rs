@@ -337,7 +337,28 @@ fn msig_to_htlc_group(
             "value": {"int": format!("{}", prop_id)},
         }
     }));
-    // let params_for_create_lock = serde_json::json!();
+    let params_for_create_lock = serde_json::json!({
+        "entrypoint": "createLock",
+        "value": get_value(
+            ureq::Agent::new(),
+            endpoint,
+            tezos_htlc().as_str(),
+            "createLock",
+            serde_json::json!({
+                "tokenAddress": tezos_token_address(),
+                "pair": {
+                    "id_tokens": 1u64,
+                    "pair": {
+                        "amount_tokens": tokens,
+                        "pair": {
+                            "hash": hash,
+                            "dest": address,
+                        }
+                    }
+                }
+            }),
+        ).unwrap()
+    });
     let run_op_res = run_operation(
         ureq::Agent::new(),
         rpc,
@@ -351,31 +372,10 @@ fn msig_to_htlc_group(
             "gas_limit": "10300",
             "storage_limit": "256",
             "amount": "0",
-            "parameters": {
-                "entrypoint": "createLock",
-                "value": get_value(
-                    ureq::Agent::new(),
-                    endpoint,
-                    tezos_htlc().as_str(),
-                    "createLock",
-                    serde_json::json!({
-                        "tokenAddress": tezos_token_address(),
-                        // "tokenAddress": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
-                        "pair": {
-                            "id_tokens": 1u64,
-                            "pair": {
-                                "amount_tokens": tokens,
-                                "pair": {
-                                    "hash": hash,
-                                    "dest": address,
-                                }
-                            }
-                        }
-                    }),
-                ).unwrap()
-            }
+            "parameters": params_for_create_lock,
         }]),
     ).unwrap();
+    let additional_gas: u64 = 6200;
     group.push(serde_json::json!({
         "kind": "transaction",
         "source": sender["address"],
@@ -385,32 +385,10 @@ fn msig_to_htlc_group(
             &run_op_res.storage_size.parse::<u64>().unwrap(),
         )),
         "counter": format!("{}", counter as u64 + 1),
-        "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
+        "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100 + additional_gas),
         "storage_limit": "256",
         "amount": "1",
-        "parameters": {
-            "entrypoint": "createLock",
-            "value": get_value(
-                ureq::Agent::new(),
-                endpoint,
-                tezos_htlc().as_str(),
-                "createLock",
-                serde_json::json!({
-                    "tokenAddress": tezos_token_address(),
-                    // "tokenAddress": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
-                    "pair": {
-                        "id_tokens": 1u64,
-                        "pair": {
-                            "amount_tokens": tokens,
-                            "pair": {
-                                "hash": hash,
-                                "dest": address,
-                            }
-                        }
-                    }
-                }),
-            ).unwrap()
-        }
+        "parameters": params_for_create_lock,
     }));
     group
 }
@@ -533,7 +511,7 @@ fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
         rpc,
     ).unwrap().as_str().unwrap().to_string();
     println!("{}", hash);
-    println!("{}", if await_confirmation(hash.as_str()) { "Applied" } else { "Failed" });
+    println!("{}\n", if await_confirmation(hash.as_str()) { "Applied" } else { "Failed" });
 }
 
 fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
@@ -554,7 +532,7 @@ fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
         ).unwrap().as_str().unwrap().to_string();
         println!("Vote {}: {}", i + 1, hash);
         // println!("Vote {}: {}", i + 1, if inject_res.is_ok() { "ok" } else { "failed" });
-        println!("{}", if await_confirmation(hash.as_str()) { "Applied" } else { "Failed" });
+        println!("{}\n", if await_confirmation(hash.as_str()) { "Applied" } else { "Failed" });
     }
     prop_id
 }
@@ -565,14 +543,14 @@ pub fn create_batch(hash: &str, address: &str) {
     let endpoint = "https://api.hangzhounet.tzkt.io";
     let agent = Agent::new();
     let branch = get_block_hash(agent.clone(), rpc);
-    let prop_id = vote_all(rpc, endpoint, branch.as_str());
+    // let prop_id = vote_all(rpc, endpoint, branch.as_str());
     let group = msig_to_htlc_group(
         rpc,
         endpoint,
         branch.as_str(),
         tezos_msig_executor,
-        prop_id,
-        // 61,
+        // prop_id,
+        3,
         hash,
         address,
         1000,
