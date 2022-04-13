@@ -528,15 +528,15 @@ fn inject_operations(operation_with_signature: &str, endpoint: &str) -> lib::api
        .into_json().unwrap())
 }
 
-fn tezos_multisig() -> String {
+pub fn tezos_multisig() -> String {
     get_json_field(CONFIG, Some("tezos_multisig"), None).as_str().unwrap().to_string()
 }
 
-fn tezos_token_address() -> String {
+pub fn tezos_token_address() -> String {
     get_json_field(CONFIG, Some("tezos_token_address"), None).as_str().unwrap().to_string()
 }
 
-fn tezos_htlc() -> String {
+pub fn tezos_htlc() -> String {
     get_json_field(CONFIG, Some("htlc2"), None).as_str().unwrap().to_string()
 }
 
