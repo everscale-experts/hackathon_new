@@ -1,0 +1,16 @@
+type storage = unit
+type lambda_ = unit -> operation list
+type parameter = Execute of lambda_
+type result = operation list * storage
+
+let main (action, store : parameter * storage) : result =
+    match action with Execute f -> f(), store
+
+let my_lambda : lambda_ =
+  fun () ->
+    match (Tezos.get_contract_opt ("tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV" : address)
+           : unit contract option)
+    with
+      None -> failwith ("Not a contract")
+    | Some (c) -> [Tezos.transaction unit 10tez c]
+Then ligo compile parameter src/main.mligo 'Execute(my_lambda)'
