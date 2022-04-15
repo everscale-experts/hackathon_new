@@ -1,4 +1,8 @@
+
+
+import { TextDecoder, TextEncoder } from 'node:util';
 import { BytesLiteral, Expr, IntLiteral, Prim } from './micheline';
+
 import {
   MichelsonTypeID,
   MichelsonDataID,
