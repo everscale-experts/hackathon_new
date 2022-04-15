@@ -156,8 +156,8 @@ async fn main() {
             ).unwrap().as_str()
         ).expect("failed to parse json")
     );
-    let ton = create_client_verbose(&config).unwrap();
-    let mut last_len = tezos_get_transactions().as_array().unwrap().len();
+    // let ton = create_client_verbose(&config).unwrap();
+    // let mut last_len = tezos_get_transactions().as_array().unwrap().len();
     let context = Arc::new(
         ton_client::ClientContext::new(ton_client::ClientConfig {
             network: ton_client::net::NetworkConfig {

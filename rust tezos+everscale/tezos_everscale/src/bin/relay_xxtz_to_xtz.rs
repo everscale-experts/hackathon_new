@@ -8,67 +8,6 @@ use ureq::Agent;
 use tezos_batch::*;
 use serde_json::Value;
 
-async fn submit_transaction(
-    ton: Arc<ClientContext>,
-    config: Config,
-    address: &str,
-    abi: String,
-    keys: Option<String>,
-    amount: &str,
-    receiver: String,
-) -> String {
-    call_contract_with_client(
-        ton,
-        config.clone(),
-        address,
-        abi,
-        "submitTransaction",
-        format!(
-            r#"{{
-                "dest": "{}",
-                "value": "{}",
-                "bounce": "false",
-                "allBalance": "false",
-                "payload": "{}"
-            }}"#,
-            receiver,
-            amount,
-            "",
-        ).as_str(),
-        keys,
-        false, // true - run in tonos cli, false - call
-        false,
-    ).await.unwrap()["transId"].as_str().unwrap().to_string()
-}
-
-async fn confirm_transaction(
-    ton: Arc<ClientContext>,
-    config: Config,
-    address: &str,
-    abi: String,
-    keys: Option<String>,
-    trans_id: String,
-) -> String {
-    let res = call_contract_with_client(
-        ton,
-        config.clone(),
-        address,
-        abi,
-        "confirmTransaction",
-        format!(
-            r#"{{
-                "transactionId": {}
-            }}"#,
-            trans_id,
-        ).as_str(),
-        keys,
-        false,
-        false,
-    ).await;
-    if res.is_ok() { "Ok, signed".to_string() }
-    else { "Error, already signed".to_string() }
-}
-
 fn tezos_get_transactions() -> Value {
     let agent = Agent::new();
     let path = format!("https://api.hangzhounet.tzkt.io/v1/accounts/{}/operations", tezos_htlc());
@@ -79,6 +18,64 @@ fn tezos_get_transactions() -> Value {
         .unwrap();
     let res_json = serde_json::from_str::<Value>(res.as_str()).unwrap();
     res_json
+}
+
+async fn ever_msig_to_htlc(
+    ton: Arc<ClientContext>,
+    config: Config,
+    abi: String,
+    address: String,
+) {
+    let transactions = ever_get_transactions(
+        ton.clone(),
+        config.clone(),
+        ever_multisig().as_str(),
+        abi.clone(),
+    ).await;
+
+    if transactions.is_empty() {
+        let trans_id = submit_transaction(
+            ton.clone(),
+            config.clone(),
+            address.as_str().unwrap(),
+            abi.clone(),
+            ever_msig_keypair(0),
+            payload,
+        ).await;
+        println!("Transaction created with id: {}", trans_id);
+        for i in 2..4 {
+            println!(
+                "{}",
+                confirm_transaction(
+                    ton.clone(),
+                    config.clone(),
+                    address.as_str().unwrap(),
+                    abi.clone(),
+                    Some(format!("wallet.scmsig{}.json", i)),
+                    trans_id.to_string(),
+                ).await,
+            );
+        }
+    } else {
+        for t in transactions.iter() {
+            let trans_id = t["id"].as_str().unwrap();
+            println!("Transaction id: {}", trans_id);
+            for i in 2..4 {
+                println!(
+                    "{}",
+                    confirm_transaction(
+                        ton.clone(),
+                        config.clone(),
+                        address.as_str().unwrap(),
+                        abi.clone(),
+                        Some(format!("wallet.scmsig{}.json", i)),
+                        trans_id.to_string(),
+                    ).await,
+                );
+            }
+            println!("\n\n\n****************************");
+        }
+    }
 }
 
 #[tokio::main]
@@ -103,14 +100,22 @@ async fn main() {
         })
         .unwrap(),
     );
+    // create_batch("0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114", "KT1D4Ri8ntL7HLKTK63cyuV7ZAuMthzrSGJN");
 
     loop {
         let res = tezos_get_transactions();
         let len = res.as_array().unwrap().len();
         if len > last_len {
-            let pair = res[2]["parameter"]["value"]["pair"]["pair"]["pair"];
+            let pair = res[2]["parameter"]["value"]["pair"]["pair"]["pair"].clone();
+            let amount = res[2]["parameter"]["value"]["pair"]["pair"]["amount_tokens"].as_u64().unwrap();
             if let (Some(dest), Some(hash)) = (pair["dest"].as_str(), pair["hash"].as_str()) {
-                println!("dest: {}\nhash: {}", dest, hash);
+                // println!("dest: {}\nhash: {}", dest, hash);
+                let payload = get_payload(
+                    ton.clone(),
+                    "HelloWallet.abi.json",
+                    dest,
+                    hash,
+                ).await.unwrap().body;
             }
         }
     }

@@ -2,6 +2,8 @@ pub use ton_client::ClientContext;
 pub use serde_json::Value;
 use ton_client::abi::ParamsOfDecodeMessage;
 use ton_client::abi::ParamsOfDecodeMessageBody;
+use ton_client::abi::ParamsOfEncodeMessageBody;
+use ton_client::abi::ResultOfEncodeMessageBody;
 pub use std::sync::Arc;
 use std::collections::BTreeMap;
 use std::time::SystemTime;
@@ -41,6 +43,8 @@ use ton_client::tvm::run_tvm;
 use ton_block::Serializable;
 use ton_block::Account;
 use log;
+
+const CONFIG: &str = "./dependencies/json/config.json";
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
@@ -779,6 +783,141 @@ fn create_client(conf: &Config) -> Result<Arc<ClientContext>, String> {
     let cli =
         ClientContext::new(cli_conf).map_err(|e| format!("failed to create tonclient: {}", e))?;
     Ok(Arc::new(cli))
+}
+
+pub async fn get_payload(
+    ton: Arc<ClientContext>,
+    abi_str: &str,
+    // comment: &str,
+    dest: &str,
+    hash: &str,
+) -> Result<ResultOfEncodeMessageBody, ClientError> {
+    let abi = Abi::Json(std::fs::read_to_string(abi_str).unwrap());
+    let msg = ton_client::abi::encode_message_body(
+        ton,
+        ParamsOfEncodeMessageBody{
+            abi,
+            is_internal: true,
+            call_set: CallSet {
+                function_name: "createLockWithTokens".to_owned(),
+                header: None,
+                input: Some(serde_json::json!({
+                    // "dest": "0:0010000000123456789012345678901234567890123456789012345678901234",
+                    "dest": dest,
+                    // "hash": "0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114",
+                    "hash": hash,
+                    "timeout": "300",
+                })),
+            },
+            signer: Signer::None,
+            processing_try_index: None,
+        },
+    ).await;
+    println!("{}", msg.as_ref().unwrap().body);
+    msg
+}
+
+pub async fn submit_transaction(
+    ton: Arc<ClientContext>,
+    config: Config,
+    address: &str,
+    abi: String,
+    keys: Option<String>,
+    payload: String,
+) -> String {
+    call_contract_with_client(
+        ton.clone(),
+        config.clone(),
+        address,
+        abi,
+        "submitTransaction",
+        format!(
+            r#"{{
+                "dest": "{}",
+                "value": "{}",
+                "bounce": "false",
+                "allBalance": "false",
+                "payload": "{}"
+            }}"#,
+            get_json_field("transaction.json", Some("to"), None).as_str().unwrap(),
+            get_json_field("transaction.json", Some("amount"), None).as_str().unwrap(),
+            // get_payload(
+            //     ton,
+            //     "HelloWallet.abi.json",
+            //     get_json_field("transaction.json", Some("payload"), None).as_str().unwrap(),
+            // ).await.unwrap().body,
+            payload,
+            // ""
+        ).as_str(),
+        keys,
+        false, // true - run in tonos cli, false - call
+        false,
+    ).await.unwrap()["transId"].as_str().unwrap().to_string()
+}
+
+pub async fn ever_get_transactions(
+    ton: Arc<ClientContext>,
+    config: Config,
+    address: &str,
+    abi: String
+) -> Vec<Value> {
+    if let Some(arr) = call_contract_with_client(
+        ton,
+        config.clone(),
+        address,
+        abi,
+        "getTransactions",
+        r#"{}"#,
+        None,
+        true, // true - run in tonos cli, false - call
+        false,
+    ).await.unwrap()["transactions"].as_array() { arr.to_owned() }
+    else { vec![] }
+}
+
+pub async fn confirm_transaction(
+    ton: Arc<ClientContext>,
+    config: Config,
+    address: &str,
+    abi: String,
+    keys: Option<String>,
+    trans_id: String,
+) -> String {
+    let res = call_contract_with_client(
+        ton,
+        config.clone(),
+        address,
+        abi,
+        "confirmTransaction",
+        format!(
+            r#"{{
+                "transactionId": {}
+            }}"#,
+            trans_id,
+        ).as_str(),
+        keys,
+        false,
+        false,
+    ).await;
+    if res.is_ok() { "Ok, signed".to_string() }
+    else { "Error, already signed".to_string() }
+}
+
+pub fn ever_multisig() -> String {
+    get_json_field(CONFIG, None, Some(ever_multisig_id() as usize)).as_str().unwrap().to_string()
+}
+
+pub fn ever_htlc() -> String {
+    get_json_field(CONFIG, Some("HTLC1"), None).as_str().unwrap().to_string()
+}
+
+pub fn ever_multisig_id() -> usize {
+    get_json_field(CONFIG, Some("everscale_multisig_id"), None).as_u64().unwrap() as usize
+}
+
+pub fn ever_msig_keypair(i: usize) -> serde_json::Value {
+    let path = format!("wallet{}.scmsig{}.json", ever_multisig_id(), i);
+    get_json_field(path.as_str(), None, None)
 }
 
 fn main() {}
