@@ -9,7 +9,7 @@ import { Schema } from "@taquito/michelson-encoder";
 
 const RPC_URL = 'https://hangzhounet.smartpy.io'; // rpc тестнета
 
-const CONTRACT = 'KT19Xs4f94PCcTrRuTpagSJ7EzL1u2Dp4B8F';// адрес опубликованного контракта
+const CONTRACT = 'KT19Xs4f94PCcTrRuTpagSJ7EzL1u2Dp4B8F';// адрес опубликованного контракта multisig
 
 
 // присваиваем переменным обьект с помощью которого будем подписывать транзакции
@@ -30,13 +30,13 @@ export class token_transfer {
         this.tezos.setSignerProvider(signer); // подписываем все транзакции которые идут дальше с помощью signer
 
     }
-    
+
 
     public async transfer(contract1: string,) {
-        
+
 
         const contract = await this.tezos.contract.at(contract1);
-        console.log("Transaction strated")
+        console.log("Transactions started")
         // предлагаем сделать трансфер токенов
         const op = await contract.methods.lambda_proposal(
           [
@@ -130,7 +130,7 @@ export class token_transfer {
                   "prim": "bytes"
                 },
                 {
-                  "bytes": "ff7a7aff" // hash секрета 
+                  "bytes": "ff7a7aff" // hash секрета
                 }
               ]
             },
@@ -156,17 +156,22 @@ export class token_transfer {
             }
           ]
         ).send()
-        
+
 
         console.log("Awaiting confirmation...")
         await op.confirmation();
         console.log(op.hash);
 
-        // соглашаемся с предложенной транзакцией первый раз
-        const op1= contract.methods.vote_proposal(
-            // номер транзакции с которой человек соглашается и пишет true, либо не соглашается и пишет false
-            //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
-            '4',  // это число можно взять если посмотрев текущий storage контракта.
+      // номер транзакции с которой человек соглашается и пишет true, либо не соглашается и пишет false
+      // ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
+      // это число можно взять если посмотрев текущий storage контракта.
+      // номер транзакции которую мы выполняем
+      // это число можно взять если посмотрев текущий storage контракта
+      const multisigCounter = '5';
+
+      // соглашаемся с предложенной транзакцией первый раз
+      const op1 =  contract.methods.vote_proposal(
+            multisigCounter,
             'true'
         ).send()
 
@@ -180,7 +185,7 @@ export class token_transfer {
         const contract2 = await this.tezos.contract.at(contract1);
         // соглашаемся с предложенной транзакцией второй раз
         const op2=contract2.methods.vote_proposal(
-            '4',  //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
+            multisigCounter,
             'true'
         ).send()
 
@@ -190,9 +195,7 @@ export class token_transfer {
         // выполняем транзакцию, после того, как на ней собралось минимальное количество подписей
         // это может подписать любой владелец кошелька
         const op3=contract.methods.execute_proposal(
-            //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
-            '4'          // номер транзакции которую мы выполняем
-            // это число можно взять если посмотрев текущий storage контракта
+            multisigCounter
             ).send()
         console.log("Awaiting confirmation...")
         await (await op3).confirmation();

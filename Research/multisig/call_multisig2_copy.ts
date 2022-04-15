@@ -36,9 +36,9 @@ export class token_transfer {
     }
 
     public async transfer(contract1: string,) {
-        
+
         const contract = await this.tezos.contract.at(contract1);
-        console.log("Transaction strated")
+        console.log("Transactions started")
         // Utility function that mimics the PAIR operation of michelson
         // file deepcode ignore no-any: any is good enough
         const pair = ({data, type}: any, value: any) => {
@@ -61,7 +61,7 @@ export class token_transfer {
             data: {
                 prim: 'Pair',
                 args: [
-                    {int: '2'}, //счетчик после каждого вызова увеличиваем на один 
+                    {int: '2'}, //счетчик после каждого вызова увеличиваем на один
                     {
                         prim: 'Left',
                         args: [MANAGER_LAMBDA.transferImplicit("tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7", 1)]// количество токенов указывается в сатошинах, точность 6 знаков
@@ -74,7 +74,7 @@ export class token_transfer {
         const signature = signer.sign(packed, new Uint8Array());
         console.log(packed);
 
-       
+
         const op = await contract.methods.main(
             // счетчик после каждого вызова увеличиваем на один
             '2',

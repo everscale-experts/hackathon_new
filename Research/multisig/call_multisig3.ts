@@ -32,7 +32,7 @@ export class token_transfer {
     public async transfer(contract1: string,) {
 
         const contract = await this.tezos.contract.at(contract1);
-        console.log("Transaction strated")
+        console.log("Transactions started")
         // предлагаем сделать трансфер токенов
         const op = await contract.methods.transfer_token_proposal(
         'KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s',// адрес контракта токенов

@@ -30,13 +30,13 @@ export class token_transfer {
         this.tezos.setSignerProvider(signer); // подписываем все транзакции которые идут дальше с помощью signer
 
     }
-    
+
 
     public async transfer(contract1: string,) {
-        
+
 
         const contract = await this.tezos.contract.at(contract1);
-        console.log("Transaction strated")
+        console.log("Transactions started")
         // предлагаем сделать трансфер токенов
         const op = await contract.methods.lambda_proposal(
             [
@@ -163,7 +163,7 @@ export class token_transfer {
                       "prim": "address"
                     },
                     {
-                      "string": "KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s"  // адресс контракта токенов 
+                      "string": "KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s"  // адресс контракта токенов
                     }
                   ]
                 },
@@ -185,7 +185,7 @@ export class token_transfer {
                       "prim": "bytes"
                     },
                     {
-                      "bytes": "ff7a7aff" // hash серкета 
+                      "bytes": "ff7a7aff" // hash серкета
                     }
                   ]
                 },
@@ -199,7 +199,7 @@ export class token_transfer {
                       "prim": "address"
                     },
                     {
-                      "string": "KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87" // адресс получателя 
+                      "string": "KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87" // адресс получателя
                     }
                   ]
                 },
@@ -210,7 +210,7 @@ export class token_transfer {
                       "prim": "nat"
                     },
                     {
-                      "int": "10000" // количество токенов в найменьших единицах токена 
+                      "int": "10000" // количество токенов в найменьших единицах токена
                     }
                   ]
                 },
@@ -231,7 +231,7 @@ export class token_transfer {
                 }
               ]
         ).send()
-        
+
 
         console.log("Awaiting confirmation...")
         await op.confirmation();
