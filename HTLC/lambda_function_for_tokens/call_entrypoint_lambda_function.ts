@@ -9,12 +9,12 @@ import { Schema } from "@taquito/michelson-encoder";
 
 const RPC_URL = 'https://hangzhounet.smartpy.io'; // rpc тестнета
 
-const CONTRACT = 'KT1NZGFLqmk5bz21Lp34xogKLgE7zRsEvLG2';// адрес опубликованного контракта
+const CONTRACT = 'KT19Xs4f94PCcTrRuTpagSJ7EzL1u2Dp4B8F';// адрес опубликованного контракта
 
 
 // присваиваем переменным обьект с помощью которого будем подписывать транзакции
 const signer = new InMemorySigner('edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj');
-const signer1 = new InMemorySigner('edpkvUnVLfHfmdK9jJcoAwSqPy9Qbb2asVJFq18cLJosBs6keoPwVD')
+const signer1 = new InMemorySigner('edskS7C5R3C2ooTjrCtrz8VeYALfuhGQGLp5siTTdDHchgJmxL1CGfA7Ug777tuzKN7bDqhs4RSFU3FozZSVpykWJpzgQqjvtF');
 
 
 export class token_transfer {
@@ -50,7 +50,7 @@ export class token_transfer {
                       "prim": "address"
                     },
                     {
-                      "string": "KT1Exj7HLktuik8JiKtUavzsHB9heThHUQSf" // адресс htlc
+                      "string": "KT1JFor8dkq2fAoekB9H7EBLoktZ5Qg8Wy4N" // адресс htlc
                     }
                   ]
                 },
@@ -163,7 +163,7 @@ export class token_transfer {
                       "prim": "address"
                     },
                     {
-                      "string": "KT1KR2ft6aRthjkcvTW9FrEPRQoxrfuTpark"  // адресс контракта токенов 
+                      "string": "KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s"  // адресс контракта токенов 
                     }
                   ]
                 },
@@ -174,7 +174,7 @@ export class token_transfer {
                       "prim": "nat"
                     },
                     {
-                      "int": "1"  // id токена
+                      "int": "2"  // id токена
                     }
                   ]
                 },
@@ -210,7 +210,7 @@ export class token_transfer {
                       "prim": "nat"
                     },
                     {
-                      "int": "10" // количество токенов в найменьших единицах токена 
+                      "int": "10000" // количество токенов в найменьших единицах токена 
                     }
                   ]
                 },
