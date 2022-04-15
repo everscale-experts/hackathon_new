@@ -299,13 +299,13 @@ fn prepare_message_params(
     addr: &str,
     abi: Abi,
     method: &str,
-    params: &str,
+    params: Value,
     header: Option<FunctionHeader>,
     keys: Option<String>,
 ) -> Result<ParamsOfEncodeMessage, String> {
     let keys = keys.map(|k| read_keys(&k)).transpose()?;
-    let params = serde_json::from_str(&params)
-        .map_err(|e| format!("arguments are not in json format: {}", e))?;
+    // let params = serde_json::from_str(&params)
+    //     .map_err(|e| format!("arguments are not in json format: {}", e))?;
     let call_set = Some(CallSet {
         function_name: method.into(),
         input: Some(params),
@@ -553,7 +553,7 @@ pub async fn call_contract_with_client(
     addr: &str,
     abi: String,
     method: &str,
-    params: &str,
+    params: Value,
     keys: Option<String>,
     local: bool,
     is_fee: bool,
@@ -569,7 +569,6 @@ pub async fn call_contract_with_client(
         time: Some(time),
         ..Default::default()
     };
-    // println!("{}", params);
     let msg_params = prepare_message_params(
         addr,
         abi.clone(),
@@ -789,10 +788,11 @@ pub async fn get_payload(
     ton: Arc<ClientContext>,
     abi_str: &str,
     // comment: &str,
-    dest: &str,
+    _dest: &str,
     hash: &str,
 ) -> Result<ResultOfEncodeMessageBody, ClientError> {
-    let abi = Abi::Json(std::fs::read_to_string(abi_str).unwrap());
+    let abi = format!("./dependencies/json/{}", abi_str);
+    let abi = Abi::Json(std::fs::read_to_string(abi.as_str()).unwrap());
     let msg = ton_client::abi::encode_message_body(
         ton,
         ParamsOfEncodeMessageBody{
@@ -803,10 +803,10 @@ pub async fn get_payload(
                 header: None,
                 input: Some(serde_json::json!({
                     // "dest": "0:0010000000123456789012345678901234567890123456789012345678901234",
-                    "dest": dest,
+                    // "dest": dest,
                     // "hash": "0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114",
-                    "hash": hash,
-                    "timeout": "300",
+                    "hash": hash
+                    // "timeout": "300",
                 })),
             },
             signer: Signer::None,
@@ -824,7 +824,7 @@ pub async fn submit_transaction(
     abi: &str,
     keys: Option<String>,
     payload: String,
-    amount: u64,
+    amount: &str,
 ) -> String {
     call_contract_with_client(
         ton.clone(),
@@ -832,7 +832,7 @@ pub async fn submit_transaction(
         address,
         abi.to_string(),
         "submitTransaction",
-        format!(
+        serde_json::from_str(format!(
             r#"{{
                 "dest": "{}",
                 "value": "{}",
@@ -851,7 +851,7 @@ pub async fn submit_transaction(
             // ).await.unwrap().body,
             payload,
             // ""
-        ).as_str(),
+        ).as_str()).unwrap(),
         keys,
         false, // true - run in tonos cli, false - call
         false,
@@ -868,15 +868,11 @@ pub async fn create_lock_with_tokens(
         ton.clone(),
         config.clone(),
         ever_htlc().as_str(),
-        "HelloWallet.abi.json".to_string(),
+        std::fs::read_to_string("./dependencies/json/HelloWallet.abi.json").unwrap(),
         "createLockWithTokens",
-        format!(
-            r#"{{
-                "hash": "{}",
-            }}"#,
-            hash,
-            // ""
-        ).as_str(),
+        serde_json::json!({
+            "hash": hash,
+        }),
         keys,
         false, // true - run in tonos cli, false - call
         false,
@@ -895,7 +891,7 @@ pub async fn ever_get_transactions(
         address,
         abi.to_string(),
         "getTransactions",
-        r#"{}"#,
+        serde_json::json!({}),
         None,
         true, // true - run in tonos cli, false - call
         false,
@@ -917,12 +913,9 @@ pub async fn confirm_transaction(
         address,
         abi.to_string(),
         "confirmTransaction",
-        format!(
-            r#"{{
-                "transactionId": {}
-            }}"#,
-            trans_id,
-        ).as_str(),
+        serde_json::json!({
+            "transactionId": trans_id,
+        }),
         keys,
         false,
         false,
@@ -936,7 +929,7 @@ pub fn ever_multisig() -> String {
 }
 
 pub fn ever_htlc() -> String {
-    get_json_field(CONFIG, Some("HTLC1"), None).as_str().unwrap().to_string()
+    get_json_field(CONFIG, Some("htlc1"), None).as_str().unwrap().to_string()
 }
 
 pub fn ever_multisig_id() -> usize {
@@ -948,5 +941,5 @@ pub fn ever_msig_keypair(i: usize) -> String {
 }
 
 pub fn ever_htlc_keypair() -> String {
-    "htlc1_keys.json".to_string()
+    "./dependencies/json/htlc1_keys.json".to_string()
 }

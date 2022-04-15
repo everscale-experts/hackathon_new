@@ -23,7 +23,7 @@ async fn ever_msig_to_htlc(
     config: Config,
     abi: &str,
     payload: String,
-    amount: u64,
+    amount: &str,
 ) {
     let address = ever_multisig();
     let transactions = ever_get_transactions(
@@ -102,21 +102,29 @@ async fn main() {
     //     .unwrap(),
     // );
     // create_batch("0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114", "KT1D4Ri8ntL7HLKTK63cyuV7ZAuMthzrSGJN");
-
+    let res = create_lock_with_tokens(
+        ton.clone(),
+        config.clone(),
+        Some(ever_htlc_keypair()),
+        format!("{}", "0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114"),
+    ).await;
+    println!("{}\n", res);
+    println!("Starting tezos listener...");
     loop {
         let res = tezos_get_transactions();
         let len = res.as_array().unwrap().len();
         if len > last_len {
             last_len = len;
             let pair = res[2]["parameter"]["value"]["pair"]["pair"]["pair"].clone();
-            let amount = res[2]["parameter"]["value"]["pair"]["pair"]["amount_tokens"].as_u64().unwrap();
+            // println!("{:#}", res[2]["parameter"]);
+            let amount = res[2]["parameter"]["value"]["pair"]["pair"]["amount_tokens"].as_str().unwrap();
             if let (Some(dest), Some(hash)) = (pair["dest"].as_str(), pair["hash"].as_str()) {
-                // println!("dest: {}\nhash: {}", dest, hash);
+                println!("dest: {}\nhash: {}", dest, hash);
                 let payload = get_payload(
                     ton.clone(),
                     "HelloWallet.abi.json",
                     dest,
-                    hash,
+                    format!("0x{}", hash).as_str(),
                 ).await.unwrap().body;
                 let _ = ever_msig_to_htlc(
                     ton.clone(),
@@ -125,12 +133,13 @@ async fn main() {
                     payload,
                     amount,
                 );
-                let _ = create_lock_with_tokens(
+                let res = create_lock_with_tokens(
                     ton.clone(),
                     config.clone(),
                     Some(ever_htlc_keypair()),
-                    hash.to_string(),
-                );
+                    format!("0x{}", hash),
+                ).await;
+                println!("{}\n", res);
             }
         }
     }

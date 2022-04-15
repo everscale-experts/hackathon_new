@@ -587,8 +587,24 @@ fn await_confirmation(hash: &str) -> bool {
     }
     match get_status(hash).as_str() {
         "applied" => true,
-        _ => false
+        _ => false,
     }
+}
+
+fn await_confirmations(hashes: Vec<String>) -> bool {
+    let timer = std::time::Instant::now();
+    let count = hashes.len();
+    println!("Awaiting confirmation ({})...", count);
+    let mut confirmations = 0;
+    while timer.elapsed().as_millis() <= AWAIT_TIMEOUT && confirmations < count {
+        confirmations = 0;
+        for i in 0..count {
+            if get_confirmations(hashes[i].as_str()) >= 1 {
+                confirmations += 1;
+            }
+        }
+    }
+    confirmations == count
 }
 
 fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
@@ -611,6 +627,7 @@ fn create_proposal(rpc: &str, endpoint: &str, branch: &str) {
 fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
     create_proposal(rpc, endpoint, branch);
     let prop_id = get_proposal_id(endpoint);
+    let mut votes = vec![];
     for i in 0..3 {
         let group = vec![vote_method(rpc, endpoint, branch, i, prop_id)];
         let sign_res = sign_operation(
@@ -624,9 +641,10 @@ fn vote_all(rpc: &str, endpoint: &str, branch: &str) -> u64{
             rpc,
         ).unwrap().as_str().unwrap().to_string();
         println!("Vote {}: {}", i + 1, hash);
+        votes.push(hash);
         // println!("Vote {}: {}", i + 1, if inject_res.is_ok() { "ok" } else { "failed" });
-        println!("{}\n", if await_confirmation(hash.as_str()) { "Applied" } else { "Failed" });
     }
+    println!("{}\n", if await_confirmations(votes) { "Applied" } else { "Failed" });
     prop_id
 }
 
