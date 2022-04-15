@@ -1,11 +1,9 @@
-mod functions;
 mod tezos_send_transaction;
 mod common;
 mod commands;
-mod tezos_batch;
-use functions::*;
+use lib::functions::*;
 use ureq::Agent;
-use tezos_batch::*;
+use lib::tezos_batch::*;
 use serde_json::Value;
 
 fn tezos_get_transactions() -> Value {
@@ -92,23 +90,24 @@ async fn main() {
     );
     let ton = create_client_verbose(&config).unwrap();
     let mut last_len = tezos_get_transactions().as_array().unwrap().len();
-    let context = Arc::new(
-        ton_client::ClientContext::new(ton_client::ClientConfig {
-            network: ton_client::net::NetworkConfig {
-                // server_address: Some("cinet.tonlabs.io".to_owned()), // mainnet
-                server_address: Some("net.ton.dev".to_string()), // devnet
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .unwrap(),
-    );
+    // let context = Arc::new(
+    //     ton_client::ClientContext::new(ton_client::ClientConfig {
+    //         network: ton_client::net::NetworkConfig {
+    //             // server_address: Some("cinet.tonlabs.io".to_owned()), // mainnet
+    //             server_address: Some("net.ton.dev".to_string()), // devnet
+    //             ..Default::default()
+    //         },
+    //         ..Default::default()
+    //     })
+    //     .unwrap(),
+    // );
     // create_batch("0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114", "KT1D4Ri8ntL7HLKTK63cyuV7ZAuMthzrSGJN");
 
     loop {
         let res = tezos_get_transactions();
         let len = res.as_array().unwrap().len();
         if len > last_len {
+            last_len = len;
             let pair = res[2]["parameter"]["value"]["pair"]["pair"]["pair"].clone();
             let amount = res[2]["parameter"]["value"]["pair"]["pair"]["amount_tokens"].as_u64().unwrap();
             if let (Some(dest), Some(hash)) = (pair["dest"].as_str(), pair["hash"].as_str()) {
@@ -129,8 +128,8 @@ async fn main() {
                 let _ = create_lock_with_tokens(
                     ton.clone(),
                     config.clone(),
-                    ever_htlc_keypair(),
-                    hash,
+                    Some(ever_htlc_keypair()),
+                    hash.to_string(),
                 );
             }
         }

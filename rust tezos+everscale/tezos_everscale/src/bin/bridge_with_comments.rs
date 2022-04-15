@@ -1,8 +1,5 @@
-mod functions;
 mod tezos_send_transaction;
-mod common;
-mod commands;
-use functions::*;
+use lib::functions::*;
 use ureq::Agent;
 use std::fs;
 use serde_json::Value;

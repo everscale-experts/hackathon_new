@@ -1,11 +1,9 @@
-mod functions;
 mod tezos_send_transaction;
-mod common;
-mod commands;
-mod tezos_batch;
-use functions::*;
-use tezos_batch::create_batch;
+use lib::functions::*;
+use lib::tezos_batch::create_batch;
+use ton_client::ClientContext;
 use ureq::Agent;
+use std::sync::Arc;
 use std::fs;
 use serde_json::Value;
 

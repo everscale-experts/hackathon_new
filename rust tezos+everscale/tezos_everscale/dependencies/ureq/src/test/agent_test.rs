@@ -22,7 +22,7 @@ fn connection_reuse() {
     let testserver = TestServer::new(idle_timeout_handler);
     let url = format!("http://localhost:{}", testserver.port);
     let agent = Agent::new();
-    let resp = agent.get(&url, "").call().unwrap();
+    let resp = agent.get(&url).call().unwrap();
 
     // use up the connection so it gets returned to the pool
     assert_eq!(resp.status(), 200);
@@ -40,7 +40,7 @@ fn connection_reuse() {
     // pulls from the pool. If for some reason the timed-out
     // connection wasn't in the pool, we won't be testing what
     // we thought we were testing.
-    let resp = agent.get(&url, "").call().unwrap();
+    let resp = agent.get(&url).call().unwrap();
     assert_eq!(resp.status(), 200);
 }
 
@@ -64,7 +64,7 @@ fn custom_resolver() {
     AgentBuilder::new()
         .resolver(move |_: &str| Ok(vec![local_addr]))
         .build()
-        .get("http://cool.server/", "")
+        .get("http://cool.server/")
         .call()
         .ok();
 
@@ -149,12 +149,12 @@ fn dirty_streams_not_returned() -> Result<(), Error> {
     });
     let url = format!("http://localhost:{}/", testserver.port);
     let agent = Agent::new();
-    let resp = agent.get(&url, "").call()?;
+    let resp = agent.get(&url).call()?;
     let resp_str = resp.into_string()?;
     assert_eq!(resp_str, "corgidachshund");
 
     // Now fetch it again, but only read part of the body.
-    let resp_to_be_dropped = agent.get(&url, "").call()?;
+    let resp_to_be_dropped = agent.get(&url).call()?;
     let mut reader = resp_to_be_dropped.into_reader();
 
     // Read 9 bytes of the response and then drop the reader.
@@ -164,6 +164,6 @@ fn dirty_streams_not_returned() -> Result<(), Error> {
     assert_eq!(&buf, b"corg");
     drop(reader);
 
-    let _resp_to_succeed = agent.get(&url, "").call()?;
+    let _resp_to_succeed = agent.get(&url).call()?;
     Ok(())
 }
