@@ -26,7 +26,10 @@ type storage is record [
 
 
 (*объявляем псевдонимы входящих параметров для каждой базовой функции*)
-type createLockParams is michelson_pair(bytes, "hash", address,"dest")
+type createLockParams is record [
+    hash1:bytes;
+    dest1:address;
+]
 type openLockParams is michelson_pair(address, "dest", bytes,"secret");
 type defaultParams is unit;
 
@@ -157,6 +160,6 @@ end with (operations, s)
 function main(const p:parameter; var s:storage): return is 
 case p of [
 | Default(params) -> default(s)
-| CreateLock(params)-> createLock(params.0,params.1,s)
+| CreateLock(params)-> createLock(params.hash1,params.dest1,s)
 | OpenLock(params)-> openLock(params.0,params.1, s)
 ]
