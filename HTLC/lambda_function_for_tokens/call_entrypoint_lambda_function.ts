@@ -2,19 +2,9 @@ import {TezosToolkit, MANAGER_LAMBDA} from '@taquito/taquito';
 import {InMemorySigner} from '@taquito/signer';
 import {char2Bytes} from '@taquito/utils';
 import { Schema } from "@taquito/michelson-encoder";
-import {Parser} from './taquito-michel-codec/src/taquito-michel-codec'
 
 
-const code = `(Pair 
-    (Pair { Elt 1 (Pair (Pair "tz1gjaF81ZRRvdzjobyfVNsAeSC6PScjfQwN" "tz1KqTpEZ7Yob7QbPE4Hy4Wo8fHG8LhKxZSx") 0x0501000000026869)}
-          10000000)
-    (Pair 2 333)
- )`;
 
-const p = new Parser();
-
-const result = p.parseMichelineExpression(code);
-console.log(JSON.stringify(result));
 
 
 const RPC_URL = 'https://hangzhounet.smartpy.io'; // rpc тестнета
@@ -48,14 +38,14 @@ export class token_transfer {
         const contract = await this.tezos.contract.at(contract1);
         console.log("Transaction strated")
         // предлагаем сделать трансфер токенов
-        // const op = await contract.methods.lambda_proposal(
-            
-        // ).send()
+        const op = await contract.methods.lambda_proposal(
+            [{"prim":"DROP"},{"prim":"PUSH","args":[{"prim":"address"},{"string":"KT1Exj7HLktuik8JiKtUavzsHB9heThHUQSf"}]},{"prim":"CONTRACT","annots":["%createLock"],"args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%amount_tokens"]},{"prim":"address","annots":["%dest1"]}]},{"prim":"pair","args":[{"prim":"bytes","annots":["%hash1"]},{"prim":"nat","annots":["%id_tokens"]}]}]},{"prim":"address","annots":["%tokenAddress"]}]}]},{"prim":"IF_NONE","args":[[{"prim":"PUSH","args":[{"prim":"string"},{"string":"Not a entrypoint"}]},{"prim":"FAILWITH"}],[]]},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"SWAP"},{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},{"prim":"PUSH","args":[{"prim":"address"},{"string":"KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87"}]},{"prim":"PUSH","args":[{"prim":"nat"},{"int":"1"}]},{"prim":"PUSH","args":[{"prim":"bytes"},{"bytes":"ff7a7aff"}]},{"prim":"PAIR"},{"prim":"PUSH","args":[{"prim":"address"},{"string":"KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87"}]},{"prim":"PUSH","args":[{"prim":"nat"},{"int":"1000"}]},{"prim":"PAIR"},{"prim":"PAIR"},{"prim":"PAIR"},{"prim":"TRANSFER_TOKENS"},{"prim":"CONS"}]
+        ).send()
         
 
-        // console.log("Awaiting confirmation...")
-        // await op.confirmation();
-        // console.log(op.hash);
+        console.log("Awaiting confirmation...")
+        await op.confirmation();
+        console.log(op.hash);
 
         // соглашаемся с предложенной транзакцией первый раз
         // const op1= contract.methods.vote_proposal(

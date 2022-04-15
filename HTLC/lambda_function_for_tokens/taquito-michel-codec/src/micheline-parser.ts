@@ -315,7 +315,7 @@ export class Parser {
     }
 
     const scanner = scan(src);
-    const tok = scanner.next();
+    const tok:any = scanner.next();
     if (tok.done) {
       return null;
     }
@@ -333,7 +333,7 @@ export class Parser {
     }
 
     const scanner = scan(src);
-    const tok = scanner.next();
+    const tok:any = scanner.next();
     if (tok.done) {
       return null;
     }
@@ -351,7 +351,7 @@ export class Parser {
     }
 
     const scanner = scan(src);
-    const tok = scanner.next();
+    const tok:any = scanner.next();
     if (tok.done) {
       return null;
     }
@@ -396,7 +396,7 @@ export class Parser {
       }
       return ret;
     } else if ('prim' in src) {
-      const p = src as { prim: unknown; annots?: unknown[]; args?: unknown[] };
+      const p:any = src as { prim: unknown; annots?: unknown[]; args?: unknown[] };
       if (
         typeof p.prim === 'string' &&
         (p.annots === undefined || Array.isArray(p.annots)) &&
@@ -412,7 +412,7 @@ export class Parser {
               throw new JSONParseError(a, `string expected: ${a}`);
             }
           }
-          ret.annots = p.annots;
+          ret.annots= p.annots;
         }
 
         if (p.args !== undefined) {
