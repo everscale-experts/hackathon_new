@@ -4,3 +4,5 @@
 https://t.me/tezostaquito/4488
 
 https://github.com/ecadlabs/taquito/tree/master/packages/taquito-michel-codec - ссылка на то как переделать michelson 
+
+
