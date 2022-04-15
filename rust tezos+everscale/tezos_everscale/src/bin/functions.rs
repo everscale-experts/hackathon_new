@@ -858,6 +858,31 @@ pub async fn submit_transaction(
     ).await.unwrap()["transId"].as_str().unwrap().to_string()
 }
 
+pub async fn create_lock_with_tokens(
+    ton: Arc<ClientContext>,
+    config: Config,
+    keys: Option<String>,
+    hash: String,
+) -> String {
+    call_contract_with_client(
+        ton.clone(),
+        config.clone(),
+        ever_htlc().as_str(),
+        "HelloWallet.abi.json".to_string(),
+        "createLockWithTokens",
+        format!(
+            r#"{{
+                "hash": "{}",
+            }}"#,
+            hash,
+            // ""
+        ).as_str(),
+        keys,
+        false, // true - run in tonos cli, false - call
+        false,
+    ).await.unwrap()["transId"].as_str().unwrap().to_string()
+}
+
 pub async fn ever_get_transactions(
     ton: Arc<ClientContext>,
     config: Config,
@@ -920,6 +945,10 @@ pub fn ever_multisig_id() -> usize {
 
 pub fn ever_msig_keypair(i: usize) -> String {
     format!("wallet{}.scmsig{}.json", ever_multisig_id(), i)
+}
+
+pub fn ever_htlc_keypair() -> String {
+    "htlc1_keys.json".to_string()
 }
 
 fn main() {}

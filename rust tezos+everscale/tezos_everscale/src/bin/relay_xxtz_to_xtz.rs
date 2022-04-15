@@ -126,6 +126,12 @@ async fn main() {
                     payload,
                     amount,
                 );
+                let _ = create_lock_with_tokens(
+                    ton.clone(),
+                    config.clone(),
+                    ever_htlc_keypair(),
+                    hash,
+                );
             }
         }
     }
