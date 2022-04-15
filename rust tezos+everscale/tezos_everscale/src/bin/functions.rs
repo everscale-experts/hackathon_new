@@ -821,15 +821,16 @@ pub async fn submit_transaction(
     ton: Arc<ClientContext>,
     config: Config,
     address: &str,
-    abi: String,
+    abi: &str,
     keys: Option<String>,
     payload: String,
+    amount: u64,
 ) -> String {
     call_contract_with_client(
         ton.clone(),
         config.clone(),
         address,
-        abi,
+        abi.to_string(),
         "submitTransaction",
         format!(
             r#"{{
@@ -839,8 +840,10 @@ pub async fn submit_transaction(
                 "allBalance": "false",
                 "payload": "{}"
             }}"#,
-            get_json_field("transaction.json", Some("to"), None).as_str().unwrap(),
-            get_json_field("transaction.json", Some("amount"), None).as_str().unwrap(),
+            // get_json_field("transaction.json", Some("to"), None).as_str().unwrap(),
+            ever_htlc(),
+            // get_json_field("transaction.json", Some("amount"), None).as_str().unwrap(),
+            amount,
             // get_payload(
             //     ton,
             //     "HelloWallet.abi.json",
@@ -859,13 +862,13 @@ pub async fn ever_get_transactions(
     ton: Arc<ClientContext>,
     config: Config,
     address: &str,
-    abi: String
+    abi: &str,
 ) -> Vec<Value> {
     if let Some(arr) = call_contract_with_client(
         ton,
         config.clone(),
         address,
-        abi,
+        abi.to_string(),
         "getTransactions",
         r#"{}"#,
         None,
@@ -879,7 +882,7 @@ pub async fn confirm_transaction(
     ton: Arc<ClientContext>,
     config: Config,
     address: &str,
-    abi: String,
+    abi: &str,
     keys: Option<String>,
     trans_id: String,
 ) -> String {
@@ -887,7 +890,7 @@ pub async fn confirm_transaction(
         ton,
         config.clone(),
         address,
-        abi,
+        abi.to_string(),
         "confirmTransaction",
         format!(
             r#"{{
@@ -915,9 +918,8 @@ pub fn ever_multisig_id() -> usize {
     get_json_field(CONFIG, Some("everscale_multisig_id"), None).as_u64().unwrap() as usize
 }
 
-pub fn ever_msig_keypair(i: usize) -> serde_json::Value {
-    let path = format!("wallet{}.scmsig{}.json", ever_multisig_id(), i);
-    get_json_field(path.as_str(), None, None)
+pub fn ever_msig_keypair(i: usize) -> String {
+    format!("wallet{}.scmsig{}.json", ever_multisig_id(), i)
 }
 
 fn main() {}

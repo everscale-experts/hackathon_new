@@ -23,24 +23,27 @@ fn tezos_get_transactions() -> Value {
 async fn ever_msig_to_htlc(
     ton: Arc<ClientContext>,
     config: Config,
-    abi: String,
-    address: String,
+    abi: &str,
+    payload: String,
+    amount: u64,
 ) {
+    let address = ever_multisig();
     let transactions = ever_get_transactions(
         ton.clone(),
         config.clone(),
         ever_multisig().as_str(),
-        abi.clone(),
+        abi,
     ).await;
 
     if transactions.is_empty() {
         let trans_id = submit_transaction(
             ton.clone(),
             config.clone(),
-            address.as_str().unwrap(),
-            abi.clone(),
-            ever_msig_keypair(0),
+            address.as_str(),
+            abi,
+            Some(ever_msig_keypair(0)),
             payload,
+            amount,
         ).await;
         println!("Transaction created with id: {}", trans_id);
         for i in 2..4 {
@@ -49,32 +52,32 @@ async fn ever_msig_to_htlc(
                 confirm_transaction(
                     ton.clone(),
                     config.clone(),
-                    address.as_str().unwrap(),
-                    abi.clone(),
-                    Some(format!("wallet.scmsig{}.json", i)),
+                    address.as_str(),
+                    abi,
+                    Some(ever_msig_keypair(i)),
                     trans_id.to_string(),
                 ).await,
             );
         }
     } else {
-        for t in transactions.iter() {
-            let trans_id = t["id"].as_str().unwrap();
-            println!("Transaction id: {}", trans_id);
-            for i in 2..4 {
-                println!(
-                    "{}",
-                    confirm_transaction(
-                        ton.clone(),
-                        config.clone(),
-                        address.as_str().unwrap(),
-                        abi.clone(),
-                        Some(format!("wallet.scmsig{}.json", i)),
-                        trans_id.to_string(),
-                    ).await,
-                );
-            }
-            println!("\n\n\n****************************");
-        }
+        // for t in transactions.iter() {
+        //     let trans_id = t["id"].as_str().unwrap();
+        //     println!("Transaction id: {}", trans_id);
+        //     for i in 2..4 {
+        //         println!(
+        //             "{}",
+        //             confirm_transaction(
+        //                 ton.clone(),
+        //                 config.clone(),
+        //                 address.as_str().unwrap(),
+        //                 abi.clone(),
+        //                 Some(ever_msig_keypair(i)),
+        //                 trans_id.to_string(),
+        //             ).await,
+        //         );
+        //     }
+        //     println!("\n\n\n****************************");
+        // }
     }
 }
 
@@ -116,6 +119,13 @@ async fn main() {
                     dest,
                     hash,
                 ).await.unwrap().body;
+                let _ = ever_msig_to_htlc(
+                    ton.clone(),
+                    config.clone(),
+                    "SetcodeMultisigWallet.abi.json",
+                    payload,
+                    amount,
+                );
             }
         }
     }
