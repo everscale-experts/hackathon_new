@@ -1,6 +1,4 @@
 mod tezos_send_transaction;
-mod common;
-mod commands;
 use lib::functions::*;
 use ureq::Agent;
 use lib::tezos_batch::*;
