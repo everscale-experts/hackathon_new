@@ -42,6 +42,7 @@ async fn ever_msig_to_htlc(
             Some(ever_msig_keypair(0)),
             payload,
             amount,
+            ever_htlc().as_str(),
         ).await;
         println!("Transaction created with id: {}", trans_id);
         for i in 2..4 {

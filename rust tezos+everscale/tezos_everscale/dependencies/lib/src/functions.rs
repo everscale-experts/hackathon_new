@@ -825,6 +825,7 @@ pub async fn submit_transaction(
     keys: Option<String>,
     payload: String,
     amount: &str,
+    receiver: &str
 ) -> String {
     call_contract_with_client(
         ton.clone(),
@@ -841,7 +842,8 @@ pub async fn submit_transaction(
                 "payload": "{}"
             }}"#,
             // get_json_field("transaction.json", Some("to"), None).as_str().unwrap(),
-            ever_htlc(),
+            // ever_htlc(),
+            receiver,
             // get_json_field("transaction.json", Some("amount"), None).as_str().unwrap(),
             amount,
             // get_payload(
@@ -863,7 +865,7 @@ pub async fn create_lock_with_tokens(
     config: Config,
     keys: Option<String>,
     hash: String,
-) -> String {
+) -> Value {
     call_contract_with_client(
         ton.clone(),
         config.clone(),
@@ -876,7 +878,7 @@ pub async fn create_lock_with_tokens(
         keys,
         false, // true - run in tonos cli, false - call
         false,
-    ).await.unwrap()["transId"].as_str().unwrap().to_string()
+    ).await.unwrap()
 }
 
 pub async fn ever_get_transactions(
