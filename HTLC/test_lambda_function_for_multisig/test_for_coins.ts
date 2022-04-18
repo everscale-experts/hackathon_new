@@ -7,16 +7,14 @@ import { Schema } from "@taquito/michelson-encoder";
 
 const RPC_URL = 'https://hangzhounet.smartpy.io'; // rpc тестнета
 
-const CONTRACT = 'KT19Xs4f94PCcTrRuTpagSJ7EzL1u2Dp4B8F';// адрес опубликованного контракта multisig
-const id_token ='2';
-const contract_token_address= 'KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s';
-const amount = '10000';
+const CONTRACT = 'KT1Vw85Ni6AoBUTra7NsKGif7BNG9i7fyd6a';// адрес опубликованного контракта multisig
+const amount = '110000';
 const destination = 'KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87';
-const id_proposal = 39;
-const htlc_contract = 'KT1JFor8dkq2fAoekB9H7EBLoktZ5Qg8Wy4N';
+const id_proposal = 3;
+const htlc_contract = 'KT1LzFMMsi5kp8vq81rxEprzKNoJEeJbWH7W';
 
 // присваиваем переменным обьект с помощью которого будем подписывать транзакции
-const signer = new InMemorySigner('edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj');
+const signer = new InMemorySigner('edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i');
 const signer1 = new InMemorySigner('edskS7C5R3C2ooTjrCtrz8VeYALfuhGQGLp5siTTdDHchgJmxL1CGfA7Ug777tuzKN7bDqhs4RSFU3FozZSVpykWJpzgQqjvtF');
 
 
@@ -40,11 +38,9 @@ export class token_transfer {
 
         const contract = await this.tezos.contract.at(contract1);
         console.log("Transactions started")
-        const op_1 = await contract.methods.transfer_token_proposal(
-            contract_token_address,
-            id_token,
+        const op_1 = await contract.methods.transfer_mutez_proposal(
             amount,
-            htlc_contract,
+            htlc_contract
         ).send();
         
         console.log("Awaiting confirmation...")
@@ -54,197 +50,122 @@ export class token_transfer {
         // предлагаем сделать трансфер токенов
         const op = await contract.methods.lambda_proposal(
             [
-                {
-                  "prim": "DROP"
-                },
-                {
-                  "prim": "PUSH",
-                  "args": [
-                    {
-                      "prim": "address"
-                    },
-                    {
-                      "string": htlc_contract // адресс htlc
-                    }
-                  ]
-                },
-                {
-                  "prim": "CONTRACT",
-                  "annots": [
-                    "%createLock"
-                  ],
-                  "args": [
-                    {
-                      "prim": "pair",
-                      "args": [
-                        {
-                          "prim": "pair",
-                          "args": [
-                            {
-                              "prim": "pair",
-                              "args": [
-                                {
-                                  "prim": "nat",
-                                  "annots": [
-                                    "%amount_tokens"
-                                  ]
-                                },
-                                {
-                                  "prim": "address",
-                                  "annots": [
-                                    "%dest1"
-                                  ]
-                                }
-                              ]
-                            },
-                            {
-                              "prim": "pair",
-                              "args": [
-                                {
-                                  "prim": "bytes",
-                                  "annots": [
-                                    "%hash1"
-                                  ]
-                                },
-                                {
-                                  "prim": "nat",
-                                  "annots": [
-                                    "%id_tokens"
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "prim": "address",
-                          "annots": [
-                            "%tokenAddress"
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "prim": "IF_NONE",
-                  "args": [
-                    [
+              {
+                "prim": "DROP"
+              },
+              {
+                "prim": "PUSH",
+                "args": [
+                  {
+                    "prim": "address"
+                  },
+                  {
+                    "string": htlc_contract // адоесс контракта htlc
+                  }
+                ]
+              },
+              {
+                "prim": "CONTRACT",
+                "annots": [
+                  "%createLock"
+                ],
+                "args": [
+                  {
+                    "prim": "pair",
+                    "args": [
                       {
-                        "prim": "PUSH",
-                        "args": [
-                          {
-                            "prim": "string"
-                          },
-                          {
-                            "string": "Not a entrypoint"
-                          }
+                        "prim": "address",
+                        "annots": [
+                          "%dest1"
                         ]
                       },
                       {
-                        "prim": "FAILWITH"
+                        "prim": "bytes",
+                        "annots": [
+                          "%hash1"
+                        ]
                       }
-                    ],
-                    []
-                  ]
-                },
-                {
-                  "prim": "NIL",
-                  "args": [
+                    ]
+                  }
+                ]
+              },
+              {
+                "prim": "IF_NONE",
+                "args": [
+                  [
                     {
-                      "prim": "operation"
-                    }
-                  ]
-                },
-                {
-                  "prim": "SWAP"
-                },
-                {
-                  "prim": "PUSH",
-                  "args": [
-                    {
-                      "prim": "mutez"
+                      "prim": "PUSH",
+                      "args": [
+                        {
+                          "prim": "string"
+                        },
+                        {
+                          "string": "Not a entrypoint"
+                        }
+                      ]
                     },
                     {
-                      "int": "0"
+                      "prim": "FAILWITH"
                     }
-                  ]
-                },
-                {
-                  "prim": "PUSH",
-                  "args": [
-                    {
-                      "prim": "address"
-                    },
-                    {
-                      "string": contract_token_address  // адресс контракта токенов
-                    }
-                  ]
-                },
-                {
-                  "prim": "PUSH",
-                  "args": [
-                    {
-                      "prim": "nat"
-                    },
-                    {
-                      "int": id_token // id токена
-                    }
-                  ]
-                },
-                {
-                  "prim": "PUSH",
-                  "args": [
-                    {
-                      "prim": "bytes"
-                    },
-                    {
-                      "bytes": "" // hash серкета
-                    }
-                  ]
-                },
-                {
-                  "prim": "PAIR"
-                },
-                {
-                  "prim": "PUSH",
-                  "args": [
-                    {
-                      "prim": "address"
-                    },
-                    {
-                      "string": destination // адресс получателя
-                    }
-                  ]
-                },
-                {
-                  "prim": "PUSH",
-                  "args": [
-                    {
-                      "prim": "nat"
-                    },
-                    {
-                      "int": amount // количество токенов в найменьших единицах токена
-                    }
-                  ]
-                },
-                {
-                  "prim": "PAIR"
-                },
-                {
-                  "prim": "PAIR"
-                },
-                {
-                  "prim": "PAIR"
-                },
-                {
-                  "prim": "TRANSFER_TOKENS"
-                },
-                {
-                  "prim": "CONS"
-                }
-              ]
-        ).send()
+                  ],
+                  []
+                ]
+              },
+              {
+                "prim": "NIL",
+                "args": [
+                  {
+                    "prim": "operation"
+                  }
+                ]
+              },
+              {
+                "prim": "SWAP"
+              },
+              {
+                "prim": "PUSH",
+                "args": [
+                  {
+                    "prim": "mutez"
+                  },
+                  {
+                    "int": "0"
+                  }
+                ]
+              },
+              {
+                "prim": "PUSH",
+                "args": [
+                  {
+                    "prim": "bytes"
+                  },
+                  {
+                    "bytes": "" // hash секрета
+                  }
+                ]
+              },
+              {
+                "prim": "PUSH",
+                "args": [
+                  {
+                    "prim": "address"
+                  },
+                  {
+                    "string": destination// адресс получателя
+                  }
+                ]
+              },
+              {
+                "prim": "PAIR"
+              },
+              {
+                "prim": "TRANSFER_TOKENS"
+              },
+              {
+                "prim": "CONS"
+              }
+            ]
+          ).send()
 
 
         console.log("Awaiting confirmation...")
