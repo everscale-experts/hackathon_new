@@ -100,12 +100,14 @@ async fn main() {
     //     })
     //     .unwrap(),
     // );
+    // println!("{:#}", get_timestamp(ton.clone(), config.clone(), Some(ever_htlc_keypair())).await);
     // create_batch("0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114", "KT1D4Ri8ntL7HLKTK63cyuV7ZAuMthzrSGJN");
     let res = create_lock_with_tokens(
         ton.clone(),
         config.clone(),
         Some(ever_htlc_keypair()),
-        format!("{}", "0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114"),
+        // format!("{}", "0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114"),
+        format!("{}", "0x00000000000000000000000000000000000000000000000000000000625bfabd"),
     ).await;
     println!("{}\n", res);
     println!("Starting tezos listener...");

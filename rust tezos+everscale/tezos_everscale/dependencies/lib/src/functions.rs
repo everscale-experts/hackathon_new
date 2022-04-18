@@ -873,13 +873,31 @@ pub async fn create_lock_with_tokens(
         ton.clone(),
         config.clone(),
         ever_htlc().as_str(),
-        std::fs::read_to_string("./dependencies/json/HelloWallet.abi.json").unwrap(),
+        htlc_abi(),
         "createLockWithTokens",
         serde_json::json!({
             "hash": hash,
         }),
         keys,
         false, // true - run in tonos cli, false - call
+        false,
+    ).await.unwrap()
+}
+
+pub async fn get_timestamp(
+    ton: Arc<ClientContext>,
+    config: Config,
+    keys: Option<String>,
+) -> Value {
+    call_contract_with_client(
+        ton.clone(),
+        config,
+        ever_htlc().as_str(),
+        htlc_abi(),
+        "getTimestamp",
+        serde_json::json!({}),
+        keys,
+        true,
         false,
     ).await.unwrap()
 }
@@ -943,6 +961,10 @@ pub fn ever_multisig_id() -> usize {
 
 pub fn ever_msig_keypair(i: usize) -> String {
     format!("wallet{}.scmsig{}.json", ever_multisig_id(), i)
+}
+
+pub fn htlc_abi() -> String {
+    std::fs::read_to_string("./dependencies/json/HelloWallet.abi.json").unwrap()
 }
 
 pub fn ever_htlc_keypair() -> String {
