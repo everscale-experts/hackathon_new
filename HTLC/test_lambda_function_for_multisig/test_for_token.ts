@@ -7,16 +7,16 @@ import { Schema } from "@taquito/michelson-encoder";
 
 const RPC_URL = 'https://hangzhounet.smartpy.io'; // rpc тестнета
 
-const CONTRACT = 'KT19Xs4f94PCcTrRuTpagSJ7EzL1u2Dp4B8F';// адрес опубликованного контракта multisig
-const id_token ='2';
+const CONTRACT = 'KT1V8J2fBQdVMWRZuMj2BXjgiWDoqrCkqsMs';// адрес опубликованного контракта multisig
+const id_token ='3';
 const contract_token_address= 'KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s';
 const amount = '10000';
 const destination = 'KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87';
-const id_proposal = 39;
+const id_proposal = 10;
 const htlc_contract = 'KT1JFor8dkq2fAoekB9H7EBLoktZ5Qg8Wy4N';
 
 // присваиваем переменным обьект с помощью которого будем подписывать транзакции
-const signer = new InMemorySigner('edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj');
+const signer = new InMemorySigner('edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i');
 const signer1 = new InMemorySigner('edskS7C5R3C2ooTjrCtrz8VeYALfuhGQGLp5siTTdDHchgJmxL1CGfA7Ug777tuzKN7bDqhs4RSFU3FozZSVpykWJpzgQqjvtF');
 
 

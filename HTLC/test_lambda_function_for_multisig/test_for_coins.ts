@@ -7,10 +7,10 @@ import { Schema } from "@taquito/michelson-encoder";
 
 const RPC_URL = 'https://hangzhounet.smartpy.io'; // rpc тестнета
 
-const CONTRACT = 'KT1Vw85Ni6AoBUTra7NsKGif7BNG9i7fyd6a';// адрес опубликованного контракта multisig
-const amount = '110000';
+const CONTRACT = 'KT1V8J2fBQdVMWRZuMj2BXjgiWDoqrCkqsMs';// адрес опубликованного контракта multisig
+const amount = '1100000';
 const destination = 'KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87';
-const id_proposal = 3;
+const id_proposal = 12;
 const htlc_contract = 'KT1LzFMMsi5kp8vq81rxEprzKNoJEeJbWH7W';
 
 // присваиваем переменным обьект с помощью которого будем подписывать транзакции
@@ -47,7 +47,7 @@ export class token_transfer {
         await op_1.confirmation();
         console.log(op_1.hash);
 
-        // предлагаем сделать трансфер токенов
+        //предлагаем сделать трансфер токенов
         const op = await contract.methods.lambda_proposal(
             [
               {
