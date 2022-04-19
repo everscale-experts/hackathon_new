@@ -558,9 +558,9 @@ pub async fn call_contract_with_client(
     local: bool,
     is_fee: bool,
 ) -> Result<serde_json::Value, String> {
-    println!("{}", addr);
-    println!("{}", keys.as_ref().unwrap());
-    println!("{}", params);
+    // println!("{}", addr);
+    // println!("{}", keys.as_ref().unwrap());
+    // println!("{}", params);
     let abi = load_abi(&abi)?;
     let expire_at = conf.lifetime + SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
