@@ -17,7 +17,8 @@ async function deploy() {
   const tezos = new TezosToolkit(provider)
   await importKey(
     tezos,
-    'edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i'
+    // приватный ключь того кто деплоит multisig  
+    'edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i' 
   )
   // деплой msig TokenMultisig
   // try {
@@ -52,7 +53,8 @@ async function deploy() {
                 // минимальной количество подписей 
                 minimum_votes:2,
                 proposals,
-                // владельцы кошелька
+                // владельцы кошелька  приватный ключ первого аккаунта edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i
+                // приватный ключ второго users edskS7C5R3C2ooTjrCtrz8VeYALfuhGQGLp5siTTdDHchgJmxL1CGfA7Ug777tuzKN7bDqhs4RSFU3FozZSVpykWJpzgQqjvtF
                 users:['tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz','tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'],
                 votes,
               },
