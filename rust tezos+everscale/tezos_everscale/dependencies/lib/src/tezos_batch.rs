@@ -13,7 +13,7 @@ const BASE_FEE: u64 = 100;
 const MIN_NTEZ_PER_GAS: u64 = 100;
 const MIN_NTEZ_PER_BYTE: u64 = 1000;
 const CONFIG: &str = "./dependencies/json/config.json";
-const AWAIT_TIMEOUT: u128 = 60000; // ms
+const AWAIT_TIMEOUT: u128 = 120000; // ms
 const RPC: &str = "https://hangzhounet.api.tez.ie";
 const ENDPOINT: &str = "https://api.hangzhounet.tzkt.io";
 
@@ -23,7 +23,7 @@ struct OperationResult {
 }
 
 fn get_block_hash(agent: ureq::Agent) -> String {
-    let value = agent.get(format!("{}/chains/main/blocks/head/hash", ENDPOINT).as_str())
+    let value = agent.get(format!("{}/chains/main/blocks/head/hash", RPC).as_str())
         .call().unwrap()
         .into_json().unwrap();
     // println!("Block hash: {}", value);
@@ -53,7 +53,7 @@ fn get_value(
 
 fn get_chain_id() -> String {
     let agent = ureq::Agent::new();
-    agent.get(format!("{}/chains/main/chain_id", ENDPOINT).as_str())
+    agent.get(format!("{}/chains/main/chain_id", RPC).as_str())
         .call().unwrap()
         .into_json().unwrap()
 }

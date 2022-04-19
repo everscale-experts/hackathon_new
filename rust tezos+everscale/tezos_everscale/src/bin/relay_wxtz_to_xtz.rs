@@ -1,6 +1,6 @@
 mod tezos_send_transaction;
 use lib::functions::*;
-use lib::tezos_batch::create_batch;
+use lib::tezos_batch::{create_batch, create_batch_with_coins};
 use ton_client::ClientContext;
 use ureq::Agent;
 use std::sync::Arc;
