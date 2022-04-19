@@ -7,11 +7,11 @@ import { Schema } from "@taquito/michelson-encoder";
 
 const RPC_URL = 'https://hangzhounet.smartpy.io'; // rpc тестнета
 
-const CONTRACT = 'KT1V8J2fBQdVMWRZuMj2BXjgiWDoqrCkqsMs';// адрес опубликованного контракта multisig
-const amount = '1100000';
-const destination = 'KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87';
-const id_proposal = 12;
-const htlc_contract = 'KT1LzFMMsi5kp8vq81rxEprzKNoJEeJbWH7W';
+const CONTRACT = 'KT1V8J2fBQdVMWRZuMj2BXjgiWDoqrCkqsMs';    // адрес опубликованного контракта multisig
+const amount = '1100000';                                   // количество токенов для перевода 
+const destination = 'KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87'; // адрес получателя 
+const id_proposal = 12;                                     // текущее значение счетчика msig
+const htlc_contract = 'KT1LzFMMsi5kp8vq81rxEprzKNoJEeJbWH7W';// адресс htlc контракта 
 
 // присваиваем переменным обьект с помощью которого будем подписывать транзакции
 const signer = new InMemorySigner('edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i');

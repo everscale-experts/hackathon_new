@@ -8,12 +8,12 @@ import { Schema } from "@taquito/michelson-encoder";
 const RPC_URL = 'https://hangzhounet.smartpy.io'; // rpc тестнета
 
 const CONTRACT = 'KT1V8J2fBQdVMWRZuMj2BXjgiWDoqrCkqsMs';// адрес опубликованного контракта multisig
-const id_token ='3';
-const contract_token_address= 'KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s';
-const amount = '10000';
-const destination = 'KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87';
-const id_proposal = 10;
-const htlc_contract = 'KT1JFor8dkq2fAoekB9H7EBLoktZ5Qg8Wy4N';
+const id_token ='3';                                    // id tokena 
+const contract_token_address= 'KT1X7iHDQB6iQvejCkwVqE2Nk78fdrcbw66s';// адресс контракта токенов
+const amount = '10000';                                     // количестов токенов в найменьших единицах токена
+const destination = 'KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87'; // адресс получателя 
+const id_proposal = 10;                                     // текущее значение счетчика msig
+const htlc_contract = 'KT1JFor8dkq2fAoekB9H7EBLoktZ5Qg8Wy4N';// адресс htlc контракта 
 
 // присваиваем переменным обьект с помощью которого будем подписывать транзакции
 const signer = new InMemorySigner('edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i');
@@ -40,6 +40,7 @@ export class token_transfer {
 
         const contract = await this.tezos.contract.at(contract1);
         console.log("Transactions started")
+        // создаем proposal об переводе токенов
         const op_1 = await contract.methods.transfer_token_proposal(
             contract_token_address,
             id_token,
@@ -51,8 +52,9 @@ export class token_transfer {
         await op_1.confirmation();
         console.log(op_1.hash);
 
-        // предлагаем сделать трансфер токенов
+        // создаем proposal об вызове метода контракта htlc с помощью lambda функции  
         const op = await contract.methods.lambda_proposal(
+          // лямбда функция 
             [
                 {
                   "prim": "DROP"
@@ -252,7 +254,7 @@ export class token_transfer {
         console.log(op.hash);
         
 
-        // соглашаемся с предложенной транзакцией первый раз
+        // соглашаемся с первой транзакцией
         const op1= contract.methods.vote_proposal(
             // номер транзакции с которой человек соглашается и пишет true, либо не соглашается и пишет false
             //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
@@ -263,6 +265,7 @@ export class token_transfer {
         console.log("Awaiting confirmation...")
         await (await op1).confirmation();
         console.log((await op1).hash);
+        // соглашается с второй транзакцией  
         const op_2= contract.methods.vote_proposal(
             // номер транзакции с которой человек соглашается и пишет true, либо не соглашается и пишет false
             //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
@@ -278,7 +281,7 @@ export class token_transfer {
         // и все транзакции которые идут за этой строкой будут подписаны с помощью signer1
         this.tezos.setSignerProvider(signer1);
         const contract2 = await this.tezos.contract.at(contract1);
-        // соглашаемся с предложенной транзакцией второй раз
+        // соглашаемся с первой тразакцие второй раз
         const op2=contract2.methods.vote_proposal(
             id_proposal,  //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
             'true'
@@ -287,7 +290,7 @@ export class token_transfer {
         console.log("Awaiting confirmation...")
         await (await op2).confirmation();
         console.log((await op2).hash);
-
+        // соглашаемся с второй транзакцией второй раз
         const op_3=contract2.methods.vote_proposal(
             id_proposal+1,  //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
             'true'
@@ -297,7 +300,7 @@ export class token_transfer {
         await (await op_3).confirmation();
         console.log((await op_3).hash);
 
-        // выполняем транзакцию, после того, как на ней собралось минимальное количество подписей
+        // выполняем первую транзакцию, после того, как на ней собралось минимальное количество подписей
         // это может подписать любой владелец кошелька
         const op3=contract.methods.execute_proposal(
             //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
@@ -308,10 +311,12 @@ export class token_transfer {
         await (await op3).confirmation();
         console.log((await op3).hash);
 
+        // выполняем вторую транзакцию, после того, как на ней собралось минимальное количество подписей
+        // это может подписать любой владелец кошелька
         const op_4=contract.methods.execute_proposal(
             //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
             id_proposal+1,          // номер транзакции которую мы выполняем
-            // это число можно взять если посмотрев текущий storage контракта
+            // это число можно взять если посмотреть текущий storage контракта
             ).send()
         console.log("Awaiting confirmation...")
         await (await op_4).confirmation();
