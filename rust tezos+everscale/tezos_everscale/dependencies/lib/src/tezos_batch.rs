@@ -22,7 +22,8 @@ struct OperationResult {
     storage_size: String,
 }
 
-fn get_block_hash(agent: ureq::Agent) -> String {
+fn get_block_hash() -> String {
+    let agent = ureq::Agent::new();
     let value = agent.get(format!("{}/chains/main/blocks/head/hash", RPC).as_str())
         .call().unwrap()
         .into_json().unwrap();
@@ -225,7 +226,7 @@ fn transfer_mutez_proposal(
             "transfer_mutez_proposal",
             serde_json::json!({
                 "mutez_amount": amount,
-                "destination": tezos_htlc()
+                "destination": tezos_htlc_coins()
             }),
         ).unwrap(),
     });
@@ -538,8 +539,7 @@ fn vote_all(branch: &str, tokens: bool) -> u64{
 
 pub fn create_batch(hash: &str, address: &str) {
     let tezos_msig_executor = 1;
-    let agent = Agent::new();
-    let branch = get_block_hash(agent.clone());
+    let branch = get_block_hash();
     let prop_id = vote_all(branch.as_str(), true);
     let group = msig_to_htlc_group(
         branch.as_str(),
@@ -655,8 +655,7 @@ fn msig_to_htlc_group_with_coins(
 
 pub fn create_batch_with_coins(hash: &str, address: &str) {
     let tezos_msig_executor = 1;
-    let agent = Agent::new();
-    let branch = get_block_hash(agent.clone());
+    let branch = get_block_hash();
     let prop_id = vote_all(branch.as_str(), false);
     let group = msig_to_htlc_group_with_coins(
         branch.as_str(),
