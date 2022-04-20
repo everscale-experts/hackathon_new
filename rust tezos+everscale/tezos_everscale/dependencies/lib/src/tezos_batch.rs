@@ -87,9 +87,9 @@ fn run_operation(
         consumed_gas: if let Some(gas) = res["consumed_gas"].as_str() {
             // println!("{}", gas);
             gas.to_string()
-        } else { panic!("Operation simulation failed! Body: {:#}\n", body);},
-        storage_size: res["storage_size"].as_str().unwrap_or("256").to_string(),
-        used_storage: res["paid_storage_size_diff"].as_str().unwrap().to_string(),
+        } else { panic!("Operation simulation failed! Body: {:#}\n", body); },
+        storage_size: res["storage_size"].as_str().unwrap_or("257").to_string(),
+        used_storage: res["paid_storage_size_diff"].as_str().unwrap_or("257").to_string(),
     })
 }
 
@@ -135,7 +135,7 @@ fn vote_method(
         "counter": format!("{}", counter as u64),
         "gas_limit": "10300",
         "storage_limit": "256",
-        "amount": "1",
+        "amount": "0",
         "parameters": parameters,
     }]);
     let run_op_res = run_operation(
@@ -153,7 +153,7 @@ fn vote_method(
         "counter": format!("{}", counter as u64),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
         "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
-        "amount": "1",
+        "amount": "0",
         "parameters": parameters,
     })
 }
@@ -188,7 +188,7 @@ fn transfer_token_proposal(
         "counter": format!("{}", counter as u64),
         "gas_limit": "10300",
         "storage_limit": "256",
-        "amount": "1",
+        "amount": "0",
         "parameters": parameters,
     }]);
     let run_op_res = run_operation(
@@ -206,7 +206,7 @@ fn transfer_token_proposal(
         "counter": format!("{}", counter as u64),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
         "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
-        "amount": "1",
+        "amount": "0",
         "parameters": parameters,
     })
 }
@@ -234,7 +234,8 @@ fn lambda_proposal(
                         {{ "prim": "address" }},
                         {{ "string": "{htlc2_coins}" }}
                     ]
-                }}, {{
+                }},
+                {{
                     "prim": "CONTRACT",
                     "annots": [ "%createLock" ],
                     "args": [
@@ -244,14 +245,16 @@ fn lambda_proposal(
                                 {{
                                     "prim": "address",
                                     "annots": [ "%dest1" ]
-                                }}, {{
+                                }},
+                                {{
                                     "prim": "bytes",
                                     "annots": [ "%hash1" ]
                                 }}
                             ]
                         }}
                     ]
-                }}, {{
+                }},
+                {{
                     "prim": "IF_NONE",
                     "args": [
                         [
@@ -265,22 +268,31 @@ fn lambda_proposal(
                             {{ "prim": "FAILWITH" }}
                         ], []
                     ]
-                }}, {{
+                }},
+                {{
                     "prim": "NIL",
-                    "args": [ {{ "prim": "operation" }} ]
-                }}, {{ "prim": "SWAP" }}, {{
+                    "args": [
+                        {{ "prim": "operation" }}
+                    ]
+                }},
+                {{
+                    "prim": "SWAP"
+                }},
+                {{
                     "prim": "PUSH",
                     "args": [
                         {{ "prim": "mutez" }},
-                        {{ "int": "0" }}
+                        {{ "int": "{mutez_amount}" }}
                     ]
-                }}, {{
+                }},
+                {{
                     "prim": "PUSH",
                     "args": [
                         {{ "prim": "bytes" }},
                         {{ "bytes": "{hash}" }}
                     ]
-                }}, {{
+                }},
+                {{
                     "prim": "PUSH",
                     "args": [
                         {{ "prim": "address" }},
@@ -288,9 +300,9 @@ fn lambda_proposal(
                     ]
                 }},
                 {{ "prim": "PAIR" }},
-                {{ "prim":"TRANSFER_TOKENS" }},
-                {{ "prim":"CONS" }}
-            ]"#, htlc2_coins = tezos_coin_htlc(), hash = hash, destination = dest)),
+                {{ "prim": "TRANSFER_TOKENS" }},
+                {{ "prim": "CONS" }}
+            ]"#, htlc2_coins = tezos_coin_htlc(), hash = "", destination = dest, mutez_amount = 1000)),
         ).unwrap(),
     });
     let test_op = serde_json::json!([{
@@ -301,7 +313,7 @@ fn lambda_proposal(
         "counter": format!("{}", counter as u64),
         "gas_limit": "10300",
         "storage_limit": "256",
-        "amount": "1",
+        "amount": "0",
         "parameters": parameters,
     }]);
     let run_op_res = run_operation(
@@ -319,7 +331,7 @@ fn lambda_proposal(
         "counter": format!("{}", counter as u64),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
         "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
-        "amount": "1",
+        "amount": "0",
         "parameters": parameters,
     })
 }
@@ -349,7 +361,7 @@ fn msig_to_htlc_group(
         "counter": format!("{}", counter as u64),
         "gas_limit": "10300",
         "storage_limit": "256",
-        "amount": "1",
+        "amount": "0",
         "parameters": {
             "entrypoint": "execute_proposal",
             "value": { "int" : format!("{}", prop_id)}
@@ -379,10 +391,10 @@ fn msig_to_htlc_group(
         "counter": format!("{}", counter as u64),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 200 + additional_gas),
         "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
-        "amount": "1",
+        "amount": "0",
         "parameters": {
             "entrypoint": "execute_proposal",
-            "value": {"int": format!("{}", prop_id)},
+            "value": { "int": format!("{}", prop_id) },
         }
     }));
     let params_for_create_lock = serde_json::json!({
@@ -432,7 +444,7 @@ fn msig_to_htlc_group(
         "counter": format!("{}", counter as u64 + 1),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100 + additional_gas),
         "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
-        "amount": "1",
+        "amount": "0",
         "parameters": params_for_create_lock,
     }));
     group
@@ -672,47 +684,47 @@ fn msig_to_htlc_group_with_coins(
             "value": {"int": format!("{}", prop_id)},
         }
     }));
-    let params_for_create_lock = serde_json::json!({
-        "entrypoint": "createLock",
-        "value": get_value(
-            tezos_coin_htlc().as_str(),
-            "createLock",
-                serde_json::json!({
-                    "dest": address,
-                    "hash": hash,
-                }),
-        ).unwrap()
-    });
-    let run_op_res = run_operation(
-        branch.clone(),
-        serde_json::json!([{
-            "kind": "transaction",
-            "source": sender["address"],
-            "destination": tezos_coin_htlc(),
-            "fee": "100000",
-            "counter": format!("{}", counter as u64),
-            "gas_limit": "10300",
-            "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
-            "amount": "0",
-            "parameters": params_for_create_lock,
-        }]),
-    ).unwrap();
-    let additional_gas: u64 = 6100;
-    // let additional_gas: u64 = get_gas_for_lock(rpc, endpoint, branch, tokens, counter, sender.clone());
-    group.push(serde_json::json!({
-        "kind": "transaction",
-        "source": sender["address"],
-        "destination": tezos_coin_htlc(),
-        "fee": format!("{}", estimate_operation_fee(
-            &run_op_res.consumed_gas.parse::<u64>().unwrap(),
-            &run_op_res.storage_size.parse::<u64>().unwrap(),
-        )),
-        "counter": format!("{}", counter as u64 + 1),
-        "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100 + additional_gas),
-        "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
-        "amount": "1",
-        "parameters": params_for_create_lock,
-    }));
+    // let params_for_create_lock = serde_json::json!({
+    //     "entrypoint": "createLock",
+    //     "value": get_value(
+    //         tezos_coin_htlc().as_str(),
+    //         "createLock",
+    //             serde_json::json!({
+    //                 "dest": address,
+    //                 "hash": hash,
+    //             }),
+    //     ).unwrap()
+    // });
+    // let run_op_res = run_operation(
+    //     branch.clone(),
+    //     serde_json::json!([{
+    //         "kind": "transaction",
+    //         "source": sender["address"],
+    //         "destination": tezos_coin_htlc(),
+    //         "fee": "100000",
+    //         "counter": format!("{}", counter as u64),
+    //         "gas_limit": "10300",
+    //         "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
+    //         "amount": "0",
+    //         "parameters": params_for_create_lock,
+    //     }]),
+    // ).unwrap();
+    // let additional_gas: u64 = 6100;
+    // // let additional_gas: u64 = get_gas_for_lock(rpc, endpoint, branch, tokens, counter, sender.clone());
+    // group.push(serde_json::json!({
+    //     "kind": "transaction",
+    //     "source": sender["address"],
+    //     "destination": tezos_coin_htlc(),
+    //     "fee": format!("{}", estimate_operation_fee(
+    //         &run_op_res.consumed_gas.parse::<u64>().unwrap(),
+    //         &run_op_res.storage_size.parse::<u64>().unwrap(),
+    //     )),
+    //     "counter": format!("{}", counter as u64 + 1),
+    //     "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100 + additional_gas),
+    //     "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
+    //     "amount": "0",
+    //     "parameters": params_for_create_lock,
+    // }));
     group
 }
 
