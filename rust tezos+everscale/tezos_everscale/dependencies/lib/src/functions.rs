@@ -95,104 +95,7 @@ lazy_static! {
     ];
 }
 
-// impl FullConfig {
-    // fn new() -> Self {
-    //     FullConfig {
-    //         config: Config::new(),
-    //         endpoints_map: FullConfig::default_map(),
-    //     }
-    // }
-    // fn default_map() -> BTreeMap<String, Vec<String>> {
-    //     [("main.ton.dev".to_owned(), MAIN_ENDPOINTS.to_owned()),
-    //         ("net.ton.dev".to_owned(), NET_ENDPOINTS.to_owned()),
-    //         ("http://127.0.0.1/".to_owned(), SE_ENDPOINTS.to_owned()),
-    //     ].iter().cloned().collect()
-    // }
-
-    // fn get_map(path: &str) -> BTreeMap<String, Vec<String>> {
-    //     FullConfig::from_file(path).endpoints_map
-    // }
-
-    // fn from_file(path: &str) -> FullConfig {
-    //     let conf_str = std::fs::read_to_string(path).ok().unwrap_or_default();
-    //     serde_json::from_str(&conf_str).ok().unwrap_or(FullConfig::new())
-    // }
-
-    // fn to_file(path: &str, fconf: &FullConfig) -> Result<(), String>{
-    //     let conf_str = serde_json::to_string_pretty(fconf)
-    //         .map_err(|_| "failed to serialize config object".to_string())?;
-    //     std::fs::write(path, conf_str).map_err(|e| format!("failed to write config file: {}", e))?;
-    //     Ok(())
-    // }
-
-    // fn print_endpoints(path: &str) {
-    //     let fconf = FullConfig::from_file(path);
-    //     println!(
-    //         "{}",
-    //         serde_json::to_string_pretty(&fconf.endpoints_map).unwrap_or(
-    //             "Failed to print endpoints map.".to_owned()
-    //         )
-    //     );
-    // }
-
-    // fn add_endpoint(path: &str, url: &str, endpoints: &str) -> Result<(), String> {
-    //     let mut fconf = FullConfig::from_file(path);
-    //     let mut new_endpoints : Vec<String> = endpoints
-    //         .replace("[", "")
-    //         .replace("]", "")
-    //         .split(",")
-    //         .map(|s| s.to_string())
-    //         .collect();
-        
-    //     let old_endpoints = fconf.endpoints_map.entry(url.to_string()).or_insert(vec![]);
-    //     old_endpoints.append(&mut new_endpoints);
-    //     old_endpoints.sort();
-    //     old_endpoints.dedup();
-    //     FullConfig::to_file(path, &fconf)
-    // }
-
-    // fn remove_endpoint(path: &str, url: &str) -> Result<(), String> {
-    //     let mut fconf = FullConfig::from_file(path);
-    //     if !fconf.endpoints_map.contains_key(url) {
-    //         return Err("Endpoints map doesn't contain such url.".to_owned());
-    //     }
-    //     fconf.endpoints_map.remove(url);
-    //     FullConfig::to_file(path, &fconf)
-    // }
-
-    // fn reset_endpoints(path: &str) -> Result<(), String> {
-    //     let mut fconf = FullConfig::from_file(path);
-    //     fconf.endpoints_map = FullConfig::default_map();
-    //     FullConfig::to_file(path, &fconf)
-    // }
-// }
-
 impl Config {
-    // fn new() -> Self {
-    //     let url = "net.ton.dev".to_string();
-    //     let endpoints = FullConfig::default_map()[&url].clone();
-    //     Config {
-    //         url,
-    //         wc: 0,
-    //         addr: None,
-    //         wallet: None,
-    //         pubkey: None,
-    //         abi_path: None,
-    //         keys_path: None,
-    //         retries: 5,
-    //         timeout: 40000,
-    //         message_processing_timeout: 40000,
-    //         is_json: false,
-    //         depool_fee: 0.5,
-    //         lifetime: 60,
-    //         no_answer: true,
-    //         balance_in_tons: false,
-    //         local_run: false,
-    //         async_call: false,
-    //         endpoints,
-    //         out_of_sync_threshold: 15,
-    //     }
-    // }
 
     pub fn from_json(value: serde_json::Value) -> Self {
         let conf = &value["config"];
@@ -221,39 +124,7 @@ impl Config {
             out_of_sync_threshold: conf["out_of_sync_threshold"].as_u64().unwrap() as u32,
         }
     }
-
-    // fn from_file(path: &str) -> Option<Self> {
-    //     let conf_str = std::fs::read_to_string(path).ok()?;
-    //     let conf: serde_json::error::Result<FullConfig>  = serde_json::from_str(&conf_str);
-    //     conf.map(|c| c.config).or_else(|_| serde_json::from_str(&conf_str)).ok()
-    // }
-
-    // fn to_file(path: &str, conf: &Config) -> Result<(), String> {
-    //     let mut fconf= FullConfig::from_file(path);
-    //     fconf.config = conf.to_owned();
-    //     FullConfig::to_file(path, &fconf)
-    // }
 }
-
-// fn load_ton_address(addr: &str, conf: &Config) -> Result<String, String> {
-//     let addr = if addr.find(':').is_none() {
-//         format!("{}:{}", conf.wc, addr)
-//     } else {
-//         addr.to_owned()
-//     };
-//     // let _ = MsgAddressInt::from_str(&addr)
-//     //     .map_err(|e| format!("Address is specified in the wrong format. Error description: {}", e))?;
-//     Ok(addr)
-// }
-
-// fn load_params(params: &str) -> Result<String, String> {
-//     Ok(if params.find('{').is_none() {
-//         std::fs::read_to_string(params)
-//             .map_err(|e| format!("failed to load params from file: {}", e))?
-//     } else {
-//         params.to_string()
-//     })
-// }
 
 pub fn get_json_field(file: &str, key: Option<&str>, index: Option<usize>) -> Value {
     // println!("{}", file);
@@ -618,53 +489,6 @@ pub async fn call_contract_with_client(
     process_message(ton.clone(), msg_params, conf.is_json).await
 }
 
-// pub async fn call_command(
-//     ton: std::sync::Arc<ton_client::ClientContext>,
-//     config: Config,
-//     address: &str,
-//     abi: String,
-//     method: &str,
-//     params: &str,
-//     keys: Option<String>,
-//     local: bool,
-// ) -> Result<(), String> {
-//     let params = load_params(params)?;
-//     let abi = std::fs::read_to_string(abi)
-//         .map_err(|e| format!("failed to read ABI file: {}", e.to_string()))?;
-//     let address = load_ton_address(address, &config)?;
-//     let is_fee = false;
-//     // let ton = create_client_verbose(&conf)?;
-//     let result = call_contract_with_client(
-//         ton,
-//         config.clone(),
-//         address.as_str(),
-//         abi,
-//         method,
-//         params.as_str(),
-//         keys,
-//         local,
-//         is_fee,
-//     ).await?;
-//     if !config.is_json {
-//         println!("Succeeded.");
-//     }
-//     print_json_result(result, config)?;
-//     Ok(())
-// }
-
-// fn print_json_result(result: Value, conf: Config) -> Result<(), String> {
-//     if !result.is_null() {
-//         let result = serde_json::to_string_pretty(&result)
-//             .map_err(|e| format!("Failed to serialize the result: {}", e))?;
-//         if !conf.is_json {
-//             println!("Result: {}", result);
-//         } else {
-//             println!("{}", result);
-//         }
-//     }
-//     Ok(())
-// }
-
 struct SimpleLogger;
 
 impl log::Log for SimpleLogger {
@@ -969,4 +793,20 @@ pub fn htlc_abi() -> String {
 
 pub fn ever_htlc_keypair() -> String {
     "./dependencies/json/htlc1_keys.json".to_string()
+}
+
+pub fn tezos_multisig() -> String {
+    get_json_field(CONFIG, Some("tezos_multisig"), None).as_str().unwrap().to_string()
+}
+
+pub fn tezos_token_address() -> String {
+    get_json_field(CONFIG, Some("tezos_token_address"), None).as_str().unwrap().to_string()
+}
+
+pub fn tezos_htlc() -> String {
+    get_json_field(CONFIG, Some("htlc2"), None).as_str().unwrap().to_string()
+}
+
+pub fn tezos_coin_htlc() -> String {
+    get_json_field(CONFIG, Some("htlc2-coin"), None).as_str().unwrap().to_string()
 }
