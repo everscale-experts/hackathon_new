@@ -33,9 +33,9 @@ async function deploy() {
         storage: {
                 counter:0, // начальное значние счетчика 
                 chests,
-                balances_token,
-                chests_for_check,
-                // transfers_amounts // расскоментировать если деплоите для монет и закоментировать 36 и 37 строчки 
+                // balances_token,
+                // chests_for_check,
+                transfers_amounts // расскоментировать если деплоите для монет и закоментировать 36 и 37 строчки 
                 
               },
       })

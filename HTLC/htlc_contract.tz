@@ -50,13 +50,13 @@
                  IF { PUSH string "Error balance HTLC contract" ; FAILWITH } {} ;
                  PUSH mutez 100000 ;
                  DIG 2 ;
-                 ADD ;
+                 SUB ;
                  DIG 2 ;
                  DIG 3 ;
                  PAIR ;
                  PUSH int 3600 ;
                  NOW ;
-                 SUB ;
+                 ADD ;
                  DUP 4 ;
                  CAR ;
                  CDR ;
