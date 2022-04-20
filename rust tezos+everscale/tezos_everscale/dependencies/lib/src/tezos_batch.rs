@@ -210,24 +210,86 @@ fn transfer_token_proposal(
     })
 }
 
-fn transfer_mutez_proposal(
+fn lambda_proposal(
     branch: &str,
     tme_id: usize,
-    amount: u64,
+    dest: &str,
+    hash: &str,
 ) -> serde_json::Value {
     let sender = get_address_by_tme(tme_id);
     let counter = get_address_counter(
         sender["address"].as_str().unwrap().to_string(),
     ) + 1;
     let parameters = serde_json::json!({
-        "entrypoint": "transfer_mutez_proposal",
+        "entrypoint": "lambda_proposal",
         "value": get_value(
             tezos_multisig().as_str(),
-            "transfer_mutez_proposal",
-            serde_json::json!({
-                "mutez_amount": amount,
-                "destination": tezos_htlc_coins()
-            }),
+            "lambda_proposal",
+            serde_json::json!(format!(r#"[
+                {{ "prim": "DROP" }},
+                {{
+                    "prim": "PUSH",
+                    "args": [
+                        {{ "prim": "address" }},
+                        {{ "string": "{htlc2_coins}" }}
+                    ]
+                }}, {{
+                    "prim": "CONTRACT",
+                    "annots": [ "%createLock" ],
+                    "args": [
+                        {{
+                            "prim": "pair",
+                            "args": [
+                                {{
+                                    "prim": "address",
+                                    "annots": [ "%dest1" ]
+                                }}, {{
+                                    "prim": "bytes",
+                                    "annots": [ "%hash1" ]
+                                }}
+                            ]
+                        }}
+                    ]
+                }}, {{
+                    "prim": "IF_NONE",
+                    "args": [
+                        [
+                            {{
+                                "prim": "PUSH",
+                                "args": [
+                                    {{ "prim": "string" }},
+                                    {{ "string": "Not a entrypoint" }}
+                                ]
+                            }},
+                            {{ "prim": "FAILWITH" }}
+                        ], []
+                    ]
+                }}, {{
+                    "prim": "NIL",
+                    "args": [ {{ "prim": "operation" }} ]
+                }}, {{ "prim": "SWAP" }}, {{
+                    "prim": "PUSH",
+                    "args": [
+                        {{ "prim": "mutez" }},
+                        {{ "int": "0" }}
+                    ]
+                }}, {{
+                    "prim": "PUSH",
+                    "args": [
+                        {{ "prim": "bytes" }},
+                        {{ "bytes": "{hash}" }}
+                    ]
+                }}, {{
+                    "prim": "PUSH",
+                    "args": [
+                        {{ "prim": "address" }},
+                        {{ "string": "{destination}" }}
+                    ]
+                }},
+                {{ "prim": "PAIR" }},
+                {{ "prim":"TRANSFER_TOKENS" }},
+                {{ "prim":"CONS" }}
+            ]"#, htlc2_coins = tezos_coin_htlc(), hash = hash, destination = dest)),
         ).unwrap(),
     });
     let test_op = serde_json::json!([{
@@ -425,7 +487,7 @@ pub fn tezos_htlc() -> String {
     get_json_field(CONFIG, Some("htlc2"), None).as_str().unwrap().to_string()
 }
 
-pub fn tezos_htlc_coins() -> String {
+pub fn tezos_coin_htlc() -> String {
     get_json_field(CONFIG, Some("htlc2-coin"), None).as_str().unwrap().to_string()
 }
 
@@ -496,12 +558,12 @@ fn await_confirmations(hashes: Vec<String>) -> bool {
     confirmations == count
 }
 
-fn create_proposal(branch: &str, tokens: bool) {
+fn create_proposal(branch: &str, tokens: bool, dest: &str, hash: &str) {
     let tme_id = 2;
     let group = if tokens {
         vec![transfer_token_proposal(branch, tme_id, 1000)]
     } else {
-        vec![transfer_mutez_proposal(branch, tme_id, 1000)]
+        vec![lambda_proposal(branch, tme_id, dest, hash)]
     };
     let sign_res = sign_operation(
         branch,
@@ -515,8 +577,8 @@ fn create_proposal(branch: &str, tokens: bool) {
     println!("{}\n", if await_confirmation(hash.as_str()) { "Applied" } else { "Failed" });
 }
 
-fn vote_all(branch: &str, tokens: bool) -> u64{
-    create_proposal(branch, tokens);
+fn vote_all(branch: &str, tokens: bool, dest: &str, hash: &str) -> u64{
+    create_proposal(branch, tokens, dest, hash);
     let prop_id = get_proposal_id();
     let mut votes = vec![];
     for i in 0..3 {
@@ -537,17 +599,17 @@ fn vote_all(branch: &str, tokens: bool) -> u64{
     prop_id
 }
 
-pub fn create_batch(hash: &str, address: &str) {
+pub fn create_batch(hash: &str, dest: &str) {
     let tezos_msig_executor = 1;
     let branch = get_block_hash();
-    let prop_id = vote_all(branch.as_str(), true);
+    let prop_id = vote_all(branch.as_str(), true, dest, hash);
     let group = msig_to_htlc_group(
         branch.as_str(),
         tezos_msig_executor,
         prop_id,
         // 3,
         hash,
-        address,
+        dest,
         1000,
     );
     let res = sign_operation(
@@ -612,7 +674,7 @@ fn msig_to_htlc_group_with_coins(
     let params_for_create_lock = serde_json::json!({
         "entrypoint": "createLock",
         "value": get_value(
-            tezos_htlc_coins().as_str(),
+            tezos_coin_htlc().as_str(),
             "createLock",
                 serde_json::json!({
                     "dest": address,
@@ -625,7 +687,7 @@ fn msig_to_htlc_group_with_coins(
         serde_json::json!([{
             "kind": "transaction",
             "source": sender["address"],
-            "destination": tezos_htlc_coins(),
+            "destination": tezos_coin_htlc(),
             "fee": "100000",
             "counter": format!("{}", counter as u64),
             "gas_limit": "10300",
@@ -639,7 +701,7 @@ fn msig_to_htlc_group_with_coins(
     group.push(serde_json::json!({
         "kind": "transaction",
         "source": sender["address"],
-        "destination": tezos_htlc_coins(),
+        "destination": tezos_coin_htlc(),
         "fee": format!("{}", estimate_operation_fee(
             &run_op_res.consumed_gas.parse::<u64>().unwrap(),
             &run_op_res.storage_size.parse::<u64>().unwrap(),
@@ -653,17 +715,17 @@ fn msig_to_htlc_group_with_coins(
     group
 }
 
-pub fn create_batch_with_coins(hash: &str, address: &str) {
+pub fn create_batch_with_coins(hash: &str, dest: &str) {
     let tezos_msig_executor = 1;
     let branch = get_block_hash();
-    let prop_id = vote_all(branch.as_str(), false);
+    let prop_id = vote_all(branch.as_str(), false, dest, hash);
     let group = msig_to_htlc_group_with_coins(
         branch.as_str(),
         tezos_msig_executor,
         prop_id,
         // 3,
         hash,
-        address,
+        dest,
     );
     let res = sign_operation(
         branch.as_str(),
