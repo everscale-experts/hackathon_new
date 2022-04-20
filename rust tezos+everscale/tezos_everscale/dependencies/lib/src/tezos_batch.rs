@@ -2,7 +2,6 @@ use super::common::operation_command::exit_with_error_no_wallet_type_selected;
 use hex::FromHex;
 use super::api::RunOperationError;
 use super::signer::OperationSignatureInfo;
-use ureq::Agent;
 use super::PrivateKey;
 use super::PublicKey;
 use super::functions::get_json_field;
@@ -20,6 +19,7 @@ const ENDPOINT: &str = "https://api.hangzhounet.tzkt.io";
 struct OperationResult {
     consumed_gas: String,
     storage_size: String,
+    used_storage: String,
 }
 
 fn get_block_hash() -> String {
@@ -75,8 +75,8 @@ fn run_operation(
             "contents": operations
         }
     });
-    // println!("Running operation... {}/chains/main/blocks/head/helpers/scripts/run_operation", rpc.clone());
-    // println!("Body: {:#}", body);
+    println!("Running operation... {}/chains/main/blocks/head/helpers/scripts/run_operation", RPC);
+    println!("Body: {:#}", body);
     let res = &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", RPC).as_str())
         .send_json(body.clone()).unwrap()
         .into_json::<serde_json::Value>().unwrap()["contents"][0]["metadata"]["operation_result"];
@@ -89,6 +89,7 @@ fn run_operation(
             gas.to_string()
         } else { panic!("Operation simulation failed! Body: {:#}\n", body);},
         storage_size: res["storage_size"].as_str().unwrap_or("256").to_string(),
+        used_storage: res["paid_storage_size_diff"].as_str().unwrap().to_string(),
     })
 }
 
@@ -151,7 +152,7 @@ fn vote_method(
         )),
         "counter": format!("{}", counter as u64),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
-        "storage_limit": "256",
+        "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
         "amount": "1",
         "parameters": parameters,
     })
@@ -204,7 +205,7 @@ fn transfer_token_proposal(
         )),
         "counter": format!("{}", counter as u64),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
-        "storage_limit": "256",
+        "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
         "amount": "1",
         "parameters": parameters,
     })
@@ -317,7 +318,7 @@ fn lambda_proposal(
         )),
         "counter": format!("{}", counter as u64),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100),
-        "storage_limit": "256",
+        "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
         "amount": "1",
         "parameters": parameters,
     })
@@ -377,7 +378,7 @@ fn msig_to_htlc_group(
         )),
         "counter": format!("{}", counter as u64),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 200 + additional_gas),
-        "storage_limit": "256",
+        "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
         "amount": "1",
         "parameters": {
             "entrypoint": "execute_proposal",
@@ -430,7 +431,7 @@ fn msig_to_htlc_group(
         )),
         "counter": format!("{}", counter as u64 + 1),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100 + additional_gas),
-        "storage_limit": "256",
+        "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
         "amount": "1",
         "parameters": params_for_create_lock,
     }));
@@ -664,7 +665,7 @@ fn msig_to_htlc_group_with_coins(
         )),
         "counter": format!("{}", counter as u64),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 200 + additional_gas),
-        "storage_limit": "256",
+        "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
         "amount": "1",
         "parameters": {
             "entrypoint": "execute_proposal",
@@ -691,7 +692,7 @@ fn msig_to_htlc_group_with_coins(
             "fee": "100000",
             "counter": format!("{}", counter as u64),
             "gas_limit": "10300",
-            "storage_limit": "256",
+            "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
             "amount": "0",
             "parameters": params_for_create_lock,
         }]),
@@ -708,7 +709,7 @@ fn msig_to_htlc_group_with_coins(
         )),
         "counter": format!("{}", counter as u64 + 1),
         "gas_limit": format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 100 + additional_gas),
-        "storage_limit": "256",
+        "storage_limit": format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
         "amount": "1",
         "parameters": params_for_create_lock,
     }));
