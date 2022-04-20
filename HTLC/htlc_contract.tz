@@ -56,7 +56,7 @@
                  PAIR ;
                  PUSH int 3600 ;
                  NOW ;
-                 ADD ;
+                 SUB ;
                  DUP 4 ;
                  CAR ;
                  CDR ;
