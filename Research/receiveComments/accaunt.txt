@@ -1,0 +1,61 @@
+signer:
+Hash: tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz
+Public Key: edpkuS2PP7wumxVKTv9HfyH9L5CWUqJ8EgezaVDgyEDpJMAMmwUb1C
+Secret Key: unencrypted:edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i
+
+signer1:
+Hash: tz1MkJZd4HR8WBpYcVwRzc98TmfdtQTVNRXj
+Public Key: edpkuAPjD8jVpbDUEQBXUdp1v9eNhLLo3JxUBBMTwWdw7Fm9tnHZTL
+Secret Key: unencrypted:edsk31hLYrJqTeHqsLPdo1Ab5SKw7PUXUuWBt95UBFkLj3KrW1Dt6x
+
+signer2:
+Hash: tz1UYen2f51yQVRahhsJcPUbdGbjcmTZDTU6
+Public Key: edpkvZDzWnVqxNCZwX5YQMUg5ZFKD5WTpG8vjNv9WFk3jzh58wEfuk
+Secret Key: unencrypted:edsk3fa8S4vFkgbgb77iozSS1AJTUg8XMbGV14wqqjHko86ACHkHtn
+
+signer3:
+Hash: tz1LpyieamcZRUAEqXxRz6k7yEG1GfMkX3At
+Public Key: edpku7DzWeFLCAABxza7aDRwMtDhajmuLKbAyanZu8b1Ue8FXWVC9h
+Secret Key: unencrypted:edsk3kvk241t24haGeub1yJhrMHuFzTLo4uLc9gCbvhS91atVr4TTZ
+
+deployer:
+Hash: tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF
+Public Key: edpkvUnVLfHfmdK9jJcoAwSqPy9Qbb2asVJFq18cLJosBs6keoPwVD
+Secret Key: unencrypted:edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj
+
+deployer2:
+Hash: tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7
+Public Key: edpku6o7mjAwDJptsqRH2R3tt7UKqkB15jbmRx8sPfBzgzJGUnhSnv
+Secret Key: unencrypted:edskS7C5R3C2ooTjrCtrz8VeYALfuhGQGLp5siTTdDHchgJmxL1CGfA7Ug777tuzKN7bDqhs4RSFU3FozZSVpykWJpzgQqjvtF
+
+deployer3:
+Hash: tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM
+Public Key: edpku8Su3XvThSZ2sqecsozXNuGkBCxdDXVnSoaKkvDr3c9HHqREFi
+Secret Key: unencrypted:edsk4SLTW3bL9ke7e3uyR7DvfDZ5SJvo7BfTn4yFESyZzhhLoagLeQ
+
+
+
+                                 Multisig для multisig_tezos-client.md
+С тремя подписями:
+msig: KT1Ha7icjrxubZumUKwS22umtq6EwKqfXM38 (
+ edpkuS2PP7wumxVKTv9HfyH9L5CWUqJ8EgezaVDgyEDpJMAMmwUb1C,
+ edpkuAPjD8jVpbDUEQBXUdp1v9eNhLLo3JxUBBMTwWdw7Fm9tnHZTL,
+ edpkvZDzWnVqxNCZwX5YQMUg5ZFKD5WTpG8vjNv9WFk3jzh58wEfuk)
+
+) 
+
+с двумя подписями:
+msig1: KT1SgnWsMaQnvGuZTjrYACQP9wVYyUz1mTfH 
+(edpkuAPjD8jVpbDUEQBXUdp1v9eNhLLo3JxUBBMTwWdw7Fm9tnHZTL, 
+edpkvZDzWnVqxNCZwX5YQMUg5ZFKD5WTpG8vjNv9WFk3jzh58wEfuk, 
+edpkvUnVLfHfmdK9jJcoAwSqPy9Qbb2asVJFq18cLJosBs6keoPwVD)
+
+                                 Multisig для multisig_TQtez
+
+KT1PVA4gGdFt6aZGhaZvcTgoPzwfQtnY6fbM(
+edpkvUnVLfHfmdK9jJcoAwSqPy9Qbb2asVJFq18cLJosBs6keoPwVD,
+edpku6o7mjAwDJptsqRH2R3tt7UKqkB15jbmRx8sPfBzgzJGUnhSnv)
+
+
+
+

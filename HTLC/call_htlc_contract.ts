@@ -13,14 +13,14 @@ async function example() {
     tezos.setSignerProvider( signer );
     try {
         const batch = await tezos.contract.batch()
-      // .withTransfer({ to: 'KT1RPuLsuRqm9txjeXxoXy4FH8zVERw4oQHU', amount: 2 })
+      // .withTransfer({ to: 'KT1QsSi4rN5EPrE9SsMjUg3XwLFL3rgRTJ9H', amount: 2 })
 
-        const contract = await tezos.contract.at('KT1RPuLsuRqm9txjeXxoXy4FH8zVERw4oQHU')
+        const contract = await tezos.contract.at('KT1QsSi4rN5EPrE9SsMjUg3XwLFL3rgRTJ9H')
       
       batch
-      .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW', ''))
+      // .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW', char2Bytes('')))
       
-      // .withContractCall(contract.methods.createLock(sha256(''),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ));
+      .withContractCall(contract.methods.createLock(sha256(char2Bytes('')),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ));
     
       
       

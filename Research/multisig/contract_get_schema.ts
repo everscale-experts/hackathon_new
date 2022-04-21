@@ -32,10 +32,6 @@ async function example() {
         // выводим схему в json формате
         console.log(JSON.stringify(schema, null, 2));
 
-
-
-
-
   }
 
 
