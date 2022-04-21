@@ -1,73 +1,9 @@
-mod functions;
 mod tezos_send_transaction;
-mod common;
-mod commands;
-use functions::*;
+use lib::functions::*;
 use ureq::Agent;
 use std::fs;
 use serde_json::Value;
 use tezos_send_transaction::transfer as tezos_transfer;
-
-async fn submit_transaction(
-    ton: Arc<ClientContext>,
-    config: Config,
-    address: &str,
-    abi: String,
-    keys: Option<String>,
-    amount: &str,
-    receiver: String,
-) -> String {
-    call_contract_with_client(
-        ton,
-        config.clone(),
-        address,
-        abi,
-        "submitTransaction",
-        format!(
-            r#"{{
-                "dest": "{}",
-                "value": "{}",
-                "bounce": "false",
-                "allBalance": "false",
-                "payload": "{}"
-            }}"#,
-            receiver,
-            amount,
-            "",
-        ).as_str(),
-        keys,
-        false, // true - run in tonos cli, false - call
-        false,
-    ).await.unwrap()["transId"].as_str().unwrap().to_string()
-}
-
-async fn confirm_transaction(
-    ton: Arc<ClientContext>,
-    config: Config,
-    address: &str,
-    abi: String,
-    keys: Option<String>,
-    trans_id: String,
-) -> String {
-    let res = call_contract_with_client(
-        ton,
-        config.clone(),
-        address,
-        abi,
-        "confirmTransaction",
-        format!(
-            r#"{{
-                "transactionId": {}
-            }}"#,
-            trans_id,
-        ).as_str(),
-        keys,
-        false,
-        false,
-    ).await;
-    if res.is_ok() { "Ok, signed".to_string() }
-    else { "Error, already signed".to_string() }
-}
 
 fn tezos_get_transactions() -> Value {
     let agent = Agent::new();
@@ -99,10 +35,11 @@ async fn everscale_transaction(amount: &str, ton: &Arc<ClientContext>, config: C
         ton.clone(),
         config.clone(),
         address.as_str().unwrap(),
-        abi.clone(),
+        abi.as_str(),
         Some("./dependencies/json/wallet3.scmsig1.json".to_string()),
+        "".to_string(),
         amount,
-        receiver,
+        receiver.as_str(),
     ).await;
     println!("Transaction created with id: {}", trans_id);
     for i in 2..4 {
@@ -112,7 +49,7 @@ async fn everscale_transaction(amount: &str, ton: &Arc<ClientContext>, config: C
                 ton.clone(),
                 config.clone(),
                 address.as_str().unwrap(),
-                abi.clone(),
+                abi.as_str(),
                 Some(format!("./dependencies/json/wallet3.scmsig{}.json", i)),
                 trans_id.to_string(),
             ).await,

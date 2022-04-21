@@ -1,0 +1,17 @@
+[
+    {
+        "address": "tz1WLfP4Cd5A7Mqp3f12cjuozUxrVXYdtx5d",
+        "public": "edpkuGi3D8SdVCrRvGDwcxNYFsQjG8v5Lrf1v1HkpAkKX4XStG1EtZ",
+        "secret": "edsk3j7GaAp4v9svyQTzM8Z5oNh5BeABMD2vhfNkF3cJJQJkTSZQpg"
+    },
+    {
+        "address": "tz1Py6BSyz9tG6CbMFwbmHP3bQWJGqDdXn3R",
+        "public": "edpkuq7HKs1uFtxAdusyWUQozAiJVjrhEMcZW6nRy9C4aHKuFLau6w",
+        "secret": "edsk2oHHfHxnPaPe5TN7pekUcnooKDHnoo8SQs5GEfX68467vmqPMn"
+    },
+    {
+        "address": "tz1NKGpLzfotxdifZNDCLzueecXQe3hb534r",
+        "public": "edpkvSQyQPvaeo3ZkB8MY8QAQartR1VDYMpk6HFhzx5Dc4LxYXzcwz",
+        "secret": "edsk3PaepcAX7QgzCnKQqQgNZQSEQvEnTKpunZ4qvHGGzkFwHh2xJc"
+    }
+]

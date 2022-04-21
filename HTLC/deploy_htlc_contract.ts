@@ -11,7 +11,7 @@ import {char2Bytes} from '@taquito/utils';
 import { readFileSync } from "fs";
 
 // чтение кода из файла 
-const htlc_contract: string = fs.readFileSync('./htlc_contract_tokens.tz').toString(); // код котракта для токенов 
+const htlc_contract: string = fs.readFileSync('./htlc_contract.tz').toString(); // код котракта для токенов 
 // const htlc_contract: string = fs.readFileSync('./htlc_contract.tz').toString();     // код коотракта для монет 
 const provider = 'https://hangzhounet.smartpy.io'                                      // провайдер сети 
 // приватный ключь кошелька человека который деплоит контракт 
@@ -23,7 +23,7 @@ async function deploy() {
   const chests = new MichelsonMap(); 
   const balances_token = new MichelsonMap();
   const chests_for_check = new MichelsonMap();
-  const transfer_umounts = new MichelsonMap();
+  const transfers_amounts = new MichelsonMap();
     try {
 
       const op = await tezos.contract.originate({
@@ -33,9 +33,9 @@ async function deploy() {
         storage: {
                 counter:0, // начальное значние счетчика 
                 chests,
-                balances_token,
-                chests_for_check,
-                 //transfer_umounts // расскоментировать если деплоите для монет и закоментировать 36 и 37 строчки 
+                // balances_token,
+                // chests_for_check,
+                transfers_amounts // расскоментировать если деплоите для монет и закоментировать 36 и 37 строчки 
                 
               },
       })
