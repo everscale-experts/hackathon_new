@@ -55,7 +55,7 @@ async fn main() {
                                 println!("Amount: {}", v_u64);
                                 println!("destination: {}", pair["dest"].as_str().unwrap());
                                 println!("hash: {}", pair["hash"].as_str().unwrap());
-                                create_batch(pair["hash"].as_str().unwrap(), pair["dest"].as_str().unwrap());
+                                create_batch_with_coins(pair["hash"].as_str().unwrap(), pair["dest"].as_str().unwrap());
                             }
                         }
                     }
