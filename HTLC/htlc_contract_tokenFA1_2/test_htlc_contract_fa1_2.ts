@@ -20,11 +20,11 @@ async function example() {
         batch
         .withContractCall(contract_tokens.methods.transfer(
             'tz1V2TxmFHjnkMMjjMGKPSye698SkpSeDpvd',
-            'KT1NyDendMQJGsdpqAG3y22tszGLZ5eMQ7aG',
+            'KT1JfnXoFBLE6eFJfHQCrQVNoGgHo2AdzvUA',
             1000000
         ))
 
-        const contract = await tezos.contract.at('KT1NyDendMQJGsdpqAG3y22tszGLZ5eMQ7aG')
+        const contract = await tezos.contract.at('KT1JfnXoFBLE6eFJfHQCrQVNoGgHo2AdzvUA')
       
       batch//                                            адрес получателя                   секрет
       .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW', char2Bytes('')))
