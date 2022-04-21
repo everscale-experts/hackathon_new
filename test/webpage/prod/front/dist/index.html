@@ -1,0 +1,79 @@
+<html>
+<head>
+  <title>Everscale Bridge</title>
+  <script src="main.js"></script>
+  <script type="module" src="js/functions.js"></script>
+  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="main">
+    <header class="site-header">
+      <div class="wrapper site-header__wrapper">
+        <a href="#" class="brand"><img src="./css/logo.svg" alt="brand" /></a>
+        <nav class="nav"></nav>
+      </div>
+      <nav class="nav">
+      </nav>
+    </header>
+
+    <h1>
+      Token Transfer
+    </h1>
+    <div class="row">
+      <div class="column">
+        <h2>You have</h2>
+        <form id="myform">
+          <select class="dropdown" name="network" id="network" >
+            <option value="1">Select Blockchain</option>
+            <option value="2">Everscale</option>
+            <option value="3">Tezos</option>
+
+          </select>
+          <select class="dropdown"  name="tokens"  id="tokens" >
+            <option value="">Select Token</option>
+          </select>
+          <input id="token" name="token" type="number" autocomplete="token" placeholder="Enter the number of tokens for exchange"/>
+          <button type="submit" onclick="send_everscalewallet(); return false;"><p>Exchange</p></button>
+          <button type="submit" onclick="getCommentPayload(); return false;"><p>Exchange</p></button>
+
+
+          <!--  <h3>EVERWallet</h3>
+          <button type="submit" onclick="connect_everwallet(); return false;"><p>Connect</p></button>
+          <button type="submit" onclick="login_out(); return false;"><p>Disconnect</p></button>
+          <button type="submit" onclick="send(); return false;"><p>Send EVER</p></button>
+        </br>
+        <h3>Everscalewallet</h3>
+        <button type="submit" onclick="send_everwallet(); return false;"><p> Send EVER</p></button>
+        <button type="submit" onclick="send_everscalewallet(); return false;"><p>Send TOKEN</p></button>
+      </br>
+      <h3>Extraton</h3>
+      <button type="submit" onclick="login_extraton(); return false;"><p>Send with Extraton</p></button>
+    </br>
+    <h3>Tezos</h3>
+    <button type="submit" onclick="login_with_tezos(); return false;"><p>Connect Tezos</p></button>
+    <button type="submit" onclick="logout_beacon(); return false;"><p>Disconnect Tezos</p></button>-->
+  </form>
+</div>
+<div class="column">
+  <h2>You wanna get</h2>
+
+  <form id="2ndform" name="2ndform">
+
+    <select class="dropdown" name="2network" id="network" >
+      <option data-id="1">Select Blockchain</option>
+      <option data-id="2">Tezos</option>
+      <option data-id="3">Everscale</option>
+    </select>
+    <select class="dropdown" name="2tokens" id="tokens" >
+      <option value="">Select Token</option>
+    </select>
+    <input id="address" size="64" name="address" type="text" autocomplete="address" placeholder="Enter your adddress to get tokens"  />
+    <!--<button type="submit" onclick="connect_everwallet(); return false;"><p>Connect</p></button>-->
+
+  </form>
+</div>
+</div>
+</div>
+</body>
+</html>

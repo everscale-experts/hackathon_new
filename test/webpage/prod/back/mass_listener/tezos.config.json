@@ -1,0 +1,57 @@
+{
+    "coin": {
+        "address": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+    },
+    "tokens": [
+        {
+            "symbol": "TEST-0000",
+            "contract": "KT1PNhQJ5MyCgzEM5RY6HVwovpuK9r2fs8Sd",
+            "wallet": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+        },
+        {
+            "symbol": "TEST-0001",
+            "contract": "KT1TbLx2naxBorSXfo1KzZDe5taYfTyXD3YX",
+            "wallet": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+        },
+        {
+            "symbol": "TEST-0002",
+            "contract": "KT1X9DmJ4mYGb5jtLLcZDhpib8qEcQcvnPeN",
+            "wallet": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+        },
+        {
+            "symbol": "TEST-0003",
+            "contract": "KT1GtBcFDFpKDh2jaazdbdm1bAjg5mAWGF8c",
+            "wallet": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+        },
+        {
+            "symbol": "TEST-0004",
+            "contract": "KT1XmAngnPuP15DQ7LXaF8s6nGktskNM76bu",
+            "wallet": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+        },
+        {
+            "symbol": "TEST-0005",
+            "contract": "KT1WwnV9RirzwkPJfuF3nKD3tqckLVHV7yYc",
+            "wallet": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+        },
+        {
+            "symbol": "TEST-0006",
+            "contract": "KT1QaDnrBGSZZzNnhCU5tG1LZqma9WfSf1Ee",
+            "wallet": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+        },
+        {
+            "symbol": "TEST-0007",
+            "contract": "KT1VDjWL68q5d7P2DiWVYydr5xxJUL9Z3gRo",
+            "wallet": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+        },
+        {
+            "symbol": "TEST-0008",
+            "contract": "KT1HFR1ceDzoB75D6hAKFadvMq4rSvNtTpVS",
+            "wallet": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+        },
+        {
+            "symbol": "TEST-0009",
+            "contract": "KT1BSaxZjSSFQCaHwE8QxBF5JzyF8Ni5Hk2Y",
+            "wallet": "tz1gVYfPffnmhyZkiEXadeg5SS8uerbXo2DM"
+        }
+    ]
+}

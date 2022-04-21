@@ -1,0 +1,162 @@
+
+
+type data is record[
+  counter : int;
+  date   : timestamp;
+  dest : address;
+  hash   : bytes;
+  value  : tez;
+]
+
+type value_received is record [
+    value  : tez;
+    
+]
+
+type transfer_amount is big_map(address,value_received)
+type chest is big_map(address, data)
+
+
+(*объявляем тип storage*)
+type storage is record [
+    counter: int;
+    chests : chest;
+    transfers_amounts : transfer_amount;
+]
+
+
+(*объявляем псевдонимы входящих параметров для каждой базовой функции*)
+type createLockParams is michelson_pair(bytes, "hash", address,"dest")
+type openLockParams is michelson_pair(address, "dest", bytes,"secret");
+type defaultParams is unit;
+
+(*псевдо-точки входа*)
+type parameter is 
+| Default of defaultParams
+| CreateLock of createLockParams
+| OpenLock          of openLockParams
+
+(*тип возвращаемых данных*)
+type return is list(operation) * storage
+
+const noOperations: list(operation) = nil;
+(*Функция для того чтобы на контракт было возможно перевести монеты *)
+function default (var s: storage): return is 
+    block{
+      const value_received : value_received = record[
+        value = Tezos.amount;  
+         ]; 
+     var value_stored : value_received := record[
+        value = 0tez;
+         ];
+    case Big_map.find_opt(Tezos.sender, s.transfers_amounts) of[
+    | Some (c) -> value_stored := c
+    | None -> value_stored := value_stored
+    ];
+    var value_new : value_received := record[
+        value = value_received.value + value_stored.value;
+         ];
+     s := s with record [transfers_amounts = Big_map.update(Tezos.sender, Some(value_new), s.transfers_amounts)];
+    
+    }
+     with(noOperations,s)
+
+
+function createLock (const hash1 : bytes; const dest1 : address; var s : storage): return is
+    begin
+    (*счеткик *)
+    s.counter := s.counter + 1;
+    (*Ищем сколько с этого адвресса было переведеннено tezos*)
+    var value_received : value_received := record[
+        value = 0tez;
+         ];
+    case Big_map.find_opt(Tezos.sender, s.transfers_amounts) of[
+    | Some (c) -> value_received := c
+    | None -> failwith("You have not transfer")
+    ];
+    (*После прочтения удаляем запись из big_map*)
+    const updated_map : transfer_amount = Big_map.remove (Tezos.sender, s.transfers_amounts);
+    s := s with record [transfers_amounts = updated_map]; 
+    (*проверяем больши ли одного теза в контракте *)
+    if value_received.value < 1tez
+    then failwith("Error balance HTLC contract")
+    else skip;
+    
+    const data : data = record[
+        counter = s.counter;
+        date = Tezos.now + 3_600; 
+        dest = dest1; 
+        hash = hash1;
+        value = value_received.value+0.1tez;
+         ];
+     const updated_map: chest = Big_map.update(Tezos.sender, Some(data), s.chests);
+     s := s with record [chests = updated_map]; 
+     
+end with ((nil : list(operation)), s)
+
+
+
+function openLock (const dest: address; const secret: bytes; var s: storage):return is 
+    begin 
+    (*поиск нужного сундука*)
+     var data : data := record[
+        counter = 0;
+        date = Tezos.now + 3_600; 
+        dest = dest; 
+        hash = Crypto.sha256(secret);
+        value = 0tez;
+         ];
+    case Big_map.find_opt(Tezos.sender, s.chests) of[
+    | Some (c) -> data := c
+    | None -> failwith("You have not chest")
+    ];
+    (*После прочтения удаляем запись из big_map*)
+    const updated_map : chest = Big_map.remove (Tezos.sender, s.chests);
+    s := s with record [chests = updated_map]; 
+    (*получаем точку входу для перевода коинов *)
+    const owner : contract (unit) =
+    case (Tezos.get_contract_opt (Tezos.sender): option(contract(unit))) of [
+      Some (contract) -> contract
+    | None -> (failwith ("Not a contract") : (contract(unit)))
+    ];
+    (*получаем точку входу для перевода коинов *)
+    const receiver : contract (unit) =
+    case (Tezos.get_contract_opt (dest): option(contract(unit))) of [
+      Some (contract) -> contract
+    | None -> (failwith ("Not a contract") : (contract(unit)))
+    ];
+    var operations: list(operation) := nil;
+    (*Не просрочена ли транзакция*)
+    if Tezos.now > data.date
+    then {
+        const op : operation = Tezos.transaction (unit, data.value, owner); // если просроченна возвращаем отправителю
+        operations:= list [
+      op 
+    ];
+    }
+    else {
+        if Crypto.sha256(secret) = data.hash
+        then{
+            const op : operation = Tezos.transaction (unit, data.value, receiver); // если все хорошо отправляем коины на указанный адрес
+            operations:= list [
+      op
+    ];
+        }
+        else {
+            const op : operation = Tezos.transaction (unit, data.value, owner); // если hash не правильный отправляем коины отправителю
+            operations:= list [
+       op
+    ];
+        }
+    }
+
+end with (operations, s)
+
+
+
+function main(const p:parameter; var s:storage): return is 
+case p of [
+| Default(params) -> default(s)
+| CreateLock(params)-> createLock(params.0,params.1,s)
+| OpenLock(params)-> openLock(params.0,params.1, s)
+]

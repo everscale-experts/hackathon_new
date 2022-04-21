@@ -21,6 +21,14 @@ temp/
 
 # sensitive information
 keys/
+work_acc.json
+work_acc
 
-# Angular cache
-.angular
+# big files
+tonos-cli
+
+#test
+True-NFT
+nftcommands.txt
+tvc_codes
+everscale-tnft

@@ -1,20 +1,78 @@
-﻿# Run  
+# Run    
+go to rust/listener or `rust/test`
+```bash  
+rustup override set 1.52.1  
+cargo run --bin listener  
+```  
+---  
+# Run  
 Go to `rust/tests/src/bin/tezedge`  
 change variable `public_key` to the correct one on line 150  
 change variable `private_key` to the correct one on line 152  
 change variable `from` to the correct one on line 154  
 change variable `to` to the correct one on line 156  
 Also you can change `amount` and `fee` on lines 157 and 158  
+
+# Run
 ```bash  
-cd ./test  
-cargo run --bin tezedge  
+cargo run --bin test3  
 ```  
 If not working, try  
 ```bash  
 rustup toolchain install 1.52.1  
+rustup override set 1.52.1  
 ```
 ---  
   
+# Настройка  
++ Перейдите в `rust/test/config.json`  
++ В поле "source" укажите адрес отправителя (того, кто будет вызывать методы у контракта, указанного в поле "contract")  
++ В полях "public_key" и "private_key" укажите публичный и секретный ключи удреса, указанного в source  
++ В поле "transactions" укажите список транзакций, каждая из которых должна выглядеть так:  
+```json
+{
+  "entrypoint": "сюда запишите entrypoint, например, default или transfer",
+  "parameters": // параметры, которые нужны для вызова entrypoint
+}
+```
+Пример:
+```json
+{
+  "transactions": [
+    {
+      "entrypoint": "transfer",
+      "parameters": [
+        {
+          "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
+          "txs": [
+            {
+              "to_": "tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz",
+              "token_id": "1",
+              "amount": "1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entrypoint": "transfer",
+      "parameters": [
+        {
+          "from_": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
+          "txs": [
+            {
+              "to_": "tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz",
+              "token_id": "1",
+              "amount": "2"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
 # Helpful (or not) links  
 ##### Tezos API (b-b)  
 https://baking-bad.org/blog/2020/08/06/better-call-dev-tezos-explorer-supports-dalphanet-and-enables-contract-interaction-and-cloning/  
@@ -38,50 +96,84 @@ https://docs.dipdup.net/
 ##### StructOpt docs  
 https://docs.rs/structopt/latest/structopt/  
   
+## from taquito  
+lines 248-259 from packages/taquito/src/wallet/wallet.ts  
   
-# Problems  
-## build command for ring v0.16.20  
-##### Not working:  
-https://github.com/shadowsocks/shadowsocks-android/discussions/2819  
-https://github.com/briansmith/ring/issues/1163  
-https://stackoverflow.com/questions/66758210/failed-to-run-custom-build-command-for-ring-v0-16-12  
-https://www.reddit.com/r/rust/comments/mtfw8x/i_get_this_error_with_in_this_cargotoml_file/  
-https://stackoverflow.com/questions/68149955/rust-sorry-unimplemented-64-bit-mode-not-compiled-in/70628855#70628855  
   
-### Help:  
-```bash  
-rustup override set 1.52.1  
-```  
+## Algorithm  
+### build parameters (https://api.hangzhounet.tzkt.io/v1/contracts/{address}/entrypoints/transfer/build)  
+```json
+{
+  "from": "<address>",
+  "to": "<address>",
+  "value": "<amount>"
+}
+```
+### forge transaction through rpc (https://hangzhounet.api.tez.ie/chains/main/blocks/head/helpers/forge/operations)  
+```json
+{
+  "branch": "<hash>",
+  "contents": [
+    {
+      "kind": "transaction",
+      "sourse": "<address>",
+      "destination": "<address>",
+      "fee": "<fee>",
+      "counter": "<counter>",
+      "gas_limit": "<gas limit>",
+      "storage_limit": "<storage limit>",
+      "amount": "<amount>"
+    }
+  ]
+}
+```
+### sign and send bytes through rpc (https://hangzhounet.api.tez.ie/injection/operation)  
+```json
+"<hex-string>"
+```
   
-## ArrayVec compile problem  
-##### Not working:  
-https://github.com/bluss/arrayvec/issues/83  
-https://github.com/rust-lang/cargo/issues/8759  
-https://bugzilla.mozilla.org/show_bug.cgi?id=1582555  
-https://github.com/docker/docker-py/issues/2820  
-  
-### Help:  
-```bash  
-rustup override set 1.52.1  
-```  
-  
-## Rust_decimal compile problem  
-##### Not working:  
-changing IDE  
-run online  
-changing rust_decimal version  
-***fixed (rewritten rust/utils/src/parse_float_amount.rs)***  
-  
-## Ureq compile problem  
-##### Not working:  
-changing IDE  
-changing ureq version  
-***fixed (added ureq (2.0.1) to /rust)***  
-  
-
 ## [ERROR] getting version information failed! Reason: Unknown! Http status: (405, Method Not Allowed), message: Unsupported HTTP method  
 ### error: process didn't exit successfully: 'target\debug\tezedge.exe' (exit code: 1)  
+##### ***Fixed***  
+
+
+## [ERROR] operation simulation failed! Reason: Failed to read JSON: missing field `consumed_gas` at line 1 column 1014  
+### error: process didn't exit successfully: `target\debug\tezedge.exe` (exit code: 1)  
 ##### ***Working on solution***  
+
+
+## Algorithm  
+### build parameters (https://api.hangzhounet.tzkt.io/v1/contracts/{address}/entrypoints/transfer/build)  
+```json
+{
+"from": "<address>",
+"to": "<address>",
+"value": "<amount>"
+}
+```
+### forge transaction through rpc (https://hangzhounet.api.tez.ie/chains/main/blocks/head/helpers/forge/operations)  
+```json
+{
+"branch": "<hash>",
+"contents": [
+{
+"kind": "transaction",
+"sourse": "<address>",
+"destination": "<address>",
+"fee": "<fee>",
+"counter": "<counter>",
+"gas_limit": "<gas limit>",
+"storage_limit": "<storage limit>",
+"amount": "<amount>"
+}
+]
+}
+```
+### sign and send bytes through rpc (https://hangzhounet.api.tez.ie/injection/operation)  
+```json
+"<hex-string>"
+```
+  
   
   
 ## From Slack  
@@ -96,5 +188,3 @@ RPC тестнета: https://rpc.hangzhounet.teztnets.xyz
 Explorer тестнета: https://hangzhou.tzstats.com  
 Кран тестнета: https://teztnets.xyz/hangzhounet-faucet  
 @tezos_faucet_bot - бот для получения тестовых монет, вдруг кому пригодится  
-
-
