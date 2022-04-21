@@ -1,73 +1,10 @@
-mod functions;
 mod tezos_send_transaction;
-mod common;
-mod commands;
-use functions::*;
+use lib::functions::*;
 use ureq::Agent;
+use std::sync::Arc;
 use std::fs;
 use serde_json::Value;
 use tezos_send_transaction::transfer as tezos_transfer;
-
-async fn submit_transaction(
-    ton: Arc<ClientContext>,
-    config: Config,
-    address: &str,
-    abi: String,
-    keys: Option<String>,
-    amount: &str,
-) -> String {
-    let ever_accs = get_json_field("../dependencies/json/everscale_accounts.json", None, None);
-    call_contract_with_client(
-        ton,
-        config.clone(),
-        address,
-        abi,
-        "submitTransaction",
-        format!(
-            r#"{{
-                "dest": "{}",
-                "value": "{}",
-                "bounce": "false",
-                "allBalance": "false",
-                "payload": "{}"
-            }}"#,
-            ever_accs[3]["address"].as_str().unwrap(),
-            amount,
-            "",
-        ).as_str(),
-        keys,
-        false, // true - run in tonos cli, false - call
-        false,
-    ).await.unwrap()["transId"].as_str().unwrap().to_string()
-}
-
-async fn confirm_transaction(
-    ton: Arc<ClientContext>,
-    config: Config,
-    address: &str,
-    abi: String,
-    keys: Option<String>,
-    trans_id: String,
-) -> String {
-    let res = call_contract_with_client(
-        ton,
-        config.clone(),
-        address,
-        abi,
-        "confirmTransaction",
-        format!(
-            r#"{{
-                "transactionId": {}
-            }}"#,
-            trans_id,
-        ).as_str(),
-        keys,
-        false,
-        false,
-    ).await;
-    if res.is_ok() { "Ok, signed".to_string() }
-    else { "Error, already signed".to_string() }
-}
 
 fn tezos_get_transactions() -> Value {
     let agent = Agent::new();
@@ -88,20 +25,22 @@ fn tezos_get_transactions() -> Value {
     res_json
 }
 
-const PATH: &str = "../dependencies/json/tezos_accounts.json";
+const PATH: &str = "./dependencies/json/tezos_accounts.json";
 
-async fn everscale_transaction12(amount: &str, ton: &Arc<ClientContext>, config: Config) { // from first account to second
-    let ever_accs = get_json_field("../dependencies/json/everscale_accounts.json", None, None);
+async fn everscale_transaction34(amount: &str, ton: &Arc<ClientContext>, config: Config) { // from third account to fourth
+    let ever_accs = get_json_field("./dependencies/json/everscale_accounts.json", None, None);
     let address = ever_accs[2]["address"].clone();
-    let abi = std::fs::read_to_string("../dependencies/json/SetcodeMultisigWallet.abi.json")
+    let abi = std::fs::read_to_string("./dependencies/json/SetcodeMultisigWallet.abi.json")
         .map_err(|e| format!("failed to read ABI file: {}", e.to_string())).unwrap();
     let trans_id = submit_transaction(
         ton.clone(),
         config.clone(),
         address.as_str().unwrap(),
-        abi.clone(),
-        Some("../dependencies/json/wallet3.scmsig1.json".to_string()),
+        abi.as_str(),
+        Some("./dependencies/json/wallet3.scmsig1.json".to_string()),
+        "".to_string(),
         amount,
+        ever_accs[3]["address"].as_str().unwrap()
     ).await;
     println!("Transaction created with id: {}", trans_id);
     for i in 2..4 {
@@ -111,8 +50,8 @@ async fn everscale_transaction12(amount: &str, ton: &Arc<ClientContext>, config:
                 ton.clone(),
                 config.clone(),
                 address.as_str().unwrap(),
-                abi.clone(),
-                Some(format!("../dependencies/json/wallet3.scmsig{}.json", i)),
+                abi.as_str(),
+                Some(format!("./dependencies/json/wallet3.scmsig{}.json", i)),
                 trans_id.to_string(),
             ).await,
         );
@@ -124,7 +63,7 @@ async fn main() {
     let config = Config::from_json(
         serde_json::from_str(
             std::fs::read_to_string(
-                "../dependencies/json/run_config.json"
+                "./dependencies/json/run_config.json"
             ).unwrap().as_str()
         ).expect("failed to parse json")
     );
@@ -155,12 +94,12 @@ async fn main() {
                 Ok(result) => {
                     if let Some(address) = result.result["account_addr"].as_str() {
                         if let Some(v) = result.result["in_message"]["value"].as_str() {
-                            if address == get_json_field("../dependencies/json/everscale_accounts.json", None, None)[1]["address"]
+                            if address == get_json_field("./dependencies/json/everscale_accounts.json", None, None)[1]["address"]
                                 .as_str().unwrap().to_owned() {
                                 let v_u64 = hex_to_dec(v);
                                 println!("{}", v_u64);
-                                let sender = get_json_field("../dependencies/json/tezos_accounts.json", None, Some(2));
-                                let receiver = get_json_field("../dependencies/json/tezos_accounts.json", None, Some(3));
+                                let sender = get_json_field("./dependencies/json/tezos_accounts.json", None, Some(2));
+                                let receiver = get_json_field("./dependencies/json/tezos_accounts.json", None, Some(3));
                                 tezos_transfer(
                                     sender["address"].as_str().unwrap(),
                                     receiver["address"].as_str().unwrap(),
@@ -184,7 +123,7 @@ async fn main() {
         let len = res.as_array().unwrap().len();
         if len > last_len {
             println!("{:#}", res[0]["amount"]); // nanoXTZ
-            everscale_transaction12((res[0]["amount"].as_i64().unwrap() * 1000).to_string().as_str(), &ton, config.clone()).await;
+            everscale_transaction34((res[0]["amount"].as_i64().unwrap() * 1000).to_string().as_str(), &ton, config.clone()).await;
             last_len = len;
         }
     }

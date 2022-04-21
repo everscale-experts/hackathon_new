@@ -1,75 +1,11 @@
-mod functions;
 mod tezos_send_transaction;
-mod common;
-mod commands;
-mod tezos_batch;
-use functions::*;
-use tezos_batch::create_batch;
+use lib::functions::*;
+use lib::tezos_batch::create_batch;
+use ton_client::ClientContext;
 use ureq::Agent;
+use std::sync::Arc;
 use std::fs;
 use serde_json::Value;
-use tezos_send_transaction::transfer as tezos_transfer;
-
-async fn submit_transaction(
-    ton: Arc<ClientContext>,
-    config: Config,
-    address: &str,
-    abi: String,
-    keys: Option<String>,
-    amount: &str,
-    receiver: String,
-) -> String {
-    call_contract_with_client(
-        ton,
-        config.clone(),
-        address,
-        abi,
-        "submitTransaction",
-        format!(
-            r#"{{
-                "dest": "{}",
-                "value": "{}",
-                "bounce": "false",
-                "allBalance": "false",
-                "payload": "{}"
-            }}"#,
-            receiver,
-            amount,
-            "",
-        ).as_str(),
-        keys,
-        false, // true - run in tonos cli, false - call
-        false,
-    ).await.unwrap()["transId"].as_str().unwrap().to_string()
-}
-
-async fn confirm_transaction(
-    ton: Arc<ClientContext>,
-    config: Config,
-    address: &str,
-    abi: String,
-    keys: Option<String>,
-    trans_id: String,
-) -> String {
-    let res = call_contract_with_client(
-        ton,
-        config.clone(),
-        address,
-        abi,
-        "confirmTransaction",
-        format!(
-            r#"{{
-                "transactionId": {}
-            }}"#,
-            trans_id,
-        ).as_str(),
-        keys,
-        false,
-        false,
-    ).await;
-    if res.is_ok() { "Ok, signed".to_string() }
-    else { "Error, already signed".to_string() }
-}
 
 fn tezos_get_transactions() -> Value {
     let agent = Agent::new();
@@ -101,10 +37,11 @@ async fn everscale_transaction(amount: &str, ton: &Arc<ClientContext>, config: C
         ton.clone(),
         config.clone(),
         address.as_str().unwrap(),
-        abi.clone(),
+        abi.as_str(),
         Some("./dependencies/json/wallet3.scmsig1.json".to_string()),
+        "".to_string(),
         amount,
-        receiver,
+        receiver.as_str(),
     ).await;
     println!("Transaction created with id: {}", trans_id);
     for i in 2..4 {
@@ -114,7 +51,7 @@ async fn everscale_transaction(amount: &str, ton: &Arc<ClientContext>, config: C
                 ton.clone(),
                 config.clone(),
                 address.as_str().unwrap(),
-                abi.clone(),
+                abi.as_str(),
                 Some(format!("./dependencies/json/wallet3.scmsig{}.json", i)),
                 trans_id.to_string(),
             ).await,
@@ -157,8 +94,8 @@ async fn main() {
             ).unwrap().as_str()
         ).expect("failed to parse json")
     );
-    let ton = create_client_verbose(&config).unwrap();
-    let mut last_len = tezos_get_transactions().as_array().unwrap().len();
+    // let ton = create_client_verbose(&config).unwrap();
+    // let mut last_len = tezos_get_transactions().as_array().unwrap().len();
     let context = Arc::new(
         ton_client::ClientContext::new(ton_client::ClientConfig {
             network: ton_client::net::NetworkConfig {
@@ -170,6 +107,7 @@ async fn main() {
         })
         .unwrap(),
     );
+    // create_batch("0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114", "KT1D4Ri8ntL7HLKTK63cyuV7ZAuMthzrSGJN");
 
     ton_client::net::subscribe_collection(
         context.clone(),
@@ -209,7 +147,7 @@ async fn main() {
                                 // let receiver = get_json_field("./dependencies/json/tezos_accounts.json", None, Some(3));
                                 println!("destination: {}", pair["dest"].as_str().unwrap());
                                 println!("hash: {}", pair["hash"].as_str().unwrap());
-                                create_batch();
+                                create_batch(pair["hash"].as_str().unwrap(), pair["dest"].as_str().unwrap());
                                 // tezos_transfer(
                                 //     sender["address"].as_str().unwrap(),
                                 //     std::str::from_utf8(
@@ -235,19 +173,19 @@ async fn main() {
         },
     ).await.unwrap();
 
-    loop {
-        let res = tezos_get_transactions();
-        let len = res.as_array().unwrap().len();
-        if len > last_len {
-            let (is_batch, group) = check_batch(res[0]["hash"].as_str().unwrap().to_string());
-            if is_batch {
-                if let Some(ever_receiver) = tezos_parse_comment(group.clone()) {
-                    println!("{}", ever_receiver);
-                    let amount = res[0]["amount"].as_i64().unwrap();
-                    everscale_transaction((amount.max(1000) * 1000).to_string().as_str(), &ton, config.clone(), ever_receiver).await;
-                }
-            }
-            last_len = len;
-        }
-    }
+    // loop {
+    //     let res = tezos_get_transactions();
+    //     let len = res.as_array().unwrap().len();
+    //     if len > last_len {
+    //         let (is_batch, group) = check_batch(res[0]["hash"].as_str().unwrap().to_string());
+    //         if is_batch {
+    //             if let Some(ever_receiver) = tezos_parse_comment(group.clone()) {
+    //                 println!("{}", ever_receiver);
+    //                 let amount = res[0]["amount"].as_i64().unwrap();
+    //                 everscale_transaction((amount.max(1000) * 1000).to_string().as_str(), &ton, config.clone(), ever_receiver).await;
+    //             }
+    //         }
+    //         last_len = len;
+    //     }
+    // }
 }

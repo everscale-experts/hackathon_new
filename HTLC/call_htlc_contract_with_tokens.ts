@@ -6,7 +6,7 @@ import {sha256} from 'js-sha256'
 
 
 const ID = 1;
-const AMOUNT = 10010;
+const AMOUNT = 100000;
 
 async function example() {
     const provider = 'https://hangzhounet.smartpy.io';
@@ -16,25 +16,26 @@ async function example() {
     tezos.setSignerProvider( signer );
     try {
         const batch = await tezos.contract.batch()
-        const contract_tokens = await tezos.contract.at('KT1VKyokYCeTidBzepRJrBVrQDJPq6RH8RYn')
+        // const contract_tokens = await tezos.contract.at('KT1VKyokYCeTidBzepRJrBVrQDJPq6RH8RYn')
         // batch
         // .withContractCall(contract_tokens.methods.transfer([{
         //     from_:'tz1V2TxmFHjnkMMjjMGKPSye698SkpSeDpvd' ,  // перевод от куда 
         //     txs:[
         //       {
-        //         to_:'KT1Wuuaw6WSQ5akVLCrDs4DGQbEnYBFEKesp',  // кому(адрессу HTLC)
+        //         to_:'KT1Dum1swTW6G9GRPsUTH2ep6UKM8DccMRcv',  // кому(адрессу HTLC)
         //         token_id: ID,
         //         amount: AMOUNT,
         //       }
         //     ]
         //   }]))
 
-        const contract = await tezos.contract.at('KT1Wuuaw6WSQ5akVLCrDs4DGQbEnYBFEKesp')
+        const contract = await tezos.contract.at('KT1Dum1swTW6G9GRPsUTH2ep6UKM8DccMRcv')
       
-      batch
-    //   .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW', char2Bytes('')))
-      
-     .withContractCall(contract.methods.createLock(ID, AMOUNT, sha256(char2Bytes('')),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ));
+      batch//                                            адрес получателя                   секрет
+      .withContractCall(contract.methods.openLock('KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW', char2Bytes('')))
+      //                                               адрес контракта токенов                            хэш секрета               адрес получателя токенов  
+    //  .withContractCall(contract.methods.createLock('KT1VKyokYCeTidBzepRJrBVrQDJPq6RH8RYn',ID, AMOUNT, sha256(char2Bytes('')),'KT1JMWkKAtB8eNMTYSAmkRuS3xjKHdkgTVGW' ));
+    
     
       
       
