@@ -61,7 +61,7 @@ dependencies = [
 [[package]]
 name = "api_derive"
 version = "1.32.0"
-source = "git+https://github.com/tonlabs/TON-SDK#c731155c62690b076915db09cd8bba544af7fd57"
+source = "git+https://github.com/tonlabs/TON-SDK#77551307a18c77664e3bcc3b2807e9188b7d75ab"
 dependencies = [
  "api_info",
  "quote",
@@ -72,7 +72,7 @@ dependencies = [
 [[package]]
 name = "api_info"
 version = "1.32.0"
-source = "git+https://github.com/tonlabs/TON-SDK#c731155c62690b076915db09cd8bba544af7fd57"
+source = "git+https://github.com/tonlabs/TON-SDK#77551307a18c77664e3bcc3b2807e9188b7d75ab"
 dependencies = [
  "serde",
  "serde_derive",
@@ -508,14 +508,14 @@ dependencies = [
 
 [[package]]
 name = "crossterm"
-version = "0.23.1"
+version = "0.23.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1fd7173631a4e9e2ca8b32ae2fad58aab9843ea5aaf56642661937d87e28a3e"
+checksum = "a2102ea4f781910f8a5b98dd061f4c2023f479ce7bb1236330099ceb5a93cf17"
 dependencies = [
  "bitflags",
  "crossterm_winapi",
  "libc",
- "mio 0.7.14",
+ "mio 0.8.2",
  "parking_lot",
  "signal-hook",
  "signal-hook-mio",
@@ -684,9 +684,9 @@ checksum = "a357d28ed41a50f9c765dbfe56cbc04a64e53e5fc58ba79fbc34c10ef3df831f"
 
 [[package]]
 name = "encoding_rs"
-version = "0.8.30"
+version = "0.8.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7896dc8abb250ffdda33912550faa54c88ec8b998dec0b2c55ab224921ce11df"
+checksum = "9852635589dc9f9ea1b6fe9f05b50ef208c85c834a562f0c6abb1c475736ec2b"
 dependencies = [
  "cfg-if 1.0.0",
 ]
@@ -1422,14 +1422,15 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "0.7.14"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8067b404fe97c70829f082dec8bcf4f71225d7eaea1d8645349cb76fa06205cc"
+checksum = "52da4364ffb0e4fe33a9841a98a3f3014fb964045ce4f7a45a398243c8d6b0c9"
 dependencies = [
  "libc",
  "log",
  "miow 0.3.7",
  "ntapi",
+ "wasi 0.11.0+wasi-snapshot-preview1",
  "winapi 0.3.9",
 ]
 
@@ -1830,9 +1831,9 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "pkg-config"
-version = "0.3.24"
+version = "0.3.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58893f751c9b0412871a09abd62ecd2a00298c6c83befa223ef98c52aef40cbe"
+checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
 
 [[package]]
 name = "plotters"
@@ -2374,7 +2375,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29ad2e15f37ec9a6cc544097b78a1ec90001e9f71b81338ca39f430adaca99af"
 dependencies = [
  "libc",
- "mio 0.7.14",
+ "mio 0.8.2",
  "signal-hook",
 ]
 
@@ -2405,9 +2406,9 @@ dependencies = [
 
 [[package]]
 name = "slab"
-version = "0.4.5"
+version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9def91fd1e018fe007022791f865d0ccc9b3a0d5001e01aabb8b40e46000afb5"
+checksum = "eb703cfe953bccee95685111adeedb76fabe4e97549a58d16f03ea7b9367bb32"
 
 [[package]]
 name = "smallvec"
@@ -2834,7 +2835,7 @@ dependencies = [
 [[package]]
 name = "ton_client"
 version = "1.32.0"
-source = "git+https://github.com/tonlabs/TON-SDK#c731155c62690b076915db09cd8bba544af7fd57"
+source = "git+https://github.com/tonlabs/TON-SDK#77551307a18c77664e3bcc3b2807e9188b7d75ab"
 dependencies = [
  "aes",
  "api_derive",
@@ -2922,7 +2923,7 @@ dependencies = [
 [[package]]
 name = "ton_sdk"
 version = "1.32.0"
-source = "git+https://github.com/tonlabs/TON-SDK#c731155c62690b076915db09cd8bba544af7fd57"
+source = "git+https://github.com/tonlabs/TON-SDK#77551307a18c77664e3bcc3b2807e9188b7d75ab"
 dependencies = [
  "api_derive",
  "api_info",
@@ -3007,9 +3008,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-core"
-version = "0.1.23"
+version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa31669fa42c09c34d94d8165dd2012e8ff3c66aca50f3bb226b68f216f2706c"
+checksum = "90442985ee2f57c9e1b548ee72ae842f4a9a20e3f417cc38dbc5dc684d9bb4ee"
 dependencies = [
  "lazy_static",
 ]
@@ -3208,6 +3209,12 @@ name = "wasi"
 version = "0.10.2+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd6fbd9a79829dd1ad0cc20627bf1ed606756a7f77edff7b66b7064f9cb327c6"
+
+[[package]]
+name = "wasi"
+version = "0.11.0+wasi-snapshot-preview1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
 name = "wasm-bindgen"
