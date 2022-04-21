@@ -1,0 +1,24 @@
+{
+    "name": "hello-wallet",
+    "version": "1.0.0",
+    "main": "index.ts",
+    "scripts": {
+        "start": "ts-node index",
+        "compile": "everdev sol compile HelloWallet.sol -c",
+        "postcompile": "everdev js w HelloWallet.abi.json -o HelloWallet.ts -e es6-default",
+        "wrap_msig": "everdev js w SafeMultisigWallet.abi.json -o SafeMultisigWallet.ts -e es6-default"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@tonclient/appkit": "^0",
+        "@tonclient/core": "^1",
+        "@tonclient/lib-node": "^1"
+    },
+    "devDependencies": {
+        "@types/node": "^17.0.21",
+        "ts-node": "^10.7.0",
+        "typescript": "^4.6.2"
+    }
+}

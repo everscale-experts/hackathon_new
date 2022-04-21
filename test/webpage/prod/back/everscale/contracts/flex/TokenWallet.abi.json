@@ -1,0 +1,246 @@
+{
+    "ABI version": 2,
+    "version": "2.2.0",
+    "header": [
+      "pubkey",
+      "time",
+      "expire"
+    ],
+    "functions": [
+    {
+      "name": "transfer",
+      "inputs": [
+      { "name":"answer_addr", "type":"address" },
+      { "name":"to", "type":"address" },
+      { "name":"tokens", "type":"uint128" },
+      { "name":"evers", "type":"uint128" },
+      { "name":"return_ownership", "type":"uint128" }
+      ],
+      "outputs": [
+      ],
+      "id": "0xa"
+    },
+    {
+      "name": "transferWithNotify",
+      "inputs": [
+      { "name":"_answer_id", "type":"uint32" },
+      { "name":"answer_addr", "type":"address" },
+      { "name":"to", "type":"address" },
+      { "name":"tokens", "type":"uint128" },
+      { "name":"evers", "type":"uint128" },
+      { "name":"return_ownership", "type":"uint128" },
+      { "name":"payload", "type":"cell" }
+      ],
+      "outputs": [
+      ],
+      "id": "0xb"
+    },
+    {
+      "name": "transferToRecipient",
+      "inputs": [
+      { "name":"answer_addr", "type":"address" },
+      { "name":"recipient_pubkey", "type":"uint256" },
+      { "name":"recipient_owner", "type":"optional(address)" },
+      { "name":"tokens", "type":"uint128" },
+      { "name":"evers", "type":"uint128" },
+      { "name":"deploy", "type":"bool" },
+      { "name":"return_ownership", "type":"uint128" }
+      ],
+      "outputs": [
+      ],
+      "id": "0xc"
+    },
+    {
+      "name": "transferToRecipientWithNotify",
+      "inputs": [
+      { "name":"_answer_id", "type":"uint32" },
+      { "name":"answer_addr", "type":"address" },
+      { "name":"recipient_pubkey", "type":"uint256" },
+      { "name":"recipient_owner", "type":"optional(address)" },
+      { "name":"tokens", "type":"uint128" },
+      { "name":"evers", "type":"uint128" },
+      { "name":"deploy", "type":"bool" },
+      { "name":"return_ownership", "type":"uint128" },
+      { "name":"payload", "type":"cell" }
+      ],
+      "outputs": [
+      ],
+      "id": "0xd"
+    },
+    {
+      "name": "requestBalance",
+      "inputs": [
+      { "name":"_answer_id", "type":"uint32" }
+      ],
+      "outputs": [
+      { "name":"value0", "type":"uint128" }
+      ],
+      "id": "0xe"
+    },
+    {
+      "name": "accept",
+      "inputs": [
+      { "name":"_answer_id", "type":"uint32" },
+      { "name":"tokens", "type":"uint128" },
+      { "name":"answer_addr", "type":"address" },
+      { "name":"keep_evers", "type":"uint128" }
+      ],
+      "outputs": [
+      { "name":"value0", "type":"bool" }
+      ],
+      "id": "0xf"
+    },
+    {
+      "name": "internalTransfer",
+      "inputs": [
+      { "name":"_answer_id", "type":"uint32" },
+      { "name":"tokens", "type":"uint128" },
+      { "name":"answer_addr", "type":"address" },
+      { "name":"sender_pubkey", "type":"uint256" },
+      { "name":"sender_owner", "type":"optional(address)" },
+      { "name":"notify_receiver", "type":"bool" },
+      { "name":"payload", "type":"cell" }
+      ],
+      "outputs": [
+      ],
+      "id": "0x10"
+    },
+    {
+      "name": "destroy",
+      "inputs": [
+      { "name":"dest", "type":"address" }
+      ],
+      "outputs": [
+      ],
+      "id": "0x11"
+    },
+    {
+      "name": "getDetails",
+      "inputs": [
+      ],
+      "outputs": [
+      { "name":"name", "type":"string" },
+      { "name":"symbol", "type":"string" },
+      { "name":"decimals", "type":"uint8" },
+      { "name":"balance", "type":"uint128" },
+      { "name":"root_pubkey", "type":"uint256" },
+      { "name":"root_address", "type":"address" },
+      { "name":"wallet_pubkey", "type":"uint256" },
+      { "name":"owner_address", "type":"address" },
+      { "components":[
+        { "name":"lend_pubkey", "type":"uint256" },
+        { "name":"lend_finish_time", "type":"uint32" }
+      ], "name":"lend_pubkey", "type":"optional(tuple)" },
+      { "components":[
+        { "components":[
+          { "components":[
+            { "name":"workchain_id", "type":"int8" },
+            { "name":"address", "type":"uint256" }
+          ], "name":"dest", "type":"tuple" }
+        ], "name":"lend_key", "type":"tuple" },
+        { "name":"lend_balance", "type":"uint128" },
+        { "name":"lend_finish_time", "type":"uint32" }
+      ], "name":"lend_owners", "type":"tuple[]" },
+      { "name":"lend_balance", "type":"uint128" },
+      { "name":"code_hash", "type":"uint256" },
+      { "name":"code_depth", "type":"uint16" },
+      { "components":[
+        { "name":"spender", "type":"address" },
+        { "name":"remainingTokens", "type":"uint128" }
+      ], "name":"allowance", "type":"tuple" },
+      { "name":"workchain_id", "type":"int8" }
+      ],
+      "id": "0x16"
+    },
+    {
+      "name": "getBalance",
+      "inputs": [
+      ],
+      "outputs": [
+      { "name":"value0", "type":"uint128" }
+      ],
+      "id": "0x17"
+    },
+    {
+      "name": "approve",
+      "inputs": [
+      { "name":"spender", "type":"address" },
+      { "name":"remainingTokens", "type":"uint128" },
+      { "name":"tokens", "type":"uint128" }
+      ],
+      "outputs": [
+      ],
+      "id": "0x18"
+    },
+    {
+      "name": "transferFrom",
+      "inputs": [
+      { "name":"answer_addr", "type":"address" },
+      { "name":"from", "type":"address" },
+      { "name":"to", "type":"address" },
+      { "name":"tokens", "type":"uint128" },
+      { "name":"evers", "type":"uint128" }
+      ],
+      "outputs": [
+      ],
+      "id": "0x19"
+    },
+    {
+      "name": "transferFromWithNotify",
+      "inputs": [
+      { "name":"answer_addr", "type":"address" },
+      { "name":"from", "type":"address" },
+      { "name":"to", "type":"address" },
+      { "name":"tokens", "type":"uint128" },
+      { "name":"evers", "type":"uint128" },
+      { "name":"payload", "type":"cell" }
+      ],
+      "outputs": [
+      ],
+      "id": "0x1a"
+    },
+    {
+      "name": "internalTransferFrom",
+      "inputs": [
+      { "name":"answer_addr", "type":"address" },
+      { "name":"to", "type":"address" },
+      { "name":"tokens", "type":"uint128" },
+      { "name":"notify_receiver", "type":"bool" },
+      { "name":"payload", "type":"cell" }
+      ],
+      "outputs": [
+      ],
+      "id": "0x1b"
+    },
+    {
+      "name": "disapprove",
+      "inputs": [
+      ],
+      "outputs": [
+      ],
+      "id": "0x1c"
+    }
+    ],
+    "fields": [
+      { "name":"__uninitialized", "type":"bool" },
+      { "name":"__replay", "type":"uint64" },
+      { "name":"name_", "type":"string" },
+      { "name":"symbol_", "type":"string" },
+      { "name":"decimals_", "type":"uint8" },
+      { "name":"balance_", "type":"uint128" },
+      { "name":"root_pubkey_", "type":"uint256" },
+      { "name":"root_address_", "type":"address" },
+      { "name":"wallet_pubkey_", "type":"uint256" },
+      { "name":"owner_address_", "type":"optional(address)" },
+      { "name":"code_", "type":"cell" },
+      { "name":"code_hash_", "type":"uint256" },
+      { "name":"code_depth_", "type":"uint16" },
+      { "components":[
+        { "name":"spender", "type":"address" },
+        { "name":"remainingTokens", "type":"uint128" }
+      ], "name":"allowance_", "type":"optional(tuple)" },
+      { "name":"workchain_id_", "type":"int8" }
+    ],
+    "events": [
+    ]
+  }
