@@ -1,0 +1,78 @@
+{
+  "_from": "@tonclient/appkit",
+  "_id": "@tonclient/appkit@0.3.0",
+  "_inBundle": false,
+  "_integrity": "sha512-ZIl3od8kQL/8zvhn+dnZpnaWxuBWrE2YaxIf+McURHLUG1l5aL/yzrIzUq5kgz/HokJnLaEMcCAhmO09FeofNw==",
+  "_location": "/@tonclient/appkit",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "@tonclient/appkit",
+    "name": "@tonclient/appkit",
+    "escapedName": "@tonclient%2fappkit",
+    "scope": "@tonclient",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@tonclient/appkit/-/appkit-0.3.0.tgz",
+  "_shasum": "bf5f975c5753ea426c9ef9f5dc0e849f6aad816d",
+  "_spec": "@tonclient/appkit",
+  "_where": "/var/games/ever/hackathon_new/test/webpage/simplepage",
+  "author": {
+    "name": "TON DEV SOLUTIONS LTD."
+  },
+  "bugs": {
+    "url": "https://github.com/tonlabs/ton-client-js/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "@tonclient/core": "^1"
+  },
+  "deprecated": false,
+  "description": "FreeTON SDK: Application Kit",
+  "devDependencies": {
+    "@babel/preset-env": "^7.13.10",
+    "@babel/preset-typescript": "^7.13.0",
+    "@tonclient/lib-node": "^1",
+    "@types/jest": "^26.0.21",
+    "@types/node": "^14.14.35",
+    "jest": "^26.6.3",
+    "typescript": "^4.0.3"
+  },
+  "engines": {
+    "node": ">=6"
+  },
+  "homepage": "https://docs.ton.dev/",
+  "keywords": [
+    "TON",
+    "Client",
+    "FreeTON",
+    "TONOS",
+    "SDK"
+  ],
+  "license": "Apache-2.0",
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
+  "main": "dist/index.js",
+  "name": "@tonclient/appkit",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tonlabs/ton-client-js.git"
+  },
+  "scripts": {
+    "prepublishOnly": "npm i && npx tsc",
+    "test": "npx jest"
+  },
+  "types": "dist/index.d.ts",
+  "version": "0.3.0"
+}
