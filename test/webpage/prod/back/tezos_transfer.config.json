@@ -1,0 +1,29 @@
+{
+  "account": {
+    "pkh": "tz1Nt3vKhbZpVdCrqgxR9sZDFqUty2h7SMRM",
+    "mnemonic": [
+      "gas",
+      "travel",
+      "scissors",
+      "lab",
+      "choose",
+      "auction",
+      "false",
+      "upon",
+      "icon",
+      "mom",
+      "proof",
+      "dismiss",
+      "name",
+      "custom",
+      "meat"
+    ],
+    "email": "rzfxnqsg.skbbgtec@teztnets.xyz",
+    "password": "6Uvib1sHKC",
+    "amount": "28649762487",
+    "activation_code": "f3d1c92086b49db7e51ed8727facc129d419e499"
+  },
+  "token_contract": "KT19LybspUkGTZxGMSKVRMDcpoRS24JapqH1",
+  "to": "tz1KfoG6WnXeeRxipcmvod34BQX2KUu34VFY",
+  "amount": 1
+}

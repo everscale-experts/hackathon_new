@@ -1,0 +1,7 @@
+
+{
+    "dependencies": {
+        "@tonclient/core": "^1",
+        "@tonclient/lib-node": "^1"
+    }
+}
