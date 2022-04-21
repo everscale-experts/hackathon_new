@@ -32,7 +32,7 @@ fn redirect_many() {
     let result = builder()
         .redirects(1)
         .build()
-        .get("test://host/redirect_many1", "")
+        .get("test://host/redirect_many1")
         .call();
     assert!(matches!(result, Err(e) if e.kind() == ErrorKind::TooManyRedirects));
 
@@ -48,7 +48,7 @@ fn redirect_many() {
     let result = builder()
         .redirects(2)
         .build()
-        .get("test://host/redirect_many1", "")
+        .get("test://host/redirect_many1")
         .call();
     assert!(matches!(result, Err(e) if e.kind() == ErrorKind::TooManyRedirects));
 }
@@ -61,7 +61,7 @@ fn redirect_off() -> Result<(), Error> {
     let resp = builder()
         .redirects(0)
         .build()
-        .get("test://host/redirect_off", "")
+        .get("test://host/redirect_off")
         .call()?;
     assert_eq!(resp.status(), 302);
     assert!(resp.has("Location"));
@@ -120,7 +120,7 @@ fn redirect_host() {
         Ok(())
     });
     let url = format!("http://localhost:{}/", srv.port);
-    let result = crate::Agent::new().get(&url, "").call();
+    let result = crate::Agent::new().get(&url).call();
     assert!(
         matches!(result, Err(ref e) if e.kind() == ErrorKind::Dns),
         "expected Err(DnsFailed), got: {:?}",
@@ -173,6 +173,6 @@ fn too_many_redirects() {
     });
 
     let req = crate::builder().redirects(10001).build();
-    let resp = req.get("test://host/malicious_redirect_0", "").call().unwrap();
+    let resp = req.get("test://host/malicious_redirect_0").call().unwrap();
     assert_eq!(resp.get_url(), "test://host/malicious_redirect_10000");
 }

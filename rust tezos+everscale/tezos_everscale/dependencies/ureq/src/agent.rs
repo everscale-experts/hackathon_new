@@ -96,6 +96,29 @@ impl Agent {
         AgentBuilder::new().build()
     }
 
+    /// Make a request with the HTTP verb as a parameter.
+    ///
+    /// This allows making requests with verbs that don't have a dedicated
+    /// method.
+    ///
+    /// If you've got an already-parsed [Url], try [request_url][Agent::request_url].
+    ///
+    /// ```
+    /// # fn main() -> Result<(), ureq::Error> {
+    /// # ureq::is_test(true);
+    /// use ureq::Response;
+    /// let agent = ureq::agent();
+    ///
+    /// let resp: Response = agent
+    ///     .request("OPTIONS", "http://example.com/")
+    ///     .call()?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn request(&self, method: &str, path: &str) -> Request {
+        Request::new(self.clone(), method.into(), path.into())
+    }
+
     /// Make a request using an already-parsed [Url].
     ///
     /// This is useful if you've got a parsed Url from some other source, or if
@@ -120,46 +143,10 @@ impl Agent {
         Request::with_url(self.clone(), method.into(), url.clone())
     }
 
-    /// Make a request with the HTTP verb as a parameter.
-    ///
-    /// This allows making requests with verbs that don't have a dedicated
-    /// method.
-    ///
-    /// If you've got an already-parsed [Url], try [request_url][Agent::request_url].
-    ///
-    /// ```
-    /// # fn main() -> Result<(), ureq::Error> {
-    /// # ureq::is_test(true);
-    /// use ureq::Response;
-    /// let agent = ureq::agent();
-    ///
-    /// let resp: Response = agent
-    ///     .request("OPTIONS", "http://example.com/")
-    ///     .call()?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn request(&self, method: &str, path: &str) -> Request {
-        Request::new(self.clone(), method.into(), path.into())
-    }
-
     /// Make a GET request from this agent.
-    /// pub struct Request {
-    ///     agent: Agent,
-    ///     method: String,
-    ///     url: Urlish,
-    ///     error_on_non_2xx: bool,
-    ///     headers: Vec<Header>,
-    ///     query_params: Vec<(String, String)>,
-    /// }
     pub fn get(&self, path: &str) -> Request {
-        // println!("[... > get_version_info > get] path {} from {}", path.to_string(), from.to_string());
         self.request("GET", path)
     }
-    // pub fn get(&self, path: &str) -> Request {
-    //     println!("[... > get_version_info > get] path: {}", path.to_string());
-    //     self.request("GET", path)
-    // }
 
     /// Make a HEAD request from this agent.
     pub fn head(&self, path: &str) -> Request {

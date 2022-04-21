@@ -109,8 +109,8 @@ impl Request {
             Urlish::Url(u) => u,
             Urlish::Str(s) => s.parse().map_err(|e: url::ParseError| {
                 ErrorKind::InvalidUrl
-                .msg(&format!("failed to parse URL '{}'", self.url))
-                .src(e)
+                    .msg(&format!("failed to parse URL '{}'", self.url))
+                    .src(e)
             })?,
         };
         for (name, value) in self.query_params.clone() {

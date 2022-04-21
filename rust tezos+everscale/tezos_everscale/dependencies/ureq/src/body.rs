@@ -91,7 +91,6 @@ impl<'a> Payload<'a> {
             }
             #[cfg(feature = "json")]
             Payload::JSON(v) => {
-                println!("payload (ureq): {:#}", v);
                 let bytes = serde_json::to_vec(&v).expect("Bad JSON in payload");
                 let len = bytes.len();
                 let cursor = Cursor::new(bytes);

@@ -1,9 +1,9 @@
 use console::style;
 use lib::utils::parse_float_amount;
 use lib::{Address, PrivateKey, PublicKey};
-use crate::commands::CommandError;
-use crate::common::exit_with_error;
-use crate::common::operation_command::*;
+use lib::commands::CommandError;
+use lib::common::exit_with_error;
+use lib::common::operation_command::*;
 
 #[derive(Debug)]
 pub struct ParseKeyError {
