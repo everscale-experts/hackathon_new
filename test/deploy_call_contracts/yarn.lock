@@ -115,6 +115,19 @@
     bignumber.js "^9.0.2"
     rxjs "^6.6.3"
 
+"@taquito/tzip16@^11.2.0":
+  version "11.2.0"
+  resolved "https://registry.yarnpkg.com/@taquito/tzip16/-/tzip16-11.2.0.tgz#40e3fcab203ad769e03bf8b0bc94c576b2aa113c"
+  integrity sha512-j2KoY+XTOyzTclTmC1hxi61XbzfsankpuTGiMRFC+QjL5vEyoc2CJG41I/0a2hoq30wuEH4TQ1+E6U5wfL/jUw==
+  dependencies:
+    "@taquito/http-utils" "^11.2.0"
+    "@taquito/michelson-encoder" "^11.2.0"
+    "@taquito/rpc" "^11.2.0"
+    "@taquito/taquito" "^11.2.0"
+    "@taquito/utils" "^11.2.0"
+    bignumber.js "^9.0.2"
+    crypto-js "^4.1.1"
+
 "@taquito/utils@^11.2.0":
   version "11.2.0"
   resolved "https://registry.yarnpkg.com/@taquito/utils/-/utils-11.2.0.tgz#19341a5222e078f70f3181692de75cb853ca02ee"
@@ -137,9 +150,9 @@
     "@types/node" "*"
 
 "@types/node@*":
-  version "17.0.14"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.14.tgz#33b9b94f789a8fedd30a68efdbca4dbb06b61f20"
-  integrity sha512-SbjLmERksKOGzWzPNuW7fJM7fk3YXVTFiZWB/Hs99gwhk+/dnrQRPBQjPW9aO+fi1tAffi9PrwFvsmOKmDTyng==
+  version "17.0.18"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.18.tgz#3b4fed5cfb58010e3a2be4b6e74615e4847f1074"
+  integrity sha512-eKj4f/BsN/qcculZiRSujogjvp5O/k4lOW5m35NopjZM/QwLOR075a8pJW5hD+Rtdm2DaCVPENS6KtSQnUD6BA==
 
 base-x@^3.0.2:
   version "3.0.9"
@@ -232,6 +245,11 @@ create-hmac@^1.1.4:
     ripemd160 "^2.0.0"
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
+
+crypto-js@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/crypto-js/-/crypto-js-4.1.1.tgz#9e485bcf03521041bd85844786b83fb7619736cf"
+  integrity sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw==
 
 elliptic@^6.5.4:
   version "6.5.4"

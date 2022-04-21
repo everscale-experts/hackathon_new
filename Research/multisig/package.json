@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@microsoft/signalr": "^6.0.3",
+    "@taquito/local-forging": "^11.2.0",
+    "@taquito/michelson-encoder": "^11.2.0",
+    "@taquito/signer": "^12.0.0",
+    "@taquito/taquito": "^12.0.0",
+    "airgap-coin-lib": "^0.9.14",
+    "require": "^2.4.20",
+    "requirejs": "^2.3.6"
+  }
+}

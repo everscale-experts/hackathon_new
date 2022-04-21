@@ -8,22 +8,65 @@
 4) Сделать пример использования с помощью токито;  
    1) Создание новой транзакции;  
    2) Подпись существующей транзакции;  
+
+
+
+# Multisig рабочий с переводом токенов и монет  
+
+## deploy multisig
+[файл](./deploy_multisig.ts)   
+для запуска:  
+1) yarn  
+2) npx ts-node deploy_multisig.ts  
+
+В поле users можно указать владельцев msig  
+в поле minimum_votes можно изменить минимальное количество подписей    
+в поле metadata можно записать любой текст либо оставить ссылку  
+Более подробно в коментариях к коду написано   
+
+## выполнение транзакции  
+[файла](./call_multisig3.ts)   
+Меняем приватные ключи, на приватные ключи своих акаунтов Msig  
+после можно изменить предложение транзакции с токенов на например монеты  
+Если оставили трансвер токенов то передаем нужные параметры по примеру из [файла](./call_multisig3.ts)  
+Далее меняем номер транзакции которую хотим подписать на текущее значение counter которое написано в storage смарт-контракта  
+И меняем номер транзакции которую хотим выполнить, после достижения нужного количества подписей  
+Более подробно в коментариях к коду написано   
+
+
+
+
+
+# Использование Multisig на taquito:
+написать в командной строке yarn  
+для запуска транзакции npx ts-node call_multisig2.ts  
+И изминить поля как написано в комментариях к коду   
+
+
   
 ## Примеры Multisig  
 1) Multisig от Madfish-solutions [тут](https://github.com/madfish-solutions/tezos-multisig) -
 последнее обновление 14 месяцев назад  
 2) Myltisig от Tezosing  [ссылка](https://github.com/atticlab/tezosign) -
 последнее обновление 4 месяца назад  
+пример как деплоить multisig [тут](deploy_multisig.ts)   
+пример вызова метода multisig [тут](call_multisig2.ts)  
 3) Myltisig TQTezos [ссылка](https://wiki.tezos.org.ua/token-contracts-specialized-multisig/2-originate-and-use-multisig-contract)
-удалось задеплоить, есть [инструкция](multisig_TQtezos.md)  
+удалось задеплоить, есть [инструкция](multisig_TQtezos.md)
+попытки вызова метода контракта [тут](call_multisig2.ts)   
 Похоже, что это первый мультисиг, который послужил примером остальным.  
 4) Multisig разработанный на хакатоне https://devfolio.co/submissions/tezos-multisig-wallet-1b17
 Приложение: https://msig.netlify.app - не подключается temple wallet.  
 гит хаба нету: https://github.com/fuzious/multisig-tezos
 5) Пример создание Multisig с Tezos-client [ссылка](https://dear-cricket-c83.notion.site/Multisig-9eef3ff65a0e4a3a84109f8d3563a88f)
-удалось задеплоить, [инструкция](multisig_tezos-client.md)  
+удалось задеплоить, [инструкция](multisig_tezos-client.md) 
+попытки вызова метода контракта [тут](call_multisig2.ts)   
 6) Видео по созданию Multisig [ссылка](https://morioh.com/p/674f718d10ac) (ошибка компиляции, truffle при компиляции ligo не указывает параметры компиляции)  
   
+7) Msig ссылка на контракт задеплоиный https://tzkt.io/KT1Cecn3A2A4i9EmSqug45iyzUUQc4F7C9yM/storage/52432  
+(принцып его работы отличается от других msig) https://leonnicholls.medium.com/hic-et-nunc-multi-sig-smart-contract-d1f63fe5d24 - статья о нём  
+на гитхабе(гит хаб в статье) нету примера деплоя контракта, deploy тут [файл](./deploy_multisig.ts)
+8) Msig c taquito https://github.com/ecadlabs/taquito/blob/master/integration-tests/contract-multisig-scenario.spec.ts, взаимодействие с multisig [файл](./call_multisig2_copy.ts)
 ### 1) Multisig от Madfish-solutions  
 Чтобы установить себе надо перейти по ссылке все инструкции там   
 При запуске Myltisig командой yarn migrate # development возникает ошибка:    
@@ -40,12 +83,12 @@ File "/tmp/tmp-1wYIOW2PtZBw6.ligo", line 40, characters 55-56:
 Написал Тех ментору из madfish она пока не ответила  
 
 ### 2) Multisig от Tezosing  
-Работает только в тестовой сети, разработка заброшена  
+Работает только в тестовой сети, 
 Весь код написан на GO  
-Запускать не пробовал, исходников на Ligо нету  
-  
-А вот и ВРАКИ. Исходник здесь: resources/contract.tz  
-TODO: Задеплоить, доделать.  
+Исходников на Ligо нету 
+пример как деплоить multisig [тут](deploy_multisig.ts) 
+
+ 
   
 ### 3) Multisig TQTezos  
 Работает только с Tezos-client  
@@ -95,12 +138,86 @@ Did you mean one of the following?
 Проблемы с подключением кошелька   
 Работает только с Temple Wallet, если вообще работает   
 Разработан в прошлом году, проект мертв  
-TODO: спросить автора  
+спросил у разработчика о том как найти гитхаб, жду ответа 
   
-### 5) пример создание Multisig
-возникла ошибка:   
-```text
 
-Failed to read a b58check_encoding data (Signature.Public_key): "edpkedpkuS2PP7wumxVKTv9HfyH9L5CWUqJ8EgezaVDgyEDpJMAMmwUb1C"
+
+# Работа с Myltisig с помощью taquito
+
+1. Задеплоить Multisig получилось без проблем
+2. Подписывать байтовую строку получается без проблем
+3. Вызывать методы Multisig вызывает проблемы:
+    1. Непонятно как передовать аргуметы в метод контракта  
+    спосил у тех менторов один ответил, но он предложил методы передачи которые не работают, сейчас жду пока ответит другой ментор
+    
+
+Какими способами я пытался передавть аргументы:  
+1. 
+ ```brash   
+ const op=await contract.methods.main({
+      schema:{
+         payload: {
+             counter: "0",
+             action: {
+                 operation: bytes,
+                 
+             }
+         },
+         sigs: [
+             (await signature).prefixSig,
+             (await signature1).prefixSig,
+         ]
+     }}).send()
 ```
-  
+Ошибка caunter не может быть типа [object, object]   
+2. 
+```brash
+ const op = await contract.methods.main('0x05070707070a000000046252be4f0a0000001601c6958d8e2af23b566c14105fa16526dec49d02c10007070001050502000000350320053d036d0743035d0a00000015003a0f681de989b300fab38bd867439115ac622cbf031e0743036a0080dac409034f034d031b',
+ [(await signature).prefixSig, (await signature1).prefixSig]).send();
+
+```
+Ошибка 400, биайтовую строку получал с помощью tezos-client,  
+
+3. 
+```brach 
+const op = await contract.methods.main('0',[(await signature).prefixSig, (await signature1).prefixSig], '0x05070707070a000000046252be4f0a0000001601c6958d8e2af23b566c14105fa16526dec49d02c10007070001050502000000350320053d036d0743035d0a00000015003a0f681de989b300fab38bd867439115ac622cbf031e0743036a0080dac409034f034d031b').send();
+
+```
+ошибка 400
+
+4. 
+```brach 
+contract.methods.default(
+   1,
+   {
+      '1':{'1': 12, '2': 'Contract'}
+   },
+   [signature]
+
+)
+```
+ошибка: [sigs] Value must be an array 
+Еще была похожая ошибка с caunter
+
+
+Чтобы кодировать строку надо пользоватся sdk https://netezos.dev/  
+
+Ссылки которые я смотрел:  
+https://netezos.dev/docs/get-started.html  
+https://netezos.dev/docs/tezos-forging.html  
+https://wiki.tezos.org.ua/token-contracts-specialized-multisig/2-originate-and-use-multisig-contract  
+https://dear-cricket-c83.notion.site/Multisig-9eef3ff65a0e4a3a84109f8d3563a88f  
+https://tezos.gitlab.io/introduction/howtouse.html  
+https://news.tezoscommons.org/examples-of-netezos-usage-b6c24be3ce8a  
+https://www.nuget.org/packages/Netezos  
+https://github.com/baking-bad/netezos    
+https://tezostaquito.io/docs/smartcontracts/  
+https://tezostaquito.io/typedoc/interfaces/_taquito_taquito.forger.html    
+https://medium.com/airgap-it/js-library-to-locally-forge-and-unforge-reveal-and-spend-operations-for-tezos-9fed9db956cc  
+(в ней нету тех методов, которые описаны в статье)
+
+
+
+
+
+
