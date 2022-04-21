@@ -12,7 +12,6 @@ type Error = Box<dyn std::error::Error>;
 const BASE_FEE: u64 = 100;
 const MIN_NTEZ_PER_GAS: u64 = 100;
 const MIN_NTEZ_PER_BYTE: u64 = 1000;
-const CONFIG: &str = "./dependencies/json/config.json";
 const AWAIT_TIMEOUT: u128 = 120000; // ms
 const RPC: &str = "https://hangzhounet.api.tez.ie";
 const ENDPOINT: &str = "https://api.hangzhounet.tzkt.io";
@@ -612,7 +611,7 @@ fn create_proposal(branch: &str, prop: usize, dest: &str, hash: &str) {
     let group = if prop == 0 {
         vec![transfer_token_proposal(branch, tme_id, 1000)]
     } else if prop == 1{
-        vec![transfer_mutez_proposal(branch, tme_id, 1000)]
+        vec![transfer_mutez_proposal(branch, tme_id, 1100000)]
     } else {
         vec![lambda_proposal(branch, tme_id, dest, hash)]
     };
@@ -680,8 +679,6 @@ fn msig_to_htlc_group_with_coins(
     branch: &str,
     tme_id: usize,
     prop_id: u64,
-    hash: &str,
-    address: &str,
 ) -> Vec<serde_json::Value> {
     let mut group = Vec::<serde_json::Value>::new();
     let sender = get_address_by_tme(tme_id);
@@ -703,7 +700,7 @@ fn msig_to_htlc_group_with_coins(
             "value": { "int" : format!("{}", prop_id) }
         }
     }]);
-    let additional_gas = 7000; // for token transfer
+    let additional_gas = 3000;
     let run_op_res = run_operation(
         branch.clone(),
         test_op,
@@ -738,8 +735,6 @@ pub fn create_batch_with_coins(hash: &str, dest: &str) {
             tezos_msig_executor,
             prop_id,
             // 3,
-            hash,
-            dest,
         );
         let res = sign_operation(
             branch.as_str(),
