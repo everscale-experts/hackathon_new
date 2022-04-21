@@ -1,0 +1,116 @@
+[
+    {
+      "prim": "DROP"
+    },
+    {
+      "prim": "PUSH",
+      "args": [
+        {
+          "prim": "address"
+        },
+        {
+          "string": "KT1ATPHjqztswVvw6sGsYFFg1zbhMsaP3qUg"
+        }
+      ]
+    },
+    {
+      "prim": "CONTRACT",
+      "annots": [
+        "%createLock"
+      ],
+      "args": [
+        {
+          "prim": "pair",
+          "args": [
+            {
+              "prim": "address",
+              "annots": [
+                "%dest1"
+              ]
+            },
+            {
+              "prim": "bytes",
+              "annots": [
+                "%hash1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "prim": "IF_NONE",
+      "args": [
+        [
+          {
+            "prim": "PUSH",
+            "args": [
+              {
+                "prim": "string"
+              },
+              {
+                "string": "Not a entrypoint"
+              }
+            ]
+          },
+          {
+            "prim": "FAILWITH"
+          }
+        ],
+        []
+      ]
+    },
+    {
+      "prim": "NIL",
+      "args": [
+        {
+          "prim": "operation"
+        }
+      ]
+    },
+    {
+      "prim": "SWAP"
+    },
+    {
+      "prim": "PUSH",
+      "args": [
+        {
+          "prim": "mutez"
+        },
+        {
+          "int": "0"
+        }
+      ]
+    },
+    {
+      "prim": "PUSH",
+      "args": [
+        {
+          "prim": "bytes"
+        },
+        {
+          "bytes": "ff7a7aff"
+        }
+      ]
+    },
+    {
+      "prim": "PUSH",
+      "args": [
+        {
+          "prim": "address"
+        },
+        {
+          "string": "KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87"
+        }
+      ]
+    },
+    {
+      "prim": "PAIR"
+    },
+    {
+      "prim": "TRANSFER_TOKENS"
+    },
+    {
+      "prim": "CONS"
+    }
+  ]
