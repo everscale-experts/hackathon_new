@@ -11,13 +11,13 @@ import {genericMultisig} from '././multisig_example_in_taquito/multisig'
 import{msig_tokens2} from './Schema_multisik_tokens2'
 import {char2Bytes} from '@taquito/utils';
 
-const provider = 'https://rpc.hangzhounet.teztnets.xyz'
+const provider = 'https://hangzhounet.smartpy.io'
 
 async function deploy() {
   const tezos = new TezosToolkit(provider)
   await importKey(
     tezos,
-    'edsk3kvk241t24haGeub1yJhrMHuFzTLo4uLc9gCbvhS91atVr4TTZ'
+    'edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i'
   )
   // деплой msig TokenMultisig
   // try {
@@ -53,7 +53,7 @@ async function deploy() {
                 minimum_votes:2,
                 proposals,
                 // владельцы кошелька
-                users:['tz1i5w4BTmwB51efYjcziq6G5eJC5ra2gqHF','tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'],
+                users:['tz1LiBrF9gibgH5Lf6a7gDjoUfSEg6nxPKsz','tz1Qw2LiqMNwJXKKzimAVMWj5W467Hrd6dP7'],
                 votes,
               },
       })

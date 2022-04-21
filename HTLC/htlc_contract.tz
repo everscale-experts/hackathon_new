@@ -1,5 +1,5 @@
 { parameter
-    (or (or (pair %createLock (bytes %hash) (address %dest)) (unit %default))
+    (or (or (pair %createLock (address %dest1) (bytes %hash1)) (unit %default))
         (pair %openLock (address %dest) (bytes %secret))) ;
   storage
     (pair (pair (big_map %chests
@@ -11,7 +11,11 @@
   code { UNPAIR ;
          IF_LEFT
            { IF_LEFT
-               { UNPAIR ;
+               { DUP ;
+                 DUG 2 ;
+                 CAR ;
+                 DIG 2 ;
+                 CDR ;
                  DUP 3 ;
                  CDR ;
                  PUSH int 1 ;
@@ -46,7 +50,7 @@
                  IF { PUSH string "Error balance HTLC contract" ; FAILWITH } {} ;
                  PUSH mutez 100000 ;
                  DIG 2 ;
-                 SUB ;
+                 ADD ;
                  DIG 2 ;
                  DIG 3 ;
                  PAIR ;

@@ -10,7 +10,7 @@ type data is record[
 
 type value_received is record [
     value  : tez;
-    
+
 ]
 
 type transfer_amount is big_map(address,value_received)
@@ -26,12 +26,15 @@ type storage is record [
 
 
 (*объявляем псевдонимы входящих параметров для каждой базовой функции*)
-type createLockParams is michelson_pair(bytes, "hash", address,"dest")
+type createLockParams is record [
+    hash1:bytes;
+    dest1:address;
+]
 type openLockParams is michelson_pair(address, "dest", bytes,"secret");
 type defaultParams is unit;
 
 (*псевдо-точки входа*)
-type parameter is 
+type parameter is
 | Default of defaultParams
 | CreateLock of createLockParams
 | OpenLock          of openLockParams
@@ -41,11 +44,11 @@ type return is list(operation) * storage
 
 const noOperations: list(operation) = nil;
 (*Функция для того чтобы на контракт было возможно перевести монеты *)
-function default (var s: storage): return is 
+function default (var s: storage): return is
     block{
       const value_received : value_received = record[
-        value = Tezos.amount;  
-         ]; 
+        value = Tezos.amount;
+         ];
      var value_stored : value_received := record[
         value = 0tez;
          ];
@@ -57,7 +60,7 @@ function default (var s: storage): return is
         value = value_received.value + value_stored.value;
          ];
      s := s with record [transfers_amounts = Big_map.update(Tezos.sender, Some(value_new), s.transfers_amounts)];
-    
+
     }
      with(noOperations,s)
 
@@ -72,37 +75,37 @@ function createLock (const hash1 : bytes; const dest1 : address; var s : storage
          ];
     case Big_map.find_opt(Tezos.sender, s.transfers_amounts) of[
     | Some (c) -> value_received := c
-    | None -> failwith("You have not transfer")
+    | None -> failwith("You have not transfered")
     ];
     (*После прочтения удаляем запись из big_map*)
     const updated_map : transfer_amount = Big_map.remove (Tezos.sender, s.transfers_amounts);
-    s := s with record [transfers_amounts = updated_map]; 
+    s := s with record [transfers_amounts = updated_map];
     (*проверяем больши ли одного теза в контракте *)
     if value_received.value < 1tez
     then failwith("Error balance HTLC contract")
     else skip;
-    
+
     const data : data = record[
         counter = s.counter;
-        date = Tezos.now + 3_600; 
-        dest = dest1; 
+        date = Tezos.now + 3_600;
+        dest = dest1;
         hash = hash1;
         value = value_received.value+0.1tez;
          ];
      const updated_map: chest = Big_map.update(Tezos.sender, Some(data), s.chests);
-     s := s with record [chests = updated_map]; 
-     
+     s := s with record [chests = updated_map];
+
 end with ((nil : list(operation)), s)
 
 
 
-function openLock (const dest: address; const secret: bytes; var s: storage):return is 
-    begin 
+function openLock (const dest: address; const secret: bytes; var s: storage):return is
+    begin
     (*поиск нужного сундука*)
      var data : data := record[
         counter = 0;
-        date = Tezos.now + 3_600; 
-        dest = dest; 
+        date = Tezos.now + 3_600;
+        dest = dest;
         hash = Crypto.sha256(secret);
         value = 0tez;
          ];
@@ -112,7 +115,7 @@ function openLock (const dest: address; const secret: bytes; var s: storage):ret
     ];
     (*После прочтения удаляем запись из big_map*)
     const updated_map : chest = Big_map.remove (Tezos.sender, s.chests);
-    s := s with record [chests = updated_map]; 
+    s := s with record [chests = updated_map];
     (*получаем точку входу для перевода коинов *)
     const owner : contract (unit) =
     case (Tezos.get_contract_opt (Tezos.sender): option(contract(unit))) of [
@@ -131,7 +134,7 @@ function openLock (const dest: address; const secret: bytes; var s: storage):ret
     then {
         const op : operation = Tezos.transaction (unit, data.value, owner); // если просроченна возвращаем отправителю
         operations:= list [
-      op 
+      op
     ];
     }
     else {
@@ -154,9 +157,9 @@ end with (operations, s)
 
 
 
-function main(const p:parameter; var s:storage): return is 
+function main(const p:parameter; var s:storage): return is
 case p of [
 | Default(params) -> default(s)
-| CreateLock(params)-> createLock(params.0,params.1,s)
+| CreateLock(params)-> createLock(params.hash1,params.dest1,s)
 | OpenLock(params)-> openLock(params.0,params.1, s)
 ]

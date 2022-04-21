@@ -1,0 +1,12 @@
+{ DROP ;
+  PUSH address "KT1ATPHjqztswVvw6sGsYFFg1zbhMsaP3qUg" ;
+  CONTRACT %createLock (pair (address %dest1) (bytes %hash1)) ;
+  IF_NONE { PUSH string "Not a entrypoint" ; FAILWITH } {} ;
+  NIL operation ;
+  SWAP ;
+  PUSH mutez 0 ;
+  PUSH bytes 0xff7a7aff ;
+  PUSH address "KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87" ;
+  PAIR ;
+  TRANSFER_TOKENS ;
+  CONS }

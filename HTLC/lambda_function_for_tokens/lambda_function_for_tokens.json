@@ -1,0 +1,191 @@
+[
+    {
+      "prim": "DROP"
+    },
+    {
+      "prim": "PUSH",
+      "args": [
+        {
+          "prim": "address"
+        },
+        {
+          "string": "KT1Exj7HLktuik8JiKtUavzsHB9heThHUQSf"
+        }
+      ]
+    },
+    {
+      "prim": "CONTRACT",
+      "annots": [
+        "%createLock"
+      ],
+      "args": [
+        {
+          "prim": "pair",
+          "args": [
+            {
+              "prim": "pair",
+              "args": [
+                {
+                  "prim": "pair",
+                  "args": [
+                    {
+                      "prim": "nat",
+                      "annots": [
+                        "%amount_tokens"
+                      ]
+                    },
+                    {
+                      "prim": "address",
+                      "annots": [
+                        "%dest1"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "prim": "pair",
+                  "args": [
+                    {
+                      "prim": "bytes",
+                      "annots": [
+                        "%hash1"
+                      ]
+                    },
+                    {
+                      "prim": "nat",
+                      "annots": [
+                        "%id_tokens"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prim": "address",
+              "annots": [
+                "%tokenAddress"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "prim": "IF_NONE",
+      "args": [
+        [
+          {
+            "prim": "PUSH",
+            "args": [
+              {
+                "prim": "string"
+              },
+              {
+                "string": "Not a entrypoint"
+              }
+            ]
+          },
+          {
+            "prim": "FAILWITH"
+          }
+        ],
+        []
+      ]
+    },
+    {
+      "prim": "NIL",
+      "args": [
+        {
+          "prim": "operation"
+        }
+      ]
+    },
+    {
+      "prim": "SWAP"
+    },
+    {
+      "prim": "PUSH",
+      "args": [
+        {
+          "prim": "mutez"
+        },
+        {
+          "int": "0"
+        }
+      ]
+    },
+    {
+      "prim": "PUSH",
+      "args": [
+        {
+          "prim": "address"
+        },
+        {
+          "string": "KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87"
+        }
+      ]
+    },
+    {
+      "prim": "PUSH",
+      "args": [
+        {
+          "prim": "nat"
+        },
+        {
+          "int": "1"
+        }
+      ]
+    },
+    {
+      "prim": "PUSH",
+      "args": [
+        {
+          "prim": "bytes"
+        },
+        {
+          "bytes": "ff7a7aff"
+        }
+      ]
+    },
+    {
+      "prim": "PAIR"
+    },
+    {
+      "prim": "PUSH",
+      "args": [
+        {
+          "prim": "address"
+        },
+        {
+          "string": "KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87"
+        }
+      ]
+    },
+    {
+      "prim": "PUSH",
+      "args": [
+        {
+          "prim": "nat"
+        },
+        {
+          "int": "1000"
+        }
+      ]
+    },
+    {
+      "prim": "PAIR"
+    },
+    {
+      "prim": "PAIR"
+    },
+    {
+      "prim": "PAIR"
+    },
+    {
+      "prim": "TRANSFER_TOKENS"
+    },
+    {
+      "prim": "CONS"
+    }
+  ]

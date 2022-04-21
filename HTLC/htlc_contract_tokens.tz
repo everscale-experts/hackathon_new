@@ -1,9 +1,8 @@
 { parameter
     (or (or (pair %createLock
-               (address %tokenAddress)
-               (pair %pair
-                  (nat %id_tokens)
-                  (pair %pair (nat %amount_tokens) (pair %pair (bytes %hash) (address %dest)))))
+               (pair (pair (nat %amount_tokens) (address %dest1))
+                     (pair (bytes %hash1) (nat %id_tokens)))
+               (address %tokenAddress))
             (list %default_token
                (pair (pair %request (address %owner) (nat %token_id)) (nat %balance))))
         (pair %openLock (address %dest) (bytes %secret))) ;

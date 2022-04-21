@@ -5,7 +5,7 @@
 
 
 import { TezosToolkit,MichelsonMap } from '@taquito/taquito'
-import { importKey } from '@taquito/signer'
+import { importKey,InMemorySigner } from '@taquito/signer'
 import * as fs from 'fs';
 import {char2Bytes} from '@taquito/utils';
 import { readFileSync } from "fs";
@@ -13,13 +13,10 @@ import { readFileSync } from "fs";
 // чтение кода из файла 
 const htlc_contract: string = fs.readFileSync('./htlc_contract_tokens.tz').toString(); 
 const provider = 'https://hangzhounet.smartpy.io'
-
+const signer = new InMemorySigner('edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj');
 async function deploy() {
   const tezos = new TezosToolkit(provider)
-  await importKey(
-    tezos,
-    'edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj'
-  )
+  tezos.setSignerProvider(signer)
   const chests = new MichelsonMap(); 
   const balances_token = new MichelsonMap();
   const chests_for_check = new MichelsonMap();
