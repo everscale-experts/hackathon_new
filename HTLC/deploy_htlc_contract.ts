@@ -21,7 +21,8 @@ async function deploy() {
     'edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj'
   )
   const chests = new MichelsonMap(); 
-  const transfers_amounts = new MichelsonMap();
+  const balances_token = new MichelsonMap();
+  const chests_for_check = new MichelsonMap();
     try {
 
       const op = await tezos.contract.originate({
@@ -29,9 +30,10 @@ async function deploy() {
         code: htlc_contract,
         //значение хранилища
         storage: {
-                counter:0,
+                counter:0, 
                 chests,
-                //transfer_umounts // расскоментировать если деплоите для монет 
+                balances_token,
+                chests_for_check
               },
       })
 
