@@ -5,15 +5,17 @@ import { Schema } from "@taquito/michelson-encoder";
 
 
 
-
-
 const RPC_URL = 'https://hangzhounet.smartpy.io'; // rpc тестнета
 
-const CONTRACT = 'KT19Xs4f94PCcTrRuTpagSJ7EzL1u2Dp4B8F';// адрес опубликованного контракта
-
+const CONTRACT = 'KT1V8J2fBQdVMWRZuMj2BXjgiWDoqrCkqsMs';// адрес опубликованного контракта multisig  
+const contract_token_address= 'KT1X9eKZyo6kQLkJTrjKmVt7MLC33xE6DfZB';// адресс контракта токенов
+const amount = '10000';                                     // количестов токенов в найменьших единицах токена
+const destination = 'KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87'; // адресс получателя 
+const id_proposal = 14;                                     // текущее значение счетчика msig
+const htlc_contract = 'KT1JfnXoFBLE6eFJfHQCrQVNoGgHo2AdzvUA';// адресс htlc контракта 
 
 // присваиваем переменным обьект с помощью которого будем подписывать транзакции
-const signer = new InMemorySigner('edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj');
+const signer = new InMemorySigner('edskRrZRXU2vgyFgMt94BKY2Fv1bQCFLrgwo2DwseLoYDvpjZeNohKC1afZtRT55NhhLfAj46PGVL1jAy8WEJZ1m4n3F2Kkc7i');
 const signer1 = new InMemorySigner('edskS7C5R3C2ooTjrCtrz8VeYALfuhGQGLp5siTTdDHchgJmxL1CGfA7Ug777tuzKN7bDqhs4RSFU3FozZSVpykWJpzgQqjvtF');
 
 
@@ -37,8 +39,8 @@ export class token_transfer {
 
         const contract = await this.tezos.contract.at(contract1);
         console.log("Transactions started")
-        // предлагаем сделать трансфер токенов
-        const op = await contract.methods.lambda_proposal(
+        // создаем proposal об переводе токенов
+        const op_1 = await contract.methods.lambda_proposal(
             [
                 {
                   "prim": "DROP"
@@ -50,49 +52,38 @@ export class token_transfer {
                       "prim": "address"
                     },
                     {
-                      "string": "KT1Exj7HLktuik8JiKtUavzsHB9heThHUQSf"
+                      "string": contract_token_address
                     }
                   ]
                 },
                 {
                   "prim": "CONTRACT",
                   "annots": [
-                    "%createLock"
+                    "%transfer"
                   ],
                   "args": [
                     {
                       "prim": "pair",
                       "args": [
                         {
-                          "prim": "pair",
-                          "args": [
-                            {
-                              "prim": "nat",
-                              "annots": [
-                                "%amount_tokens"
-                              ]
-                            },
-                            {
-                              "prim": "address",
-                              "annots": [
-                                "%dest1"
-                              ]
-                            }
+                          "prim": "address",
+                          "annots": [
+                            "%from"
                           ]
                         },
                         {
                           "prim": "pair",
                           "args": [
                             {
-                              "prim": "bytes",
+                              "prim": "address",
                               "annots": [
-                                "%hash1"
+                                "%to"
                               ]
                             },
                             {
-                              "prim": "address",
+                              "prim": "nat",
                               "annots": [
-                                "%tokenAddress"
+                                "%value"
                               ]
                             }
                           ]
@@ -112,7 +103,7 @@ export class token_transfer {
                             "prim": "string"
                           },
                           {
-                            "string": "Not a entrypoint"
+                            "string": "Not a contract"
                           }
                         ]
                       },
@@ -124,6 +115,37 @@ export class token_transfer {
                   ]
                 },
                 {
+                  "prim": "PUSH",
+                  "args": [
+                    {
+                      "prim": "nat"
+                    },
+                    {
+                      "int": amount
+                    }
+                  ]
+                },
+                {
+                  "prim": "PUSH",
+                  "args": [
+                    {
+                      "prim": "address"
+                    },
+                    {
+                      "string": htlc_contract
+                    }
+                  ]
+                },
+                {
+                  "prim": "PAIR"
+                },
+                {
+                  "prim": "SELF_ADDRESS"
+                },
+                {
+                  "prim": "PAIR"
+                },
+                {
                   "prim": "NIL",
                   "args": [
                     {
@@ -132,7 +154,12 @@ export class token_transfer {
                   ]
                 },
                 {
-                  "prim": "SWAP"
+                  "prim": "DIG",
+                  "args": [
+                    {
+                      "int": "2"
+                    }
+                  ]
                 },
                 {
                   "prim": "PUSH",
@@ -146,57 +173,12 @@ export class token_transfer {
                   ]
                 },
                 {
-                  "prim": "PUSH",
+                  "prim": "DIG",
                   "args": [
                     {
-                      "prim": "address"
-                    },
-                    {
-                      "string": "KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87" // адрес контракта токенов 
+                      "int": "3"
                     }
                   ]
-                },
-                {
-                  "prim": "PUSH",
-                  "args": [
-                    {
-                      "prim": "bytes"
-                    },
-                    {
-                      "bytes": "ff7a7aff" // hash 
-                    }
-                  ]
-                },
-                {
-                  "prim": "PAIR"
-                },
-                {
-                  "prim": "PUSH",
-                  "args": [
-                    {
-                      "prim": "address"
-                    },
-                    {
-                      "string": "KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87" // получатель
-                    }
-                  ]
-                },
-                {
-                  "prim": "PUSH",
-                  "args": [
-                    {
-                      "prim": "nat"
-                    },
-                    {
-                      "int": "1000"  // количество токенов 
-                    }
-                  ]
-                },
-                {
-                  "prim": "PAIR"
-                },
-                {
-                  "prim": "PAIR"
                 },
                 {
                   "prim": "TRANSFER_TOKENS"
@@ -205,48 +187,256 @@ export class token_transfer {
                   "prim": "CONS"
                 }
               ]
+        ).send();
+        
+        console.log("Awaiting confirmation...")
+        await op_1.confirmation();
+        console.log(op_1.hash);
+
+        // создаем proposal об вызове метода контракта htlc с помощью lambda функции  
+        const op = await contract.methods.lambda_proposal(
+          // лямбда функция 
+          [
+            {
+              "prim": "DROP"
+            },
+            {
+              "prim": "PUSH",
+              "args": [
+                {
+                  "prim": "address"
+                },
+                {
+                  "string": htlc_contract
+                }
+              ]
+            },
+            {
+              "prim": "CONTRACT",
+              "annots": [
+                "%createLock"
+              ],
+              "args": [
+                {
+                  "prim": "pair",
+                  "args": [
+                    {
+                      "prim": "pair",
+                      "args": [
+                        {
+                          "prim": "nat",
+                          "annots": [
+                            "%amount_tokens"
+                          ]
+                        },
+                        {
+                          "prim": "address",
+                          "annots": [
+                            "%dest1"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "prim": "pair",
+                      "args": [
+                        {
+                          "prim": "bytes",
+                          "annots": [
+                            "%hash1"
+                          ]
+                        },
+                        {
+                          "prim": "address",
+                          "annots": [
+                            "%tokenAddress"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "prim": "IF_NONE",
+              "args": [
+                [
+                  {
+                    "prim": "PUSH",
+                    "args": [
+                      {
+                        "prim": "string"
+                      },
+                      {
+                        "string": "Not a entrypoint"
+                      }
+                    ]
+                  },
+                  {
+                    "prim": "FAILWITH"
+                  }
+                ],
+                []
+              ]
+            },
+            {
+              "prim": "NIL",
+              "args": [
+                {
+                  "prim": "operation"
+                }
+              ]
+            },
+            {
+              "prim": "SWAP"
+            },
+            {
+              "prim": "PUSH",
+              "args": [
+                {
+                  "prim": "mutez"
+                },
+                {
+                  "int": "0"
+                }
+              ]
+            },
+            {
+              "prim": "PUSH",
+              "args": [
+                {
+                  "prim": "address"
+                },
+                {
+                  "string": contract_token_address // адрес контракта токенов 
+                }
+              ]
+            },
+            {
+              "prim": "PUSH",
+              "args": [
+                {
+                  "prim": "bytes"
+                },
+                {
+                  "bytes": "ff7a7aff" // hash 
+                }
+              ]
+            },
+            {
+              "prim": "PAIR"
+            },
+            {
+              "prim": "PUSH",
+              "args": [
+                {
+                  "prim": "address"
+                },
+                {
+                  "string": destination // получатель
+                }
+              ]
+            },
+            {
+              "prim": "PUSH",
+              "args": [
+                {
+                  "prim": "nat"
+                },
+                {
+                  "int": amount  // количество токенов 
+                }
+              ]
+            },
+            {
+              "prim": "PAIR"
+            },
+            {
+              "prim": "PAIR"
+            },
+            {
+              "prim": "TRANSFER_TOKENS"
+            },
+            {
+              "prim": "CONS"
+            }
+          ]
         ).send()
 
 
         console.log("Awaiting confirmation...")
         await op.confirmation();
         console.log(op.hash);
+        
 
-        // соглашаемся с предложенной транзакцией первый раз
+        // соглашаемся с первой транзакцией
         const op1= contract.methods.vote_proposal(
             // номер транзакции с которой человек соглашается и пишет true, либо не соглашается и пишет false
             //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
-            '2',  // это число можно взять если посмотрев текущий storage контракта.
+            id_proposal,  // это число можно взять если посмотрев текущий storage контракта.
             'true'
         ).send()
 
         console.log("Awaiting confirmation...")
         await (await op1).confirmation();
         console.log((await op1).hash);
+        // соглашается с второй транзакцией  
+        const op_2= contract.methods.vote_proposal(
+            // номер транзакции с которой человек соглашается и пишет true, либо не соглашается и пишет false
+            //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
+            id_proposal+1,  // это число можно взять если посмотрев текущий storage контракта.
+            'true'
+        ).send()
+
+        console.log("Awaiting confirmation...")
+        await (await op_2).confirmation();
+        console.log((await op_2).hash);
 
         // меняем подписывающего человека с signer на signer1
         // и все транзакции которые идут за этой строкой будут подписаны с помощью signer1
         this.tezos.setSignerProvider(signer1);
         const contract2 = await this.tezos.contract.at(contract1);
-        // соглашаемся с предложенной транзакцией второй раз
+        // соглашаемся с первой тразакцие второй раз
         const op2=contract2.methods.vote_proposal(
-            '2',  //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
+            id_proposal,  //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
             'true'
         ).send()
 
         console.log("Awaiting confirmation...")
         await (await op2).confirmation();
         console.log((await op2).hash);
-        // выполняем транзакцию, после того, как на ней собралось минимальное количество подписей
+        // соглашаемся с второй транзакцией второй раз
+        const op_3=contract2.methods.vote_proposal(
+            id_proposal+1,  //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
+            'true'
+        ).send()
+
+        console.log("Awaiting confirmation...")
+        await (await op_3).confirmation();
+        console.log((await op_3).hash);
+
+        // выполняем первую транзакцию, после того, как на ней собралось минимальное количество подписей
         // это может подписать любой владелец кошелька
         const op3=contract.methods.execute_proposal(
             //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
-            '2'          // номер транзакции которую мы выполняем
+            id_proposal          // номер транзакции которую мы выполняем
             // это число можно взять если посмотрев текущий storage контракта
             ).send()
         console.log("Awaiting confirmation...")
         await (await op3).confirmation();
         console.log((await op3).hash);
+
+        // выполняем вторую транзакцию, после того, как на ней собралось минимальное количество подписей
+        // это может подписать любой владелец кошелька
+        const op_4=contract.methods.execute_proposal(
+            //ОБЯЗАТЕЛЬНО поменять перед выполнением транзакции на новое значение!!!
+            id_proposal+1,          // номер транзакции которую мы выполняем
+            // это число можно взять если посмотреть текущий storage контракта
+            ).send()
+        console.log("Awaiting confirmation...")
+        await (await op_4).confirmation();
+        console.log((await op_4).hash);
         console.log('Complete transaction!!!!')
     }
 }
@@ -254,4 +444,4 @@ export class token_transfer {
 
 new token_transfer(RPC_URL).transfer(CONTRACT);
 
-
+        
