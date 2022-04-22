@@ -1,0 +1,15 @@
+{ DROP ;
+  PUSH address "KT1X9eKZyo6kQLkJTrjKmVt7MLC33xE6DfZB" ;
+  CONTRACT %transfer (pair (address %from) (pair (address %to) (nat %value))) ;
+  IF_NONE { PUSH string "Not a contract" ; FAILWITH } {} ;
+  PUSH nat 10000 ;
+  PUSH address "KT1MJ4cMX2vgvajHsrX9FtQCwjAr1CorjAbJ" ;
+  PAIR ;
+  SELF_ADDRESS ;
+  PAIR ;
+  NIL operation ;
+  DIG 2 ;
+  PUSH mutez 0 ;
+  DIG 3 ;
+  TRANSFER_TOKENS ;
+  CONS }
