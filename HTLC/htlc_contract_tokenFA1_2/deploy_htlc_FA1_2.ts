@@ -23,7 +23,6 @@ async function deploy() {
   const chests = new MichelsonMap(); 
   const balances_token = new MichelsonMap();
   const chests_for_check = new MichelsonMap();
-  const transfers_amounts = new MichelsonMap();
     try {
 
       const op = await tezos.contract.originate({
@@ -34,9 +33,7 @@ async function deploy() {
                 counter:0, // начальное значние счетчика 
                 chests,
                 balances_token,
-                chests_for_check,
-                // transfers_amounts // расскоментировать если деплоите для монет и закоментировать 36 и 37 строчки 
-                
+                chests_for_check,                
               },
       })
 
