@@ -32,12 +32,9 @@ type storage is record [
 ];
 
 type token_id is nat;
+
 // типы для трансфера токенов 
-type transfer is record [
-     from_ : address;
-     to_ : address;
-     value : nat;
-];
+type transfer is michelson_pair(address, "from", michelson_pair(address, "to", nat, "value"), "")
 
 // типы для вызова метода контракта токена getBalance
 
@@ -127,7 +124,7 @@ end with((nil : list(operation)),s)
 // добавляет нулевые балансы новых токенов 
 function addToken(const addTokenParams_for_entrypoint:addTokenParams_for_entrypoint; var s:storage ): return is 
     begin
-
+    
     case Big_map.find_opt(addTokenParams_for_entrypoint.addressContractToken, s.balances_token) of[
         // если нашли адресс владельца токена, то ищем id токена 
         | Some (_c) -> {skip}
@@ -222,16 +219,18 @@ function openLock (const dest: address; const secret: bytes; var s: storage):ret
 
     var operations: list(operation) := nil;
     
-    var transfer_destination : transfer := record[
-        from_=Tezos.self_address;
-        to_ = dest;
-        value= data.value;
-    ];
-    const transfer_receiver : transfer = record[
-        from_=Tezos.self_address;
-        to_ = Tezos.sender;
-        value= data.value;
-    ];
+    var transfer_destination : transfer := (Tezos.self_address,(dest,data.value));
+    // record[
+    //     from_=Tezos.self_address;
+    //     to_ = dest;
+    //     value= data.value;
+    // ];
+    const transfer_receiver : transfer = (Tezos.self_address,(Tezos.sender,data.value));
+    // record[
+    //     from_=Tezos.self_address;
+    //     to_ = Tezos.sender;
+    //     value= data.value;
+    // ];
 
    
     (*Не просрочена ли транзакция*)
