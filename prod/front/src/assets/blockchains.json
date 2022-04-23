@@ -1,0 +1,83 @@
+[
+
+  {
+    "from": {
+      "name": "Everscale",
+      "description": "Everscale mainnet",
+      "url": "https://main.ton.dev"
+    },
+    "to": {
+      "name": "Tezos",
+      "description": "Tezos mainnet",
+      "url": "https://tzkt.io"
+    },
+    "active": true
+  },
+  {
+    "from": {
+      "name": "Tezos",
+      "description": "Tezos mainnet",
+      "url": "https://tzkt.io"
+    },
+    "to": {
+      "name": "Everscale",
+      "description": "Everscale mainnet",
+      "url": "https://main.ton.dev"
+    },
+    "active": true
+  },
+
+  {
+    "from": {
+      "name": "devnet",
+      "description": "Everscale devnet",
+      "url": "https://net.ton.dev"
+    },
+    "to": {
+      "name": "hangzhounet",
+      "description": "Tezos hangzhounet",
+      "url": "https://hangzhounet.tzkt.io"
+    },
+    "active": false
+  },
+  {
+    "from": {
+      "name": "hangzhounet",
+      "description": "Tezos hangzhounet",
+      "url": "https://hangzhounet.tzkt.io"
+    },
+    "to": {
+      "name": "devnet",
+      "description": "Everscale devnet",
+      "url": "https://net.ton.dev"
+    },
+    "active": false
+  },
+
+  {
+    "from": {
+      "name": "fld.ton.dev",
+      "description": "Everscale fld",
+      "url": "https://gql.custler.net"
+    },
+    "to": {
+      "name": "ithacanet",
+      "description": "Tezos ithacanet",
+      "url": "https://ithacanet.tzkt.io"
+    },
+    "active": false
+  },
+  {
+    "from": {
+      "name": "ithacanet",
+      "description": "Tezos ithacanet",
+      "url": "https://ithacanet.tzkt.io"
+    },
+    "to": {
+      "name": "fld.ton.dev",
+      "description": "Everscale fld",
+      "url": "https://gql.custler.net"
+    },
+    "active": false
+  }
+]

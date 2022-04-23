@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatSelectChange } from '@angular/material/select';
 import { FormControl, Validators } from '@angular/forms';
 
+import BlockchainList from '../../../assets/blockchains.json';
 import EverTokenList from '../../../assets/EverTokenList.json';
 import TezosTokenList from '../../../assets/TezosTokenList.json';
 
@@ -23,8 +24,10 @@ export class MainComponent implements OnInit {
     Validators.max(9999),
   ]);
 
-  srcChain = 'Everscale';
-  dstChain = 'Tezos';
+  srcChainList = BlockchainList.map(el => ({...el.from, disabled: !el.active}));
+  dstChainList = BlockchainList.map(el => ({...el.to, disabled: !el.active}));
+  srcChain = this.srcChainList.find(el => !el.disabled)?.name;
+  dstChain = BlockchainList.filter(el => el.from.name === this.srcChain).find(el => el.active)?.to.name || '';
   srcCoin = 'EVER';
   dstCoin = 'TXZ';
   srcTokenList = EverTokenList.map(el => el.name);
@@ -41,21 +44,28 @@ export class MainComponent implements OnInit {
 
   }
 
-  onChainValueChange(isSrcChainTezos: boolean) {
-    if (isSrcChainTezos) {
-      this.srcChain = 'Tezos';
-      this.dstChain = 'Everscale'
-      // change token list
+  onChainSrcValueChange(srcChain: string) {
+    this.srcChain = srcChain;
+    this.dstChain = BlockchainList.filter(el => el.from.name === this.srcChain).find(el => el.active)?.to.name || '';
+    this.changeTokenList(this.srcChain, this.dstChain);
+  }
+
+  onChainDstValueChange(dstChain: string) {
+    this.dstChain = dstChain;
+    this.srcChain = BlockchainList.filter(el => el.from.name === this.srcChain).find(el => el.active)?.to.name || '';
+    this.changeTokenList(this.srcChain, this.dstChain);
+  }
+
+  changeTokenList(srcChain: string, dstChain: string) {
+    if (srcChain == 'Tezos') {
       this.srcCoin = 'TXZ';
       this.dstCoin = 'EVER';
       this.srcTokenList = TezosTokenList.map(el => el.name);
       this.dstTokenList = EverTokenList.map(el => el.name);
       this.srcTokenChosen = 'TXZ';
       this.dstTokenChosen = 'wTXZ';
-    } else {
-      this.srcChain = 'Everscale';
-      this.dstChain = 'Tezos';
-      // change token list
+    }
+    if (srcChain === 'Everscale') {
       this.srcCoin = 'EVER';
       this.dstCoin = 'TXZ';
       this.srcTokenList = EverTokenList.map(el => el.name);
@@ -122,11 +132,11 @@ export class MainComponent implements OnInit {
     console.log(event);
   }
 
-/*  ngOnInit() {
-    this.breakpoint = (window.innerWidth <= 400) ? 1 : 2;
-  }*/
+  /*  ngOnInit() {
+      this.breakpoint = (window.innerWidth <= 400) ? 1 : 2;
+    }*/
 
-  onResize(event:any) {
+  onResize(event: any) {
     this.breakpoint = (event.target.innerWidth <= 400) ? 1 : 2;
   }
 

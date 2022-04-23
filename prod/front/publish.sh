@@ -1,15 +1,16 @@
 #!/usr/bin/env csh
 ng build --base-href http://bridge.everangers.com
-#if [ ! -d "../../assets"]; then
-[ ! -d "../../assets" ] && mkdir ../../assets
+#if [ ! -d "../../docs/assets"]; then
+[ ! -d "../../docs/assets" ] && mkdir ../../docs/assets
 #fi
-rm ../../main.*.js
-rm ../../polyfills.*.js
-rm ../../runtime.*.js
-rm ../../styles.*.css
-rm ../../assets/*
-mv dist/bridge/assets/* ../../assets/
+rm ../../docs/main.*.js
+rm ../../docs/polyfills.*.js
+rm ../../docs/runtime.*.js
+rm ../../docs/styles.*.css
+#rm ../../docs/assets/img/*
+rm -rf ../../docs/assets/*
+mv dist/bridge/assets/* ../../docs/assets/
 rmdir dist/bridge/assets
-mv dist/bridge/* ../../
+mv dist/bridge/* ../../docs/
 rmdir dist/bridge
 rmdir dist
