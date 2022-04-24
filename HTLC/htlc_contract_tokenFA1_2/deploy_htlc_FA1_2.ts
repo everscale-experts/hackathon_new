@@ -1,31 +1,28 @@
 // для того чтобы пользоватся кодом пишем в командной строке
-//1) npm install -g yarn
-//2) yarn
-//3) npx ts-node deploy_multisig.ts
+// 1) npm install -g yarn
+// 2) yarn
+// 3) npx ts-node deploy_multisig.ts
 
 
 import { TezosToolkit,MichelsonMap } from '@taquito/taquito'
-import { importKey } from '@taquito/signer'
+import { importKey,InMemorySigner } from '@taquito/signer'
 import * as fs from 'fs';
 import {char2Bytes} from '@taquito/utils';
 import { readFileSync } from "fs";
 
-<<<<<<< HEAD
-const htlc_contract: string = fs.readFileSync('./htlc_contract.tz').toString();
-=======
 // чтение кода из файла 
-const htlc_contract: string = fs.readFileSync('./htlc_contract_tokens.tz').toString(); 
->>>>>>> main
-const provider = 'https://hangzhounet.smartpy.io'
-
+const htlc_contract: string = fs.readFileSync('./htlc_contract_FA1_2.tz').toString(); // код котракта для токенов 
+// const htlc_contract: string = fs.readFileSync('./htlc_contract.tz').toString();     // код коотракта для монет 
+const provider = 'https://hangzhounet.smartpy.io'                                      // провайдер сети 
+// приватный ключь кошелька человека который деплоит контракт 
+const signer = new InMemorySigner('edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj');
 async function deploy() {
   const tezos = new TezosToolkit(provider)
-  await importKey(
-    tezos,
-    'edskRdkUMmmBorjeetbGiU4cjZ1pbewF6ZmBMj7jCEWxA6pmgTooYTCStHZFitsEgnut7V3YpKt8ptgT1hgK5DuLS4baqXHQXj'
-  )
+  tezos.setSignerProvider(signer)
+  // пустые значения для big_maps
   const chests = new MichelsonMap(); 
-  const transfers_amounts = new MichelsonMap();
+  const balances_token = new MichelsonMap();
+  const chests_for_check = new MichelsonMap();
     try {
 
       const op = await tezos.contract.originate({
@@ -33,9 +30,10 @@ async function deploy() {
         code: htlc_contract,
         //значение хранилища
         storage: {
-                counter:0,
+                counter:0, // начальное значние счетчика 
                 chests,
-                //transfer_umounts // расскоментировать если деплоите для монет 
+                balances_token,
+                chests_for_check,                
               },
       })
 
