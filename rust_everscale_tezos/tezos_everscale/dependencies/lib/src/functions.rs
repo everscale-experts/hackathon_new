@@ -1,5 +1,4 @@
 pub use crate::tezos::get::*;
-pub use crate::get::*;
 pub use ton_client::ClientContext;
 pub use serde_json::Value;
 pub use std::sync::Arc;
@@ -156,4 +155,21 @@ pub async fn emulate_locally(
         println!("Local run succeeded. Executing onchain."); // TODO: check is_json
     }
     Ok(())
+}
+
+pub fn get_json_field(file: &str, key: Option<&str>, index: Option<usize>) -> Value {
+    // println!("{}", file);
+    if let Some(k) = key {
+        serde_json::from_str::<Value>(std::fs::read_to_string(file).unwrap().as_str())
+            .unwrap()[k]
+            .clone()
+    } else if let Some(i) = index {
+        serde_json::from_str::<Value>(std::fs::read_to_string(file).unwrap().as_str())
+            .unwrap()[i]
+            .clone()
+    } else {
+        serde_json::from_str::<Value>(std::fs::read_to_string(file).unwrap().as_str())
+            .unwrap()
+            .clone()
+    }
 }

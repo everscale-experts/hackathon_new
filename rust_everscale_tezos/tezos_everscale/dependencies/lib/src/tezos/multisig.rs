@@ -1,5 +1,4 @@
-use super::get::*; // import from mod
-use crate::get::*; // import from crate
+use super::get::*; /* import from mod */
 use crate::tezos::proposals::*;
 use crate::tezos::operation::*;
 
@@ -54,7 +53,7 @@ pub fn vote_method(
     })
 }
 
-pub fn vote_proposal(branch: &str, prop: usize, dest: &str, hash: &str) -> u64{
+pub fn create_and_vote_proposal(branch: &str, prop: usize, dest: &str, hash: &str) -> u64{
     create_proposal(branch, prop, dest, hash);
     let proposal_id = get_proposal_id();
     let mut votes = vec![];

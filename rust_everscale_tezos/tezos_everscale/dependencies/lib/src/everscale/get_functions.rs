@@ -3,6 +3,8 @@ use ton_client::ClientContext;
 use ton_client::abi::*;
 use serde_json::Value;
 use std::sync::Arc;
+use crate::CONFIG;
+use crate::functions::get_json_field;
 use super::contract::call_contract_with_client;
 use super::config::Config;
 
@@ -57,4 +59,28 @@ pub async fn ever_get_transactions(
         false,
     ).await.unwrap()["transactions"].as_array() { arr.to_owned() }
     else { vec![] }
+}
+
+pub fn ever_multisig() -> String {
+    get_json_field(CONFIG, None, Some(ever_multisig_id() as usize)).as_str().unwrap().to_string()
+}
+
+pub fn ever_htlc() -> String {
+    get_json_field(CONFIG, Some("htlc1"), None).as_str().unwrap().to_string()
+}
+
+pub fn ever_multisig_id() -> usize {
+    get_json_field(CONFIG, Some("everscale_multisig_id"), None).as_u64().unwrap() as usize
+}
+
+pub fn ever_msig_keypair(i: usize) -> String {
+    format!("wallet{}.scmsig{}.json", ever_multisig_id(), i)
+}
+
+pub fn htlc_abi() -> String {
+    std::fs::read_to_string("./dependencies/json/HelloWallet.abi.json").unwrap()
+}
+
+pub fn ever_htlc_keypair() -> String {
+    "./dependencies/json/htlc1_keys.json".to_string()
 }

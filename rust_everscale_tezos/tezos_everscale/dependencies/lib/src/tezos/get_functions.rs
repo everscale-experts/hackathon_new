@@ -1,4 +1,4 @@
-use crate::get::get_json_field;
+use crate::functions::get_json_field;
 use crate::*;
 
 pub fn get_operation_info(hash: &str) -> Option<serde_json::Value> {
@@ -36,6 +36,36 @@ pub fn get_status(hash: &str) -> String {
     } else {
         "unknown".to_string()
     }
+}
+
+pub fn get_confirmations(hash: &str) -> u64 {
+    if let Some(res) = get_operation_info(hash) {
+        res[0]["confirmations"].as_u64().unwrap()
+    } else {
+        0
+    }
+}
+
+pub fn get_proposal_id() -> u64 {
+    let path = format!("{}/v1/contracts/{}/storage", ENDPOINT, tezos_multisig());
+    let res: serde_json::Value = ureq::Agent::new().get(path.as_str())
+        .call().unwrap()
+        .into_json().unwrap();
+    // println!("{}/v1/contracts/{}/storage", endpoint, tezos_multisig());
+    res["counter"].as_str().unwrap().parse::<u64>().unwrap() - 1
+}
+
+pub fn get_block_hash() -> String {
+    let agent = ureq::Agent::new();
+    let value = agent.get(format!("{}/chains/main/blocks/head/hash", RPC).as_str())
+        .call().unwrap()
+        .into_json().unwrap();
+    // println!("Block hash: {}", value);
+    value
+}
+
+pub fn get_address_by_tme(tme_id: usize) -> serde_json::Value {
+    get_json_field("./dependencies/json/tezos_msig_custodians.json", None, Some(tme_id))
 }
 
 pub fn tezos_multisig() -> String {

@@ -25,7 +25,5 @@ pub mod commands;
 pub mod everscale;
 pub mod functions;
 pub mod tezos_batch;
-pub mod get_functions;
-pub use get_functions as get;
 // pub use trezor_api;
 // pub use ledger_api;

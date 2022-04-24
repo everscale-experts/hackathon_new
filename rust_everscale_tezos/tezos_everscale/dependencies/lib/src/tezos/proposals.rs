@@ -1,6 +1,5 @@
 use crate::tezos::get::*;
 use crate::tezos::operation::*;
-use crate::get_functions::*;
 
 pub(crate) fn transfer_mutez_proposal(
     branch: &str,
@@ -121,84 +120,89 @@ pub(crate) fn lambda_proposal(
         "value": build_parameters(
             tezos_multisig().as_str(),
             "lambda_proposal",
-            serde_json::json!(format!(r#"[
-                {{ "prim": "DROP" }},
-                {{
-                    "prim": "PUSH",
-                    "args": [
-                        {{ "prim": "address" }},
-                        {{ "string": "{htlc2_coins}" }}
-                    ]
-                }},
-                {{
-                    "prim": "CONTRACT",
-                    "annots": [ "%createLock" ],
-                    "args": [
-                        {{
-                            "prim": "pair",
-                            "args": [
-                                {{
-                                    "prim": "address",
-                                    "annots": [ "%dest1" ]
-                                }},
-                                {{
-                                    "prim": "bytes",
-                                    "annots": [ "%hash1" ]
-                                }}
-                            ]
-                        }}
-                    ]
-                }},
-                {{
-                    "prim": "IF_NONE",
-                    "args": [
-                        [
+            serde_json::json!(format!(
+                r#"[
+                    {{ "prim": "DROP" }},
+                    {{
+                        "prim": "PUSH",
+                        "args": [
+                            {{ "prim": "address" }},
+                            {{ "string": "{htlc2_coins}" }}
+                        ]
+                    }},
+                    {{
+                        "prim": "CONTRACT",
+                        "annots": [ "%createLock" ],
+                        "args": [
                             {{
-                                "prim": "PUSH",
+                                "prim": "pair",
                                 "args": [
-                                    {{ "prim": "string" }},
-                                    {{ "string": "Not a entrypoint" }}
+                                    {{
+                                        "prim": "address",
+                                        "annots": [ "%dest1" ]
+                                    }},
+                                    {{
+                                        "prim": "bytes",
+                                        "annots": [ "%hash1" ]
+                                    }}
                                 ]
-                            }},
-                            {{ "prim": "FAILWITH" }}
-                        ], []
-                    ]
-                }},
-                {{
-                    "prim": "NIL",
-                    "args": [
-                        {{ "prim": "operation" }}
-                    ]
-                }},
-                {{
-                    "prim": "SWAP"
-                }},
-                {{
-                    "prim": "PUSH",
-                    "args": [
-                        {{ "prim": "mutez" }},
-                        {{ "int": "0" }}
-                    ]
-                }},
-                {{
-                    "prim": "PUSH",
-                    "args": [
-                        {{ "prim": "bytes" }},
-                        {{ "bytes": "{hash}" }}
-                    ]
-                }},
-                {{
-                    "prim": "PUSH",
-                    "args": [
-                        {{ "prim": "address" }},
-                        {{ "string": "{destination}" }}
-                    ]
-                }},
-                {{ "prim": "PAIR" }},
-                {{ "prim": "TRANSFER_TOKENS" }},
-                {{ "prim": "CONS" }}
-            ]"#, htlc2_coins = tezos_coin_htlc(), hash = hash, destination = dest)),
-        ).unwrap(),
+                            }}
+                        ]
+                    }},
+                    {{
+                        "prim": "IF_NONE",
+                        "args": [
+                            [
+                                {{
+                                    "prim": "PUSH",
+                                    "args": [
+                                        {{ "prim": "string" }},
+                                        {{ "string": "Not a entrypoint" }}
+                                    ]
+                                }},
+                                {{ "prim": "FAILWITH" }}
+                            ], []
+                        ]
+                    }},
+                    {{
+                        "prim": "NIL",
+                        "args": [
+                            {{ "prim": "operation" }}
+                        ]
+                    }},
+                    {{
+                        "prim": "SWAP"
+                    }},
+                    {{
+                        "prim": "PUSH",
+                        "args": [
+                            {{ "prim": "mutez" }},
+                            {{ "int": "0" }}
+                        ]
+                    }},
+                    {{
+                        "prim": "PUSH",
+                        "args": [
+                            {{ "prim": "bytes" }},
+                            {{ "bytes": "{hash}" }}
+                        ]
+                    }},
+                    {{
+                        "prim": "PUSH",
+                        "args": [
+                            {{ "prim": "address" }},
+                            {{ "string": "{destination}" }}
+                        ]
+                    }},
+                    {{ "prim": "PAIR" }},
+                    {{ "prim": "TRANSFER_TOKENS" }},
+                    {{ "prim": "CONS" }}
+                ]"#,
+                htlc2_coins = tezos_coin_htlc(),
+                hash = hash,
+                destination = dest,
+            )
+        )).unwrap(),
     });
     let test_op = serde_json::json!([{
         "kind": "transaction",
