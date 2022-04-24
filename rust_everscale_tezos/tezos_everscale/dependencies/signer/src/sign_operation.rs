@@ -1,6 +1,3 @@
-use sodiumoxide::hex;
-// use trezor_api::protos::TezosSignedTx;
-
 #[derive(Debug, Clone)]
 pub struct OperationSignatureInfo {
     /// base58check with prefix(`Prefix::operation`) encoded operation hash.

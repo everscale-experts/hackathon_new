@@ -1,8 +1,7 @@
-mod tezos_send_transaction;
+use lib::everscale::{config::{Config, create_client_verbose}, get::{ever_get_transactions, get_payload}, multisig::{submit_transaction, confirm_transaction}, htlc::{get_timestamp, create_lock_with_tokens}};
+use serde_json::Value;
 use lib::functions::*;
 use ureq::Agent;
-use lib::tezos_batch::*;
-use serde_json::Value;
 
 fn tezos_get_transactions() -> Value {
     let agent = Agent::new();
@@ -104,15 +103,15 @@ async fn main() {
     let hash = timestamp["value0"].as_str().unwrap();
     println!("{:#}", hash);
     // create_batch("0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114", "KT1D4Ri8ntL7HLKTK63cyuV7ZAuMthzrSGJN");
-    let res = create_lock_with_tokens(
-        ton.clone(),
-        config.clone(),
-        Some(ever_htlc_keypair()),
-        // format!("{}", "0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114"),
-        format!("{}", hash),
-    ).await;
-    println!("{}\n", res);
-    println!("Starting tezos listener...");
+    // let res = create_lock_with_tokens(
+    //     ton.clone(),
+    //     config.clone(),
+    //     Some(ever_htlc_keypair()),
+    //     // format!("{}", "0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114"),
+    //     format!("{}", hash),
+    // ).await;
+    // println!("{}\n", res);
+    // println!("Starting tezos listener...");
     loop {
         let res = tezos_get_transactions();
         let len = res.as_array().unwrap().len();

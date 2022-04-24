@@ -16,7 +16,7 @@ pub struct ParseKeyError {
     kind: KeyKind,
     /// Input address as string before parsing.
     key: String,
-    error: crate::FromPrefixedBase58CheckError,
+    _error: crate::FromPrefixedBase58CheckError,
 }
 
 #[derive(PartialEq, Debug, Clone)]
@@ -98,7 +98,7 @@ impl TransferLocal {
     fn public_key(&self) -> Result<PublicKey, ParseKeyError> {
         PublicKey::from_base58check(&self.public_key)
             .map_err(|error| ParseKeyError {
-                error,
+                _error: error,
                 kind: KeyKind::Public,
                 key: self.public_key.to_string(),
             })
@@ -107,7 +107,7 @@ impl TransferLocal {
     fn private_key(&self) -> Result<PrivateKey, ParseKeyError> {
         PrivateKey::from_base58check(&self.private_key)
             .map_err(|error| ParseKeyError {
-                error,
+                _error: error,
                 kind: KeyKind::Private,
                 key: self.private_key.to_string(),
             })

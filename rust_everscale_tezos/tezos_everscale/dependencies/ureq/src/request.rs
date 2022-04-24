@@ -37,7 +37,7 @@ pub struct Request {
     agent: Agent,
     method: String,
     url: Urlish,
-    error_on_non_2xx: bool,
+    _error_on_non_2xx: bool,
     headers: Vec<Header>,
     query_params: Vec<(String, String)>,
 }
@@ -68,7 +68,7 @@ impl Request {
             method,
             url: Urlish::Str(url),
             headers: vec![],
-            error_on_non_2xx: true,
+            _error_on_non_2xx: true,
             query_params: vec![],
         }
     }
@@ -79,7 +79,7 @@ impl Request {
             method,
             url: Urlish::Url(url),
             headers: vec![],
-            error_on_non_2xx: true,
+            _error_on_non_2xx: true,
             query_params: vec![],
         }
     }

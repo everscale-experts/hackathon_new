@@ -1,99 +1,97 @@
-mod tezos_send_transaction;
-use lib::functions::*;
+use lib::everscale::contract::load_abi_json;
+use lib::everscale::message::decode_msg_body_by_id;
+// use lib::everscale::config::Config;
 use lib::tezos_batch::create_batch;
-use ton_client::ClientContext;
-use ureq::Agent;
+use lib::functions::*;
 use std::sync::Arc;
-use std::fs;
-use serde_json::Value;
 
-fn tezos_get_transactions() -> Value {
-    let agent = Agent::new();
-    let path = format!("https://api.hangzhounet.tzkt.io/v1/accounts/{}/operations", serde_json::from_str::<Value>(fs::read_to_string(PATH)
-        .unwrap()
-        .as_str())
-        .unwrap()[1]["address"]
-        .as_str()
-        .unwrap()
-    );
+// fn tezos_get_transactions() -> Value {
+//     let agent = Agent::new();
+//     let path = format!("https://api.hangzhounet.tzkt.io/v1/accounts/{}/operations", serde_json::from_str::<Value>(fs::read_to_string(PATH)
+//         .unwrap()
+//         .as_str())
+//         .unwrap()[1]["address"]
+//         .as_str()
+//         .unwrap()
+//     );
 
-    let res = agent.get(&path)
-        .call()
-        .unwrap()
-        .into_string()
-        .unwrap();
-    let res_json = serde_json::from_str::<Value>(res.as_str()).unwrap();
-    res_json
-}
+//     let res = agent.get(&path)
+//         .call()
+//         .unwrap()
+//         .into_string()
+//         .unwrap();
+//     let res_json = serde_json::from_str::<Value>(res.as_str()).unwrap();
+//     res_json
+// }
 
-const PATH: &str = "./dependencies/json/tezos_accounts.json";
+// const PATH: &str = "./dependencies/json/tezos_accounts.json";
 
-async fn everscale_transaction(amount: &str, ton: &Arc<ClientContext>, config: Config, receiver: String) {
-    let ever_accs = get_json_field("./dependencies/json/everscale_accounts.json", None, None);
-    let address = ever_accs[2]["address"].clone();
-    let abi = std::fs::read_to_string("./dependencies/json/SetcodeMultisigWallet.abi.json")
-        .map_err(|e| format!("failed to read ABI file: {}", e.to_string())).unwrap();
-    let trans_id = submit_transaction(
-        ton.clone(),
-        config.clone(),
-        address.as_str().unwrap(),
-        abi.as_str(),
-        Some("./dependencies/json/wallet3.scmsig1.json".to_string()),
-        "".to_string(),
-        amount,
-        receiver.as_str(),
-    ).await;
-    println!("Transaction created with id: {}", trans_id);
-    for i in 2..4 {
-        println!(
-            "{}",
-            confirm_transaction(
-                ton.clone(),
-                config.clone(),
-                address.as_str().unwrap(),
-                abi.as_str(),
-                Some(format!("./dependencies/json/wallet3.scmsig{}.json", i)),
-                trans_id.to_string(),
-            ).await,
-        );
-    }
-}
+// async fn everscale_transaction(amount: &str, ton: &Arc<ClientContext>, config: Config, receiver: String) {
+//     let ever_accs = get_json_field("./dependencies/json/everscale_accounts.json", None, None);
+//     let address = ever_accs[2]["address"].clone();
+//     let abi = std::fs::read_to_string("./dependencies/json/SetcodeMultisigWallet.abi.json")
+//         .map_err(|e| format!("failed to read ABI file: {}", e.to_string())).unwrap();
+//     let trans_id = submit_transaction(
+//         ton.clone(),
+//         config.clone(),
+//         address.as_str().unwrap(),
+//         abi.as_str(),
+//         Some("./dependencies/json/wallet3.scmsig1.json".to_string()),
+//         "".to_string(),
+//         amount,
+//         receiver.as_str(),
+//     ).await;
+//     println!("Transaction created with id: {}", trans_id);
+//     for i in 2..4 {
+//         println!(
+//             "{}",
+//             confirm_transaction(
+//                 ton.clone(),
+//                 config.clone(),
+//                 address.as_str().unwrap(),
+//                 abi.as_str(),
+//                 Some(format!("./dependencies/json/wallet3.scmsig{}.json", i)),
+//                 trans_id.to_string(),
+//             ).await,
+//         );
+//     }
+// }
 
-fn check_batch(hash: String) -> (bool, Value) {
-    let agent = Agent::new();
-    let path = format!("https://api.hangzhou.tzstats.com/explorer/op/{}", hash);
-    let res = agent.get(&path)
-        .call()
-        .unwrap()
-        .into_string()
-        .unwrap();
-    let res_json = serde_json::from_str::<Value>(res.as_str()).unwrap();
-    (
-        res_json[0]["is_batch"].as_bool().unwrap_or(false),
-        res_json,
-    )
-}
+// fn check_batch(hash: String) -> (bool, Value) {
+//     let agent = Agent::new();
+//     let path = format!("https://api.hangzhou.tzstats.com/explorer/op/{}", hash);
+//     let res = agent.get(&path)
+//         .call()
+//         .unwrap()
+//         .into_string()
+//         .unwrap();
+//     let res_json = serde_json::from_str::<Value>(res.as_str()).unwrap();
+//     (
+//         res_json[0]["is_batch"].as_bool().unwrap_or(false),
+//         res_json,
+//     )
+// }
 
-fn tezos_parse_comment(batch: Value) -> Option<String> {
-    if let Some(transactions) = batch.as_array() {
-        for t in transactions {
-            if let Some(ever_receiver) = t["parameters"]["value"]["default"]["3"].as_str() {
-                return Some(ever_receiver.to_owned());
-            }
-        }
-    }
-    None
-}
+// fn tezos_parse_comment(batch: Value) -> Option<String> {
+//     if let Some(transactions) = batch.as_array() {
+//         for t in transactions {
+//             if let Some(ever_receiver) = t["parameters"]["value"]["default"]["3"].as_str() {
+//                 return Some(ever_receiver.to_owned());
+//             }
+//         }
+//     }
+//     None
+// }
 
 #[tokio::main]
 async fn main() {
-    let config = Config::from_json(
-        serde_json::from_str(
-            std::fs::read_to_string(
-                "./dependencies/json/run_config.json"
-            ).unwrap().as_str()
-        ).expect("failed to parse json")
-    );
+    // let config = Config::from_json(
+    //     serde_json::from_str(
+    //         std::fs::read_to_string(
+    //             "./dependencies/json/run_config.json"
+    //         ).unwrap().as_str()
+    //     ).expect("failed to parse json")
+    // );
     // let ton = create_client_verbose(&config).unwrap();
     // let mut last_len = tezos_get_transactions().as_array().unwrap().len();
     let context = Arc::new(
@@ -173,7 +171,7 @@ async fn main() {
         },
     ).await.unwrap();
 
-    // loop {
+    loop {
     //     let res = tezos_get_transactions();
     //     let len = res.as_array().unwrap().len();
     //     if len > last_len {
@@ -187,5 +185,5 @@ async fn main() {
     //         }
     //         last_len = len;
     //     }
-    // }
+    }
 }

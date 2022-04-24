@@ -95,7 +95,7 @@ pub struct Transport {
     message: Option<String>,
     url: Option<Url>,
     source: Option<Box<dyn error::Error + Send + Sync + 'static>>,
-    response: Option<Response>,
+    _response: Option<Response>,
 }
 
 impl Display for Error {
@@ -158,7 +158,7 @@ impl Error {
             message,
             url: None,
             source: None,
-            response: None,
+            _response: None,
         })
     }
 

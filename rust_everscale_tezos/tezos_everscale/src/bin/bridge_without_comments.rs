@@ -1,10 +1,13 @@
-mod tezos_send_transaction;
+use lib::everscale::config::create_client_verbose;
+use lib::everscale::multisig::confirm_transaction;
+use lib::everscale::multisig::submit_transaction;
+use lib::tezos::transfer::transfer as tezos_transfer;
+use lib::everscale::config::Config;
 use lib::functions::*;
 use ureq::Agent;
 use std::sync::Arc;
 use std::fs;
 use serde_json::Value;
-use tezos_send_transaction::transfer as tezos_transfer;
 
 fn tezos_get_transactions() -> Value {
     let agent = Agent::new();

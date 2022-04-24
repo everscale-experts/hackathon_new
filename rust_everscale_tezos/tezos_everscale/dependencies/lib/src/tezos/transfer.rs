@@ -1,15 +1,17 @@
 use console::style;
-use lib::utils::parse_float_amount;
-use lib::{Address, PrivateKey, PublicKey};
-use lib::commands::CommandError;
-use lib::common::exit_with_error;
-use lib::common::operation_command::*;
+use crate::utils::parse_float_amount;
+use crate::PublicKey;
+use crate::PrivateKey;
+use crate::Address;
+use crate::commands::CommandError;
+use crate::common::exit_with_error;
+use crate::common::operation_command::*;
 
 #[derive(Debug)]
 pub struct ParseKeyError {
-    kind: KeyKind,
-    key: String,
-    error: lib::FromPrefixedBase58CheckError,
+    _kind: KeyKind,
+    _key: String,
+    _error: crate::FromPrefixedBase58CheckError,
 }
 
 #[derive(PartialEq, Debug, Clone)]
@@ -47,9 +49,9 @@ impl TransferLocal {
     fn public_key(&self) -> Result<PublicKey, ParseKeyError> {
         PublicKey::from_base58check(&self.public_key)
             .map_err(|error| ParseKeyError {
-                error,
-                kind: KeyKind::Public,
-                key: self.public_key.to_string(),
+                _error: error,
+                _kind: KeyKind::Public,
+                _key: self.public_key.to_string(),
             }
         )
     }
@@ -57,9 +59,9 @@ impl TransferLocal {
     fn private_key(&self) -> Result<PrivateKey, ParseKeyError> {
         PrivateKey::from_base58check(&self.private_key)
             .map_err(|error| ParseKeyError {
-                error,
-                kind: KeyKind::Private,
-                key: self.private_key.to_string(),
+                _error: error,
+                _kind: KeyKind::Private,
+                _key: self.private_key.to_string(),
             }
         )
     }
@@ -87,7 +89,7 @@ impl TransferLocal {
             options: OperationOptions {
                 no_prompt: self.no_prompt,
             },
-            api: Box::new(lib::http_api::HttpApi::new(self.endpoint.clone())),
+            api: Box::new(crate::http_api::HttpApi::new(self.endpoint.clone())),
             from: public_key.hash().into(),
             // from: Address::from_base58check("tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R").unwrap(),
             // from: "KT1MeAHVkJp87r9neejmaxCfaccoUfXAssy1",
@@ -122,11 +124,11 @@ pub fn transfer(from: &str, to: &str, public_key: &str, secret_key: &str, amount
     }
 }
 
-fn main() {
+// fn main() {
 //     let contract = "tz1fGCqibiGS1W7fWCCCCLQ9rzMiayAsMa4R";
 //     let to = "tz1aazXPQEU5fAFh9nS7KbyzmePi8xyirc4M";
 //     let secret_key = "edsk4Nv9m2dieMVmEefcBUePbyYmKxx3C5mjspEnFz7xCBYhTdx46R";
 //     let public_key = "edpkv55oyAHTFXW153wPdQVaCWD5MqQRPWfJHznTZXB72i3Yesz1Rd";
 //     let amount = "0.001";
 //     transfer(contract, from, to, public_key, secret_key, amount);
-}
+// }

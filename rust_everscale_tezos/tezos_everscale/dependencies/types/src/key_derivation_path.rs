@@ -90,7 +90,7 @@ impl FromStr for KeyDerivationPath {
             .replace("m/", "")
             .split("/")
             .enumerate()
-            .map(|(index, part)| {
+            .map(|(_index, part)| {
                 let mut num_str = part.to_string();
                 let is_hardened = num_str.ends_with("'");
 

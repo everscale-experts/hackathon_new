@@ -13,15 +13,15 @@ use crate::commands::CommandError;
 pub struct GetAddress {
     /// Verbose mode (-v, -vv, -vvv, etc.)
     #[structopt(short, long, parse(from_occurrences))]
-    verbose: u8,
+    _verbose: u8,
 
     /// Get address from Ledger.
     #[structopt(long)]
-    trezor: bool,
+    _trezor: bool,
 
     /// Get address from Ledger.
     #[structopt(long)]
-    ledger: bool,
+    _ledger: bool,
 
     /// E.g. "m/44'/1729'/0'"
     #[structopt(short, long)]
