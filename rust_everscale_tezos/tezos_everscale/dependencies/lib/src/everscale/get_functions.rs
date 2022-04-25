@@ -3,7 +3,7 @@ use ton_client::ClientContext;
 use ton_client::abi::*;
 use serde_json::Value;
 use std::sync::Arc;
-use crate::CONFIG;
+use crate::*;
 use crate::functions::get_json_field;
 use super::contract::call_contract_with_client;
 use super::config::Config;
@@ -45,13 +45,13 @@ pub async fn ever_get_transactions(
     ton: Arc<ClientContext>,
     config: Config,
     address: &str,
-    abi: &str,
+    abi_path: &str,
 ) -> Vec<Value> {
     if let Some(arr) = call_contract_with_client(
         ton,
         config.clone(),
         address,
-        abi.to_string(),
+        std::fs::read_to_string(format!("./dependencies/json/{}", abi_path)).unwrap(),
         "getTransactions",
         serde_json::json!({}),
         None,
@@ -62,7 +62,7 @@ pub async fn ever_get_transactions(
 }
 
 pub fn ever_multisig() -> String {
-    get_json_field(CONFIG, None, Some(ever_multisig_id() as usize)).as_str().unwrap().to_string()
+    get_json_field(EVERSCALE_ACCOUNTS, None, Some(ever_multisig_id()))["address"].as_str().unwrap().to_string()
 }
 
 pub fn ever_htlc() -> String {

@@ -10,6 +10,7 @@ pub const AWAIT_TIMEOUT: u128 = 120000; // ms
 pub const RPC: &str = "https://hangzhounet.api.tez.ie";
 pub const ENDPOINT: &str = "https://api.hangzhounet.tzkt.io";
 pub const CONFIG: &str = "./dependencies/json/config.json";
+pub const EVERSCALE_ACCOUNTS: &str = "./dependencies/json/everscale_accounts.json";
 
 pub use crypto::FromBase58Check;
 pub use crypto::ToBase58Check;

@@ -160,12 +160,12 @@ pub fn create_batch(hash: &str, dest: &str) {
     // prop = 0 - for calling transfer_token_proposal
     // prop = 1 - for calling transfer_mutez_proposal
     // prop = 2 - for calling lambda_proposal
-    // let proposal_id = create_and_vote_proposal(branch.as_str(), 0, dest, hash);
+    let proposal_id = create_and_vote_proposal(branch.as_str(), 0, dest, hash);
     let group = msig_to_htlc_group(
         branch.as_str(),
         tezos_msig_executor,
-        // proposal_id,
-        51,
+        proposal_id,
+        // 51,
         hash,
         dest,
         1000,

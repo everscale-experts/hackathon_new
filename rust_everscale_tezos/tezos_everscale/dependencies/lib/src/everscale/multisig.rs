@@ -33,7 +33,7 @@ pub async fn submit_transaction(
     ton: Arc<ClientContext>,
     config: Config,
     address: &str,
-    abi: &str,
+    abi_filename: &str,
     keys: Option<String>,
     payload: String,
     amount: &str,
@@ -43,7 +43,7 @@ pub async fn submit_transaction(
         ton.clone(),
         config.clone(),
         address,
-        abi.to_string(),
+        std::fs::read_to_string(format!("./dependencies/json/{}", abi_filename)).unwrap(),
         "submitTransaction",
         serde_json::from_str(format!(
             r#"{{

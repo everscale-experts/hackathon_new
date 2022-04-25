@@ -5,10 +5,11 @@ use lib::everscale;
 use lib::tezos;
 use lib::functions::*;
 
-async fn transaction_event(transactions: Value, ton: &Arc<ClientContext>, config: &Config) {
-    let pair = transactions[1]["parameter"]["value"].clone();
+async fn transaction_event(group: Value, ton: &Arc<ClientContext>, config: &Config) {
+    let pair = group[2]["parameters"]["value"]["createLock"]["pair"]["pair"]["pair"].clone();
+    println!("{:#}", pair);
     let amount = "1000";
-    if let (Some(dest), Some(hash)) = (pair["dest1"].as_str(), pair["hash1"].as_str()) {
+    if let (Some(dest), Some(hash)) = (pair["dest"].as_str(), pair["hash"].as_str()) {
         println!("dest: {}\nhash: {}", dest, hash);
         let payload = get_payload(
             ton.clone(),
@@ -32,11 +33,14 @@ async fn transaction_event(transactions: Value, ton: &Arc<ClientContext>, config
             dest,
         ).await;
         println!("{}\n", transactions);
+    } else {
+        println!("Parsing (dest, hash) failed\n");
+        // println!("Parsing (dest, hash) failed. Transactions: {:#}\n", group);
     }
 }
 
 async fn listen_address(address: &str, ton: &Arc<ClientContext>, config: &Config) {
-    let mut last_len = tezos::get::get_transactions(address).as_array().unwrap().len();
+    let mut last_len = tezos::get::get_transactions(address).as_array().unwrap().len() - 1;
     loop {
         let transactions = tezos::get::get_transactions(address);
         let len = transactions.as_array().unwrap().len();
@@ -45,7 +49,7 @@ async fn listen_address(address: &str, ton: &Arc<ClientContext>, config: &Config
             let hash = transactions[0]["hash"].as_str().unwrap();
             let (is_batch, group) = tezos::get::get_batch_by_hash(hash.to_string());
             if is_batch {
-                println!("Batch catched");
+                println!("Batch catched. Hash: {}", hash);
                 transaction_event(group, ton, config).await;
             } else {
                 println!("Transcaction catched");
@@ -65,7 +69,7 @@ async fn main() {
     );
     let ton = create_client_verbose(&config).unwrap();
     listen_address(
-        tezos_coin_htlc().as_str(),
+        tezos_htlc().as_str(),
         &ton,
         &config,
     ).await;
