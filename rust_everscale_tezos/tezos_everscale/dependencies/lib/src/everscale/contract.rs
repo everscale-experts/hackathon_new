@@ -21,6 +21,7 @@ pub async fn call_contract_with_client(
     local: bool,
     is_fee: bool,
 ) -> Result<serde_json::Value, String> {
+    println!("method: {}, keys: {}", method, keys.clone().unwrap_or("null".to_string()));
     // println!("{}", addr);
     // println!("{}", keys.as_ref().unwrap());
     // println!("{}", params);

@@ -8,7 +8,7 @@ pub async fn confirm_transaction(
     ton: Arc<ClientContext>,
     config: Config,
     address: &str,
-    abi: &str,
+    abi_filename: &str,
     keys: Option<String>,
     trans_id: String,
 ) -> String {
@@ -16,7 +16,7 @@ pub async fn confirm_transaction(
         ton,
         config.clone(),
         address,
-        abi.to_string(),
+        std::fs::read_to_string(format!("./dependencies/json/{}", abi_filename)).unwrap(),
         "confirmTransaction",
         serde_json::json!({
             "transactionId": trans_id,
@@ -26,7 +26,7 @@ pub async fn confirm_transaction(
         false,
     ).await;
     if res.is_ok() { "Ok, signed".to_string() }
-    else { "Error, already signed".to_string() }
+    else { res.err().unwrap() }
 }
 
 pub async fn submit_transaction(
@@ -101,6 +101,21 @@ pub async fn transfer( // using submit_transaction
         ).await;
         println!("Transaction created with id: {}", trans_id);
         for i in 2..4 {
+            println!(
+                "{}",
+                confirm_transaction(
+                    ton.clone(),
+                    config.clone(),
+                    address.as_str(),
+                    abi,
+                    Some(ever_msig_keypair(i)),
+                    trans_id.to_string(),
+                ).await,
+            );
+        }
+    } else {
+        let trans_id = &transactions[0]["trans_id"];
+        for i in 1..4 {
             println!(
                 "{}",
                 confirm_transaction(

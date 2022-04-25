@@ -8,7 +8,7 @@ use lib::functions::*;
 async fn transaction_event(group: Value, ton: &Arc<ClientContext>, config: &Config) {
     let pair = group[2]["parameters"]["value"]["createLock"]["pair"]["pair"]["pair"].clone();
     println!("{:#}", pair);
-    let amount = "1000";
+    let amount = "1000000";
     if let (Some(dest), Some(hash)) = (pair["dest"].as_str(), pair["hash"].as_str()) {
         println!("dest: {}\nhash: {}", dest, hash);
         let payload = get_payload(
@@ -17,7 +17,7 @@ async fn transaction_event(group: Value, ton: &Arc<ClientContext>, config: &Conf
             dest,
             format!("0x{}", hash).as_str(),
         ).await.unwrap().body;
-        print!("Sending money from multisig... ");
+        println!("Sending money from multisig...");
         let _ = everscale::multisig::transfer(
             ton.clone(),
             config.clone(),
@@ -27,7 +27,7 @@ async fn transaction_event(group: Value, ton: &Arc<ClientContext>, config: &Conf
             ever_htlc().as_str()
         ).await;
         println!("done\n");
-        print!("Calling createLockWithCoins... ");
+        println!("Calling createLockWithCoins... ");
         let transactions = create_lock_with_coins(
             ton.clone(),
             config.clone(),
