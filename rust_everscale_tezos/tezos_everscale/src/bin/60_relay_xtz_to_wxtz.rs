@@ -1,5 +1,5 @@
 use lib::everscale::htlc::create_lock_with_tokens;
-use lib::everscale::htlc::get_timestamp;
+// use lib::everscale::htlc::get_timestamp;
 use lib::everscale::multisig::confirm_transaction;
 use lib::everscale::multisig::submit_transaction;
 use lib::everscale::config::*;
@@ -104,9 +104,9 @@ async fn main() {
     //     })
     //     .unwrap(),
     // );
-    let timestamp = get_timestamp(ton.clone(), config.clone(), Some(ever_htlc_keypair())).await;
-    let hash = timestamp["value0"].as_str().unwrap();
-    println!("{:#}", hash);
+    // let timestamp = get_timestamp(ton.clone(), config.clone(), Some(ever_htlc_keypair())).await;
+    // let hash = timestamp["value0"].as_str().unwrap();
+    // println!("{:#}", hash);
     // create_batch("0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114", "KT1D4Ri8ntL7HLKTK63cyuV7ZAuMthzrSGJN");
     // let res = create_lock_with_tokens(
     //     ton.clone(),
