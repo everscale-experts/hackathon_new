@@ -1,3 +1,5 @@
+use serde_json::Value;
+
 use crate::functions::get_json_field;
 use crate::*;
 
@@ -62,6 +64,18 @@ pub fn get_block_hash() -> String {
         .into_json().unwrap();
     // println!("Block hash: {}", value);
     value
+}
+
+pub fn get_transactions(address: &str) -> Value {
+    let agent = ureq::Agent::new();
+    let path = format!("https://api.hangzhounet.tzkt.io/v1/accounts/{}/operations", address);
+    let res = agent.get(&path)
+        .call()
+        .unwrap()
+        .into_string()
+        .unwrap();
+    let res_json = serde_json::from_str::<Value>(res.as_str()).unwrap();
+    res_json
 }
 
 pub fn get_address_by_tme(tme_id: usize) -> serde_json::Value {

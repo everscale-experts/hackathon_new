@@ -2,6 +2,7 @@ use ton_client::ClientContext;
 use std::sync::Arc;
 use super::contract::call_contract_with_client;
 use super::config::Config;
+use super::get::*;
 
 pub async fn confirm_transaction(
     ton: Arc<ClientContext>,
@@ -69,4 +70,48 @@ pub async fn submit_transaction(
         false, // true - run in tonos cli, false - call
         false,
     ).await.unwrap()["transId"].as_str().unwrap().to_string()
+}
+
+pub async fn transfer( // using submit_transaction
+    ton: Arc<ClientContext>,
+    config: Config,
+    abi: &str,
+    payload: String,
+    amount: &str,
+    receiver: &str,
+) {
+    let address = ever_multisig();
+    let transactions = ever_get_transactions(
+        ton.clone(),
+        config.clone(),
+        ever_multisig().as_str(),
+        abi,
+    ).await;
+
+    if transactions.is_empty() {
+        let trans_id = submit_transaction(
+            ton.clone(),
+            config.clone(),
+            address.as_str(),
+            abi,
+            Some(ever_msig_keypair(0)),
+            payload,
+            amount,
+            receiver,
+        ).await;
+        println!("Transaction created with id: {}", trans_id);
+        for i in 2..4 {
+            println!(
+                "{}",
+                confirm_transaction(
+                    ton.clone(),
+                    config.clone(),
+                    address.as_str(),
+                    abi,
+                    Some(ever_msig_keypair(i)),
+                    trans_id.to_string(),
+                ).await,
+            );
+        }
+    }
 }

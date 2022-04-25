@@ -26,6 +26,30 @@ pub async fn create_lock_with_tokens(
     ).await.unwrap()
 }
 
+pub async fn create_lock_with_coins(
+    ton: Arc<ClientContext>,
+    config: Config,
+    keys: Option<String>,
+    hash: &str,
+    dest: &str,
+) -> Value {
+    call_contract_with_client(
+        ton.clone(),
+        config.clone(),
+        ever_htlc().as_str(),
+        htlc_abi(),
+        "createLockWithCoins",
+        serde_json::json!({
+            "dest": dest,
+            "hash": hash,
+            "timeout": 300,
+        }),
+        keys,
+        false, // true - run in tonos cli, false - call
+        false,
+    ).await.unwrap()
+}
+
 pub async fn get_timestamp(
     ton: Arc<ClientContext>,
     config: Config,
