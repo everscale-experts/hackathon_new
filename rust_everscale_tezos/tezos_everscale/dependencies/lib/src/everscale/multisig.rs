@@ -114,7 +114,7 @@ pub async fn transfer( // using submit_transaction
             );
         }
     } else {
-        let trans_id = &transactions[0]["trans_id"];
+        let trans_id = transactions[0]["id"].as_str().unwrap();
         for i in 1..4 {
             println!(
                 "{}",
