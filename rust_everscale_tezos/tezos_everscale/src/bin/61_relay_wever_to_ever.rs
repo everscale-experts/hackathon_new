@@ -17,6 +17,7 @@ async fn transaction_event(group: Value, ton: &Arc<ClientContext>, config: &Conf
             dest,
             format!("0x{}", hash).as_str(),
         ).await.unwrap().body;
+        print!("Sending money from multisig... ");
         let _ = everscale::multisig::transfer(
             ton.clone(),
             config.clone(),
@@ -25,6 +26,8 @@ async fn transaction_event(group: Value, ton: &Arc<ClientContext>, config: &Conf
             amount,
             ever_htlc().as_str()
         ).await;
+        println!("done\n");
+        print!("Calling createLockWithCoins... ");
         let transactions = create_lock_with_coins(
             ton.clone(),
             config.clone(),
@@ -32,6 +35,7 @@ async fn transaction_event(group: Value, ton: &Arc<ClientContext>, config: &Conf
             format!("0x{}", hash).as_str(),
             dest,
         ).await;
+        println!("done\n");
         println!("{}\n", transactions);
     } else {
         println!("Parsing (dest, hash) failed\n");

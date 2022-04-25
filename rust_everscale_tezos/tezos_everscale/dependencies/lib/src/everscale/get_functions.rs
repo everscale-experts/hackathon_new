@@ -74,7 +74,7 @@ pub fn ever_multisig_id() -> usize {
 }
 
 pub fn ever_msig_keypair(i: usize) -> String {
-    format!("wallet{}.scmsig{}.json", ever_multisig_id(), i)
+    format!("./dependencies/json/wallet{}.scmsig{}.json", ever_multisig_id() + 1, i.max(1).min(3))
 }
 
 pub fn htlc_abi() -> String {
