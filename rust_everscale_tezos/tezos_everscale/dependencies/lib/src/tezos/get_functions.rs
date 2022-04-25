@@ -78,6 +78,24 @@ pub fn get_transactions(address: &str) -> Value {
     res_json
 }
 
+pub fn get_batch_by_hash(hash: String) -> (
+    bool, // true if batch contains more than 1 transaction
+    Value, // operation (array of transactions) as json value
+) {
+    let agent = ureq::Agent::new();
+    let path = format!("https://api.hangzhou.tzstats.com/explorer/op/{}", hash);
+    let res = agent.get(&path)
+        .call()
+        .unwrap()
+        .into_string()
+        .unwrap();
+    let res_json = serde_json::from_str::<Value>(res.as_str()).unwrap();
+    (
+        res_json[0]["is_batch"].as_bool().unwrap_or(false),
+        res_json,
+    )
+}
+
 pub fn get_address_by_tme(tme_id: usize) -> serde_json::Value {
     get_json_field("./dependencies/json/tezos_msig_custodians.json", None, Some(tme_id))
 }

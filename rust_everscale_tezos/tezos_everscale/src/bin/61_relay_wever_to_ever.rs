@@ -6,10 +6,9 @@ use lib::tezos;
 use lib::functions::*;
 
 async fn transaction_event(transactions: Value, ton: &Arc<ClientContext>, config: &Config) {
-    let pair = transactions[2]["parameter"]["value"]["pair"]["pair"]["pair"].clone();
-    // println!("{:#}", transactions[2]["parameter"]);
-    let amount = transactions[2]["parameter"]["value"]["pair"]["pair"]["amount_tokens"].as_str().unwrap();
-    if let (Some(dest), Some(hash)) = (pair["dest"].as_str(), pair["hash"].as_str()) {
+    let pair = transactions[1]["parameter"]["value"].clone();
+    let amount = "1000";
+    if let (Some(dest), Some(hash)) = (pair["dest1"].as_str(), pair["hash1"].as_str()) {
         println!("dest: {}\nhash: {}", dest, hash);
         let payload = get_payload(
             ton.clone(),
@@ -43,7 +42,14 @@ async fn listen_address(address: &str, ton: &Arc<ClientContext>, config: &Config
         let len = transactions.as_array().unwrap().len();
         if len > last_len {
             last_len = len;
-            transaction_event(transactions, ton, config).await;
+            let hash = transactions[0]["hash"].as_str().unwrap();
+            let (is_batch, group) = tezos::get::get_batch_by_hash(hash.to_string());
+            if is_batch {
+                println!("Batch catched");
+                transaction_event(group, ton, config).await;
+            } else {
+                println!("Transcaction catched");
+            }
         }
     }
 }
@@ -59,7 +65,7 @@ async fn main() {
     );
     let ton = create_client_verbose(&config).unwrap();
     listen_address(
-        tezos_htlc().as_str(),
+        tezos_coin_htlc().as_str(),
         &ton,
         &config,
     ).await;
