@@ -1,5 +1,4 @@
 use lib::everscale::htlc::create_lock_with_tokens;
-// use lib::everscale::htlc::get_timestamp;
 use lib::everscale::multisig::confirm_transaction;
 use lib::everscale::multisig::submit_transaction;
 use lib::everscale::config::*;
@@ -60,25 +59,6 @@ async fn ever_msig_to_htlc(
                 ).await,
             );
         }
-    } else {
-        // for t in transactions.iter() {
-        //     let trans_id = t["id"].as_str().unwrap();
-        //     println!("Transaction id: {}", trans_id);
-        //     for i in 2..4 {
-        //         println!(
-        //             "{}",
-        //             confirm_transaction(
-        //                 ton.clone(),
-        //                 config.clone(),
-        //                 address.as_str().unwrap(),
-        //                 abi.clone(),
-        //                 Some(ever_msig_keypair(i)),
-        //                 trans_id.to_string(),
-        //             ).await,
-        //         );
-        //     }
-        //     println!("\n\n\n****************************");
-        // }
     }
 }
 
@@ -93,30 +73,6 @@ async fn main() {
     );
     let ton = create_client_verbose(&config).unwrap();
     let mut last_len = tezos_get_transactions().as_array().unwrap().len();
-    // let context = Arc::new(
-    //     ton_client::ClientContext::new(ton_client::ClientConfig {
-    //         network: ton_client::net::NetworkConfig {
-    //             // server_address: Some("cinet.tonlabs.io".to_owned()), // mainnet
-    //             server_address: Some("net.ton.dev".to_string()), // devnet
-    //             ..Default::default()
-    //         },
-    //         ..Default::default()
-    //     })
-    //     .unwrap(),
-    // );
-    // let timestamp = get_timestamp(ton.clone(), config.clone(), Some(ever_htlc_keypair())).await;
-    // let hash = timestamp["value0"].as_str().unwrap();
-    // println!("{:#}", hash);
-    // create_batch("0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114", "KT1D4Ri8ntL7HLKTK63cyuV7ZAuMthzrSGJN");
-    // let res = create_lock_with_tokens(
-    //     ton.clone(),
-    //     config.clone(),
-    //     Some(ever_htlc_keypair()),
-    //     // format!("{}", "0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114"),
-    //     format!("{}", hash),
-    // ).await;
-    // println!("{}\n", res);
-    // println!("Starting tezos listener...");
     loop {
         let res = tezos_get_transactions();
         let len = res.as_array().unwrap().len();
