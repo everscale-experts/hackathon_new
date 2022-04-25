@@ -1,0 +1,9 @@
+{
+    "htlc1": "0:5f2f9a5ad75f9fdf4cb6e2b6042609db76f745237c0fc0459056afad4f6aeb64",
+    "everscale_multisig_id": "0",
+    "tezos_multisig": "KT19CHLVtotUatCoJDwj8VA5zpJqP4geG3LA",
+    "tezos_token_address": "KT19xGcNnDwB8uYy18k93FjFv9KNDEivbq87",
+    "htlc2": "KT1Dum1swTW6G9GRPsUTH2ep6UKM8DccMRcv",
+    "htlc2-coin": "KT1Gq88vCtv6QrvMsFbiVRJBB1RyUPcPMs6H",
+    "tezos_address_for_sending_coments": "KT1X7DmWgCU4h1V7hbwPpzwGJcXBfoydcgwW"
+}
