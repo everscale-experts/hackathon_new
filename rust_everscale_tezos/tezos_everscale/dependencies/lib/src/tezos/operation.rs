@@ -44,6 +44,7 @@ pub fn simulate_operation(
     });
     // println!("Running operation... {}/chains/main/blocks/head/helpers/scripts/run_operation", RPC);
     // println!("Body: {:#}", body);
+    // println!("\n\n\n\n{:#}", body);
     let res = &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", RPC).as_str())
         .send_json(body.clone()).unwrap()
         .into_json::<serde_json::Value>().unwrap()["contents"][0]["metadata"]["operation_result"];
@@ -91,6 +92,7 @@ pub fn sign_operation(
         });
         // println!("\n\n\n\n\nForging... {:#}", body);
         // println!("{}/chains/main/blocks/head/helpers/forge/operations", rpc);
+        // println!("\n\n\nSigning...\n{:#}", body);
         let bytes: serde_json::Value = ureq::Agent::new().post(format!("{}/chains/main/blocks/head/helpers/forge/operations", RPC).as_str())
             .send_json(body).unwrap()
             .into_json().unwrap();

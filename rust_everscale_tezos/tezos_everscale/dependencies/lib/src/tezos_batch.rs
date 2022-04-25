@@ -85,71 +85,6 @@ fn msig_to_htlc_group(
     group
 }
 
-pub fn create_batch(hash: &str, dest: &str) {
-    let tezos_msig_executor = 1;
-    let branch = get_block_hash();
-    // prop = 0 - for calling transfer_token_proposal
-    // prop = 1 - for calling transfer_mutez_proposal
-    // prop = 2 - for calling lambda_proposal
-    let proposal_id = create_and_vote_proposal(branch.as_str(), 0, dest, hash);
-    let group = msig_to_htlc_group(
-        branch.as_str(),
-        tezos_msig_executor,
-        proposal_id,
-        // 3,
-        hash,
-        dest,
-        1000,
-    );
-    let res = sign_operation(
-        branch.as_str(),
-        tezos_msig_executor,
-        group,
-    ).unwrap();
-    let inject_res = inject_operations(res.operation_with_signature.as_str()).unwrap();
-    println!("https://hangzhou2net.tzkt.io/{}", inject_res.as_str().unwrap());
-    println!("{}", inject_res);
-}
-
-fn execute_proposal_json(
-    counter: u64,
-    sender: Value,
-    fee: &str,
-    gas_limit: &str,
-    storage_limit: &str,
-    proposal_id: u64,
-) -> Value {
-    serde_json::json!([{
-        "kind": "transaction",
-        "source": sender["address"],
-        "destination": tezos_multisig(),
-        "fee": fee,
-        "counter": format!("{}", counter as u64),
-        "gas_limit": gas_limit,
-        "storage_limit": storage_limit,
-        "amount": "0",
-        "parameters": {
-            "entrypoint": "execute_proposal",
-            "value": { "int" : format!("{}", proposal_id) }
-        }
-    }])
-}
-
-fn test_execute_proposal_json(
-    counter: u64,
-    sender: Value,
-    proposal_id: u64,
-) -> Value {
-    execute_proposal_json(
-        counter,
-        sender,
-        "100000",
-        "10300",
-        "257",
-        proposal_id,
-    )
-}
-
 fn msig_to_htlc_group_with_coins(
     branch: &str,
     tme_id: usize,
@@ -180,6 +115,71 @@ fn msig_to_htlc_group_with_coins(
     group
 }
 
+fn execute_proposal_json(
+    counter: u64,
+    sender: Value,
+    fee: &str,
+    gas_limit: &str,
+    storage_limit: &str,
+    proposal_id: u64,
+) -> Value {
+    serde_json::json!({
+        "kind": "transaction",
+        "source": sender["address"],
+        "destination": tezos_multisig(),
+        "fee": fee,
+        "counter": format!("{}", counter as u64),
+        "gas_limit": gas_limit,
+        "storage_limit": storage_limit,
+        "amount": "0",
+        "parameters": {
+            "entrypoint": "execute_proposal",
+            "value": { "int" : format!("{}", proposal_id) }
+        }
+    })
+}
+
+fn test_execute_proposal_json(
+    counter: u64,
+    sender: Value,
+    proposal_id: u64,
+) -> Value {
+    serde_json::json!([execute_proposal_json(
+        counter,
+        sender,
+        "100000",
+        "10300",
+        "257",
+        proposal_id,
+    )])
+}
+
+pub fn create_batch(hash: &str, dest: &str) {
+    let tezos_msig_executor = 1;
+    let branch = get_block_hash();
+    // prop = 0 - for calling transfer_token_proposal
+    // prop = 1 - for calling transfer_mutez_proposal
+    // prop = 2 - for calling lambda_proposal
+    // let proposal_id = create_and_vote_proposal(branch.as_str(), 0, dest, hash);
+    let group = msig_to_htlc_group(
+        branch.as_str(),
+        tezos_msig_executor,
+        // proposal_id,
+        51,
+        hash,
+        dest,
+        1000,
+    );
+    let res = sign_operation(
+        branch.as_str(),
+        tezos_msig_executor,
+        group,
+    ).unwrap();
+    let inject_res = inject_operations(res.operation_with_signature.as_str()).unwrap();
+    println!("https://hangzhou2net.tzkt.io/{}", inject_res.as_str().unwrap());
+    println!("{}", inject_res);
+}
+
 pub fn create_batch_with_coins(hash: &str, dest: &str) {
     let tezos_msig_executor = 1;
     let branch = get_block_hash();
@@ -189,7 +189,7 @@ pub fn create_batch_with_coins(hash: &str, dest: &str) {
             branch.as_str(),
             tezos_msig_executor,
             proposal_id,
-            // 3,
+            // 51,
         );
         let res = sign_operation(
             branch.as_str(),
