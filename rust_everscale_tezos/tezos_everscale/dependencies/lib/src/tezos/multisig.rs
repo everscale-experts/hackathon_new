@@ -54,11 +54,11 @@ pub fn vote_method(
 }
 
 pub fn create_and_vote_proposal(branch: &str, prop: usize, dest: &str, hash: &str) -> u64{
-    // create_proposal(branch, prop, dest, hash);
-    // let proposal_id = get_proposal_id();
-    let proposal_id = 54;
+    create_proposal(branch, prop, dest, hash);
+    let proposal_id = get_proposal_id();
+    // let proposal_id = 54;
     let mut votes = vec![];
-    for i in 1..3 {
+    for i in 0..3 {
         let group = vec![vote_method(branch, i, proposal_id)];
         let sign_res = sign_operation(
             branch,
