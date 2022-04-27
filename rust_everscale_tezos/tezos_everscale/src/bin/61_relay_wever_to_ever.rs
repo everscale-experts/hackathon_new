@@ -43,6 +43,19 @@ async fn transaction_event(group: Value, ton: &Arc<ClientContext>, config: &Conf
     }
 }
 
+fn parse_receiver(transactions: Value) -> Option<String> {
+    for i in 0..transactions.as_array().unwrap().len() {
+        let parameters: Value = transactions[i]["parameters"].clone();
+        match parameters["entrypoint"].as_str() {
+            Some("default") => {
+                return parameters["value"]["default"]["3"].as_str().map(str::to_string);
+            },
+            _ => {}
+        }
+    }
+    None
+}
+
 async fn listen_address(address: &str, ton: &Arc<ClientContext>, config: &Config) {
     let mut last_len = tezos::get::get_transactions(address).as_array().unwrap().len() - 1;
     loop {
@@ -54,7 +67,8 @@ async fn listen_address(address: &str, ton: &Arc<ClientContext>, config: &Config
             let (is_batch, group) = tezos::get::get_batch_by_hash(hash.to_string());
             if is_batch {
                 println!("Batch catched. Hash: {}", hash);
-                transaction_event(group, ton, config).await;
+                println!("Destination: {}", parse_receiver(group).unwrap_or("not found".to_string()));
+                // transaction_event(group, ton, config).await;
             } else {
                 println!("Transcaction catched");
             }
