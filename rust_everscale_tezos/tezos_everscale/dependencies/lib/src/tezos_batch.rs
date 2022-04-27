@@ -242,7 +242,6 @@ pub fn create_batch(hash: &str, dest: &str) {
         branch.as_str(),
         tezos_msig_executor,
         proposal_id,
-        // 54,
         hash,
         dest,
         1000,
@@ -266,7 +265,6 @@ pub fn create_batch_with_coins(hash: &str, dest: &str) {
             branch.as_str(),
             tezos_msig_executor,
             proposal_id,
-            // 54,
         );
         let res = sign_operation(
             branch.as_str(),
