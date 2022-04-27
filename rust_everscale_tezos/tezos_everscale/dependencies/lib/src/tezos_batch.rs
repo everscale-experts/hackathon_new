@@ -93,7 +93,7 @@ fn msig_to_htlc_group(
             &test_coment_operation_result.consumed_gas.parse::<u64>().unwrap(),
             &test_coment_operation_result.storage_size.parse::<u64>().unwrap(),
         )),
-        counter,
+        counter + 2,
         &test_coment_operation_result.consumed_gas,
         &test_coment_operation_result.storage_size,
     ));
@@ -138,7 +138,7 @@ fn msig_to_htlc_group_with_coins(
             &test_coment_operation_result.consumed_gas.parse::<u64>().unwrap(),
             &test_coment_operation_result.storage_size.parse::<u64>().unwrap(),
         )),
-        counter,
+        counter + 2,
         &test_coment_operation_result.consumed_gas,
         &test_coment_operation_result.storage_size,
     ));
