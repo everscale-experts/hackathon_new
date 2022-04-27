@@ -54,10 +54,10 @@ pub fn vote_method(
 }
 
 pub fn create_and_vote_proposal(branch: &str, prop: usize, dest: &str, hash: &str) -> u64{
+    let proposal_id = get_proposal_id() + 1;
     create_proposal(branch, prop, dest, hash);
-    let proposal_id = get_proposal_id();
-    println!("{}", proposal_id);
-    // let proposal_id = 54;
+    println!("Proposal ID: {}", proposal_id);
+    // let proposal_id = 54; // it uses for vote without proposal creation
     let mut votes = vec![];
     for i in 0..3 {
         let group = vec![vote_method(branch, i, proposal_id)];

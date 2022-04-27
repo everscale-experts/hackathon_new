@@ -110,7 +110,7 @@ fn msig_to_htlc_group_with_coins(
     let counter = get_address_counter(
         sender["address"].as_str().unwrap().to_string(),
     ) + 1;
-    let test_op = test_execute_proposal_json(counter + 1, sender.clone(), proposal_id);
+    let test_op = test_execute_proposal_json(counter, sender.clone(), proposal_id);
     let additional_gas = 3000;
     let run_op_res = simulate_operation(
         branch.clone(),
@@ -124,7 +124,7 @@ fn msig_to_htlc_group_with_coins(
             &run_op_res.storage_size.parse::<u64>().unwrap(),
         )).as_str(),
         &format!("{}", run_op_res.consumed_gas.parse::<u64>().unwrap() + 200 + additional_gas),
-        &run_op_res.used_storage,
+        &format!("{}", run_op_res.used_storage.parse::<u64>().unwrap() + 257),
         proposal_id,
     ));
 
@@ -138,9 +138,9 @@ fn msig_to_htlc_group_with_coins(
             &test_coment_operation_result.consumed_gas.parse::<u64>().unwrap(),
             &test_coment_operation_result.storage_size.parse::<u64>().unwrap(),
         )),
-        counter + 2,
+        counter + 1,
         &test_coment_operation_result.consumed_gas,
-        &test_coment_operation_result.storage_size,
+        &format!("{}", test_coment_operation_result.used_storage.parse::<u64>().unwrap() + 257),
     ));
     group
 }
@@ -276,5 +276,6 @@ pub fn create_batch_with_coins(hash: &str, dest: &str) {
         let inject_res = inject_operations(res.operation_with_signature.as_str()).unwrap();
         println!("https://hangzhou2net.tzkt.io/{}", inject_res.as_str().unwrap());
         println!("{}", inject_res);
+        println!("{}\n", if await_confirmation(inject_res.as_str().unwrap()) { "Applied" } else { "Failed" });
     }
 }

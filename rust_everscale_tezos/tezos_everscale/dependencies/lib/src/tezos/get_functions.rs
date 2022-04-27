@@ -64,7 +64,7 @@ pub fn get_bigmap_by_id(bigmap_id: u64) -> Value {
 
 pub fn get_proposal_id() -> u64 {
     let bigmap_id = get_storage(&tezos_multisig())["proposals"].as_u64().unwrap();
-    get_bigmap_by_id(bigmap_id)["totalKeys"].as_u64().unwrap() + 1
+    get_bigmap_by_id(bigmap_id)["totalKeys"].as_u64().unwrap()
 }
 
 // pub fn get_proposal_id() -> u64 {
