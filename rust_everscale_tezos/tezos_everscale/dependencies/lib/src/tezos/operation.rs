@@ -46,7 +46,7 @@ pub fn simulate_operation(
     // println!("Body: {:#}", body);
     // println!("\n\n\n\n{:#}", body);
     let res = &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", RPC).as_str())
-        .send_json(body.clone()).unwrap()
+        .send_json(body.clone()).expect(&format!("Simulation failed! Body: {}", body))
         .into_json::<serde_json::Value>().unwrap()["contents"][0]["metadata"]["operation_result"];
     std::fs::write("result.json", &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", RPC).as_str())
         .send_json(body.clone()).unwrap()
@@ -109,8 +109,13 @@ pub fn sign_operation(
 pub fn inject_operations(operation_with_signature: &str) -> InjectOperationsResult {
     let operation_with_signature_json = serde_json::Value::String(operation_with_signature.to_owned());
     // println!("{:#}", operation_with_signature_json);
-    Ok(ureq::Agent::new().post(format!("{}/injection/operation", RPC).as_str())
-       .send_json(operation_with_signature_json).unwrap()
+    let url = &format!("{}/injection/operation", RPC);
+    Ok(ureq::Agent::new().post(url)
+       .send_json(operation_with_signature_json.clone()).expect(&format!(
+           "Injection failed! Url: {}\nOperation with signature: {:#}",
+           url,
+           operation_with_signature_json
+        ))
        .into_json().unwrap())
 }
 
@@ -135,7 +140,7 @@ pub fn await_confirmations(hashes: Vec<String>) -> bool {
     while timer.elapsed().as_millis() <= AWAIT_TIMEOUT && confirmations < count {
         confirmations = 0;
         for i in 0..count {
-            if get_confirmations(hashes[i].as_str()) >= 1 {
+            if get_status(&hashes[i]) == "applied" {
                 confirmations += 1;
             }
         }
