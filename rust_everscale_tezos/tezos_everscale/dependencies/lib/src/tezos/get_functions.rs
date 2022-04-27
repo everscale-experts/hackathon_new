@@ -48,14 +48,33 @@ pub fn get_confirmations(hash: &str) -> u64 {
     }
 }
 
-pub fn get_proposal_id() -> u64 {
-    let path = format!("{}/v1/contracts/{}/storage", ENDPOINT, tezos_multisig());
-    let res: serde_json::Value = ureq::Agent::new().get(path.as_str())
-        .call().unwrap()
-        .into_json().unwrap();
-    // println!("{}/v1/contracts/{}/storage", endpoint, tezos_multisig());
-    res["counter"].as_str().unwrap().parse::<u64>().unwrap() - 1
+pub fn get_storage(contract: &str) -> Value {
+    let path = format!("{}/v1/contracts/{}/storage", ENDPOINT, contract);
+    ureq::Agent::new().get(&path)
+        .call().expect("Failed to get storage")
+        .into_json().unwrap()
 }
+
+pub fn get_bigmap_by_id(bigmap_id: u64) -> Value {
+    let path = format!("{}/v1/bigmaps/{}", ENDPOINT, bigmap_id);
+    ureq::Agent::new().get(&path)
+        .call().expect("Failed to get bigmap")
+        .into_json().unwrap()
+}
+
+pub fn get_proposal_id() -> u64 {
+    let bigmap_id = get_storage(&tezos_multisig())["proposals"].as_u64().unwrap();
+    get_bigmap_by_id(bigmap_id)["totalKeys"].as_u64().unwrap() + 1
+}
+
+// pub fn get_proposal_id() -> u64 {
+//     let path = format!("{}/v1/contracts/{}/storage", ENDPOINT, tezos_multisig());
+//     let res: serde_json::Value = ureq::Agent::new().get(path.as_str())
+//         .call().unwrap()
+//         .into_json().unwrap();
+//     // println!("{}/v1/contracts/{}/storage", endpoint, tezos_multisig());
+//     res["counter"].as_str().unwrap().parse::<u64>().unwrap() - 1
+// }
 
 pub fn get_block_hash() -> String {
     let agent = ureq::Agent::new();

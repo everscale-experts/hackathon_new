@@ -110,7 +110,7 @@ fn msig_to_htlc_group_with_coins(
     let counter = get_address_counter(
         sender["address"].as_str().unwrap().to_string(),
     ) + 1;
-    let test_op = test_execute_proposal_json(counter, sender.clone(), proposal_id);
+    let test_op = test_execute_proposal_json(counter + 1, sender.clone(), proposal_id);
     let additional_gas = 3000;
     let run_op_res = simulate_operation(
         branch.clone(),
