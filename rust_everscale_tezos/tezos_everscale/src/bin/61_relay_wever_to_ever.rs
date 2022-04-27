@@ -73,7 +73,7 @@ fn parse_lock_hash_without_prefix(transactions: Value) -> Option<String> {
 }
 
 async fn listen_address(address: &str, ton: &Arc<ClientContext>, config: &Config) {
-    let mut last_len = tezos::get::get_transactions(address).as_array().unwrap().len() - 1;
+    let mut last_len = tezos::get::get_transactions(address).as_array().unwrap().len();
     loop {
         let transactions = tezos::get::get_transactions(address);
         let len = transactions.as_array().unwrap().len();
