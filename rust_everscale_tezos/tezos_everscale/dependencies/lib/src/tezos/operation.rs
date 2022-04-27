@@ -48,9 +48,9 @@ pub fn simulate_operation(
     let res = &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", RPC).as_str())
         .send_json(body.clone()).expect(&format!("Simulation failed! Body: {}", body))
         .into_json::<serde_json::Value>().unwrap()["contents"][0]["metadata"]["operation_result"];
-    std::fs::write("result.json", &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", RPC).as_str())
-        .send_json(body.clone()).unwrap()
-        .into_json::<serde_json::Value>().unwrap().to_string()).unwrap();
+    // std::fs::write("result.json", &agent.post(format!("{}/chains/main/blocks/head/helpers/scripts/run_operation", RPC).as_str())
+    //     .send_json(body.clone()).unwrap()
+    //     .into_json::<serde_json::Value>().unwrap().to_string()).unwrap();
     Ok(OperationResult{
         consumed_gas: if let Some(gas) = res["consumed_gas"].as_str() {
             // println!("{}", gas);
