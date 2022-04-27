@@ -5,16 +5,19 @@ use lib::everscale;
 use lib::tezos;
 use lib::functions::*;
 
-async fn transaction_event(group: Value, ton: &Arc<ClientContext>, config: &Config) {
-    let pair = group[2]["parameters"]["value"]["createLock"]["pair"]["pair"]["pair"].clone();
-    println!("{:#}", pair);
+async fn transaction_event(
+    dest: Option<String>,
+    hash: Option<String>,
+    ton: &Arc<ClientContext>,
+    config: &Config
+) {
     let amount = "1000000";
-    if let (Some(dest), Some(hash)) = (pair["dest"].as_str(), pair["hash"].as_str()) {
+    if let (Some(dest), Some(hash)) = (dest, hash) {
         println!("dest: {}\nhash: {}", dest, hash);
         let payload = get_payload(
             ton.clone(),
             "HelloWallet.abi.json",
-            dest,
+            &dest,
             format!("0x{}", hash).as_str(),
         ).await.unwrap().body;
         println!("Sending money from multisig...");
@@ -33,7 +36,7 @@ async fn transaction_event(group: Value, ton: &Arc<ClientContext>, config: &Conf
             config.clone(),
             Some(ever_htlc_keypair()),
             format!("0x{}", hash).as_str(),
-            dest,
+            &dest,
         ).await;
         println!("done\n");
         println!("{}\n", transactions);
@@ -56,6 +59,19 @@ fn parse_receiver(transactions: Value) -> Option<String> {
     None
 }
 
+fn parse_lock_hash_without_prefix(transactions: Value) -> Option<String> {
+    for i in 0..transactions.as_array().unwrap().len() {
+        let parameters: Value = transactions[i]["parameters"].clone();
+        match parameters["entrypoint"].as_str() {
+            Some("createLock") => {
+                return parameters["value"]["createLock"]["pair"]["pair"]["pair"]["hash"].as_str().map(str::to_string);
+            },
+            _ => {}
+        }
+    }
+    None
+}
+
 async fn listen_address(address: &str, ton: &Arc<ClientContext>, config: &Config) {
     let mut last_len = tezos::get::get_transactions(address).as_array().unwrap().len() - 1;
     loop {
@@ -67,8 +83,11 @@ async fn listen_address(address: &str, ton: &Arc<ClientContext>, config: &Config
             let (is_batch, group) = tezos::get::get_batch_by_hash(hash.to_string());
             if is_batch {
                 println!("Batch catched. Hash: {}", hash);
-                println!("Destination: {}", parse_receiver(group).unwrap_or("not found".to_string()));
-                // transaction_event(group, ton, config).await;
+                let dest = parse_receiver(group.clone());
+                println!("Destination: {}", dest.clone().unwrap_or("not found".to_string()));
+                let hash = parse_lock_hash_without_prefix(group.clone());
+                println!("Hash: 0x{}", hash.clone().unwrap_or("not found".to_string()));
+                transaction_event(dest, hash, ton, config).await;
             } else {
                 println!("Transcaction catched");
             }
