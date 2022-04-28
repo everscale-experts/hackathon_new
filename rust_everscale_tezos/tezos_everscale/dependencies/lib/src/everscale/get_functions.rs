@@ -12,7 +12,7 @@ pub async fn get_payload(
     ton: Arc<ClientContext>,
     abi_str: &str,
     // comment: &str,
-    _dest: &str,
+    dest: &str,
     hash: &str,
 ) -> Result<ResultOfEncodeMessageBody, ClientError> {
     let abi = format!("./dependencies/json/{}", abi_str);
@@ -23,13 +23,16 @@ pub async fn get_payload(
             abi,
             is_internal: true,
             call_set: CallSet {
-                function_name: "createLockWithTokens".to_owned(),
+                function_name: "transfer".to_owned(),
                 header: None,
                 input: Some(serde_json::json!({
                     // "dest": "0:0010000000123456789012345678901234567890123456789012345678901234",
                     // "dest": dest,
                     // "hash": "0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114",
-                    "hash": hash
+                    "comment": hex::encode(serde_json::json!({
+                        "dest": dest,
+                        "hash": hash,
+                    }).to_string())
                     // "timeout": "300",
                 })),
             },
@@ -40,6 +43,39 @@ pub async fn get_payload(
     println!("{}", msg.as_ref().unwrap().body);
     msg
 }
+
+// pub async fn get_payload(
+//     ton: Arc<ClientContext>,
+//     abi_str: &str,
+//     // comment: &str,
+//     _dest: &str,
+//     hash: &str,
+// ) -> Result<ResultOfEncodeMessageBody, ClientError> {
+//     let abi = format!("./dependencies/json/{}", abi_str);
+//     let abi = Abi::Json(std::fs::read_to_string(abi.as_str()).unwrap());
+//     let msg = ton_client::abi::encode_message_body(
+//         ton,
+//         ParamsOfEncodeMessageBody{
+//             abi,
+//             is_internal: true,
+//             call_set: CallSet {
+//                 function_name: "createLockWithTokens".to_owned(),
+//                 header: None,
+//                 input: Some(serde_json::json!({
+//                     // "dest": "0:0010000000123456789012345678901234567890123456789012345678901234",
+//                     // "dest": dest,
+//                     // "hash": "0xc39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114",
+//                     "hash": hash
+//                     // "timeout": "300",
+//                 })),
+//             },
+//             signer: Signer::None,
+//             processing_try_index: None,
+//         },
+//     ).await;
+//     println!("{}", msg.as_ref().unwrap().body);
+//     msg
+// }
 
 pub async fn ever_get_transactions(
     ton: Arc<ClientContext>,

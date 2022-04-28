@@ -21,9 +21,16 @@ pub fn build_parameters(
     let agent = ureq::Agent::new();
     // println!("Building... {}/v1/contracts/{}/entrypoints/{}/build", endpoint, contract, entrypoint);
     // println!("Parameters: {:#}", parameters);
-    let res = agent.post(format!("{}/v1/contracts/{}/entrypoints/{}/build", ENDPOINT, contract, entrypoint).as_str())
-        .send_json(parameters.clone()).unwrap();
-    Ok(res.into_json().unwrap_or(parameters))
+    let url = format!("{}/v1/contracts/{}/entrypoints/{}/build", ENDPOINT, contract, entrypoint);
+    match agent.post(&url)
+        .send_json(parameters.clone()) {
+        Ok(res) => Ok(res.into_json().unwrap_or(parameters)),
+        Err(err) => {
+            println!("Failed to build parameters. Contract: {}", contract);
+            println!("Entrypoint: {}\nParameters: {:#}\nError: {}", entrypoint, parameters, err);
+            Ok(parameters)
+        }
+    }
 }
 
 pub fn simulate_operation(

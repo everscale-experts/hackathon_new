@@ -7,7 +7,8 @@ use lib::everscale::htlc::create_lock_with_coins;
 #[tokio::main]
 async fn main() {
     let hash = "c39b295aef558a41ef416dcc80bc1def91857e7c16cdf4e698cc8df7cb5c6114"; // important: hash must be without "0x" prefix
-    let dest = "0:b0622d9b1ca8a47f447ce0911648afc5682f589bdee23052db2ca36b31e29d34";
+    // let dest = "0:b0622d9b1ca8a47f447ce0911648afc5682f589bdee23052db2ca36b31e29d34";
+    let dest = "KT1D4Ri8ntL7HLKTK63cyuV7ZAuMthzrSGJN";
     let ton = Arc::new(
         ton_client::ClientContext::new(ton_client::ClientConfig {
             network: ton_client::net::NetworkConfig {
@@ -31,7 +32,7 @@ async fn main() {
     println!("dest: {}\nhash: {}", dest, hash);
     let payload = get_payload(
         ton.clone(),
-        "HelloWallet.abi.json",
+        "transfer.abi.json",
         &dest,
         format!("0x{}", hash).as_str(),
     ).await.unwrap().body;

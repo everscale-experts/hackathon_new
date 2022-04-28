@@ -129,7 +129,7 @@ async fn main() {
                 println!("dest: {}\nhash: {}", dest, hash);
                 let payload = get_payload(
                     ton.clone(),
-                    "HelloWallet.abi.json",
+                    "transfer.abi.json",
                     dest,
                     format!("0x{}", hash).as_str(),
                 ).await.unwrap().body;
