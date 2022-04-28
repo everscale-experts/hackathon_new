@@ -7,15 +7,15 @@ use ton_client::error::ClientError;
 use ton_client::net::ResultOfSubscribeCollection;
 use std::sync::Arc;
 
-async fn transaction_event(ton: Arc<ClientContext>, result: Value, amount: &str) {
-    println!("Message catched. Result: {:#}", result);
+async fn transaction_event(ton: Arc<ClientContext>, msg_id: &str, amount_hex: &str) {
+    println!("Message catched. ID: {:#}", msg_id);
     let payload = decode_msg_body_by_id(
         (&ton).clone(),
-        result["in_msg"].as_str().unwrap(),
+        msg_id,
         // "388d0d91d23f4dbc97d277496cc0cd70219e646ae18a6c8e38d1ab7a9ce780e8",
         load_abi_json("./dependencies/json/transfer.abi.json").unwrap(),
     ).await;
-    let amount_u64 = hex_to_dec(amount);
+    let amount_u64 = hex_to_dec(amount_hex);
     println!("Amount: {}", amount_u64);
     println!("Payload: {:#}", payload);
     let pair: Value = serde_json::from_slice(
@@ -79,11 +79,14 @@ async fn main() {
             match result {
                 Ok(result) => {
                     let ton = get_context();
-                    if let Some(msg_id) = result.result["in_msg"]["id"].as_str() {
-                        let msg = get_msg_by_id(ton.clone(), msg_id).await;
-                        if let (Some(address), Some(amount_hex)) = (msg["dst"].as_str(), msg["value"].as_str()) {
-                            if address == &ever_htlc() {
-                                transaction_event(ton.clone(), result.result.clone(), amount_hex).await;
+                    if let Some(address) = result.result["account_addr"].as_str() {
+                        if let Some(msg_id) = result.result["in_msg"].as_str() {
+                            let msg = get_msg_by_id(ton.clone(), msg_id).await;
+                            // println!("{}", msg);
+                            if let Some(amount_hex) = msg["value"].as_str() {
+                                if address == &ever_htlc() {
+                                    transaction_event(ton.clone(), msg_id, amount_hex).await;
+                                }
                             }
                         }
                     }
