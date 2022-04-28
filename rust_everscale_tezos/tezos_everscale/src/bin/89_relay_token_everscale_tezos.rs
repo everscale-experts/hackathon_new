@@ -1,24 +1,14 @@
 use lib::everscale::contract::load_abi_json;
 use lib::everscale::get::ever_htlc;
-use lib::everscale::message::decode_msg_body_by_id;
+use lib::everscale::message::{decode_msg_body_by_id, get_msg_by_id};
 use lib::tezos_batch::create_batch;
 use lib::functions::*;
 use ton_client::error::ClientError;
 use ton_client::net::ResultOfSubscribeCollection;
 use std::sync::Arc;
 
-async fn transaction_event(result: Value, amount: &str) {
+async fn transaction_event(ton: Arc<ClientContext>, result: Value, amount: &str) {
     println!("Message catched. Result: {:#}", result);
-    let ton = Arc::new(
-        ton_client::ClientContext::new(ton_client::ClientConfig {
-            network: ton_client::net::NetworkConfig {
-                // server_address: Some("cinet.tonlabs.io".to_owned()), // mainnet
-                server_address: Some("net.ton.dev".to_string()), // devnet
-                ..Default::default()
-            },
-            ..Default::default()
-        }).unwrap(),
-    );
     let payload = decode_msg_body_by_id(
         (&ton).clone(),
         result["in_msg"].as_str().unwrap(),
@@ -40,6 +30,19 @@ async fn transaction_event(result: Value, amount: &str) {
     println!("Done");
 }
 
+fn get_context() -> Arc<ClientContext> {
+    Arc::new(
+        ton_client::ClientContext::new(ton_client::ClientConfig {
+            network: ton_client::net::NetworkConfig {
+                // server_address: Some("cinet.tonlabs.io".to_owned()), // mainnet
+                server_address: Some("net.ton.dev".to_string()), // devnet
+                ..Default::default()
+            },
+            ..Default::default()
+        }).unwrap(),
+    )
+}
+
 #[tokio::main]
 async fn main() {
     let context = Arc::new(
@@ -53,22 +56,34 @@ async fn main() {
         })
         .unwrap(),
     );
+    // let ton = get_context();
+    // if let Some(msg_id) = Some("baeb8f610c31b20f5f2368528190383a1daa5f3abba3c6cf9e5406e0eec5ff3f") {
+    //     println!("{}", msg_id);
+    //     let msg = get_msg_by_id(ton.clone(), msg_id).await;
+    //     println!("{:#}", msg);
+    //     if let (Some(address), Some(amount_hex)) = (msg["dst"].as_str(), msg["value"].as_str()) {
+    //         if address == &ever_htlc() {
+    //             // transaction_event(ton.clone(), result.result.clone(), amount_hex).await;
+    //         }
+    //     }
+    // }
 
     let _ = ton_client::net::subscribe_collection(
         context.clone(),
         ton_client::net::ParamsOfSubscribeCollection {
             collection: "transactions".to_owned(),
             filter: None,
-            result: "id account_addr in_msg in_message { value msg_type_name } balance_delta ".to_owned(),
+            result: "id account_addr in_msg".to_owned(),
         },
         |result| async {
             match result {
                 Ok(result) => {
-                    if let Some(address) = result.result["account_addr"].as_str() {
-                        // if let Some(amount) = result.result["in_message"]["value"].as_str() {
-                        if let Some(amount) = result.result["balance_delta"].as_str() {
-                            if address == &ever_htlc() && amount.starts_with("0x") {
-                                transaction_event(result.result.clone(), amount).await;
+                    let ton = get_context();
+                    if let Some(msg_id) = result.result["in_msg"]["id"].as_str() {
+                        let msg = get_msg_by_id(ton.clone(), msg_id).await;
+                        if let (Some(address), Some(amount_hex)) = (msg["dst"].as_str(), msg["value"].as_str()) {
+                            if address == &ever_htlc() {
+                                transaction_event(ton.clone(), result.result.clone(), amount_hex).await;
                             }
                         }
                     }

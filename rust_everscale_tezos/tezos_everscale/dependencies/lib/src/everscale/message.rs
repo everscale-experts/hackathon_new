@@ -99,7 +99,7 @@ pub async fn decode_msg(ton: Arc<ClientContext>, msg: &str, abi: Abi) -> Value {
 }
 
 pub async fn decode_msg_by_id(ton: Arc<ClientContext>, msg_id: &str, abi: Abi) -> Value {
-    let msg = get_msg_by_id(ton.clone(), msg_id).await;
+    let msg = get_msg_body_by_id(ton.clone(), msg_id).await;
     ton_client::abi::decode_message(ton, ParamsOfDecodeMessage {
         abi,
         message: msg,
@@ -107,7 +107,7 @@ pub async fn decode_msg_by_id(ton: Arc<ClientContext>, msg_id: &str, abi: Abi) -
 }
 
 pub async fn decode_msg_body_by_id(ton: Arc<ClientContext>, msg_id: &str, abi: Abi) -> Value {
-    let msg = get_msg_by_id(ton.clone(), msg_id).await;
+    let msg = get_msg_body_by_id(ton.clone(), msg_id).await;
     ton_client::abi::decode_message_body(ton, ParamsOfDecodeMessageBody {
         abi,
         is_internal: true,
@@ -115,7 +115,11 @@ pub async fn decode_msg_body_by_id(ton: Arc<ClientContext>, msg_id: &str, abi: A
     }).await.unwrap().value.unwrap()
 }
 
-pub async fn get_msg_by_id(ton: Arc<ClientContext>, msg_id: &str) -> String {
+pub async fn get_msg_body_by_id(ton: Arc<ClientContext>, msg_id: &str) -> String {
+    get_msg_by_id(ton.clone(), msg_id).await["body"].as_str().unwrap().to_string()
+}
+
+pub async fn get_msg_by_id(ton: Arc<ClientContext>, msg_id: &str) -> Value {
     ton_client::net::query_collection(
         ton,
         ParamsOfQueryCollection {
@@ -125,11 +129,11 @@ pub async fn get_msg_by_id(ton: Arc<ClientContext>, msg_id: &str) -> String {
                     "in": msg_id
                 }
             })),
-            result: "body".to_string(),
+            result: "id dst value body".to_string(),
             limit: None,
             order: None,
         }
-    ).await.unwrap().result[0]["body"].as_str().unwrap().to_string()
+    ).await.unwrap().result[0].clone()
 }
 
 pub fn prepare_message_params(
