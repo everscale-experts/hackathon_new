@@ -1,6 +1,7 @@
 use lib::everscale::contract::load_abi_json;
 use lib::everscale::get::ever_htlc;
 use lib::everscale::message::{decode_msg_body_by_id, get_msg_by_id};
+use lib::tezos::operation::await_confirmation;
 use lib::tezos_batch::create_batch;
 use lib::functions::*;
 use ton_client::error::ClientError;
@@ -26,7 +27,8 @@ async fn transaction_event(ton: Arc<ClientContext>, msg_id: &str, amount_hex: &s
         ).unwrap().as_ref()
     ).unwrap();
     println!("Decoded payload: {:#}", pair);
-    create_batch(pair["hash"].as_str().unwrap(), pair["dest"].as_str().unwrap());
+    let op_hash = create_batch(pair["hash"].as_str().unwrap(), pair["dest"].as_str().unwrap());
+    println!("{}", if await_confirmation(&op_hash) { "Applied" } else { "Failed" });
     println!("Done");
 }
 

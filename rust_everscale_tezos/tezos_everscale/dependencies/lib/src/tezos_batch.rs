@@ -231,7 +231,7 @@ fn test_comment_transaction_json(
     )])
 }
 
-pub fn create_batch(hash: &str, dest: &str) {
+pub fn create_batch(hash: &str, dest: &str) -> String {
     let tezos_msig_executor = 1;
     let branch = get_block_hash();
     // prop = 0 - for calling transfer_token_proposal
@@ -254,6 +254,7 @@ pub fn create_batch(hash: &str, dest: &str) {
     let inject_res = inject_operations(res.operation_with_signature.as_str()).unwrap();
     println!("https://hangzhou2net.tzkt.io/{}", inject_res.as_str().unwrap());
     println!("{}", inject_res);
+    inject_res.as_str().unwrap().to_string()
 }
 
 pub fn create_batch_with_coins(hash: &str, dest: &str) {
