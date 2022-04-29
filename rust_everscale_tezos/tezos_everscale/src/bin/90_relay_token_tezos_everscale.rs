@@ -1,4 +1,3 @@
-use lib::everscale::htlc::create_lock_with_coins;
 use lib::everscale::config::*;
 use lib::everscale::get::*;
 use lib::everscale;
@@ -42,7 +41,7 @@ async fn transaction_event(
         println!("done\n");
         println!("{}\n", transactions);
     } else {
-        println!("Parsing (dest, hash) failed\n");
+        println!("Getting (dest, hash) failed\n");
         // println!("Parsing (dest, hash) failed. Transactions: {:#}\n", group);
     }
 }
